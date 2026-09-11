@@ -1,0 +1,27 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "默认权限：核心 API + 自定义存储命令",
+  "windows": ["main"],
+    "permissions": [
+      "core:default",
+      "core:window:allow-start-dragging",
+      "allow-load-store",
+    "allow-save-store",
+    "allow-ai-chat",
+    "allow-snapshot-info",
+    "allow-reveal-dir",
+    "allow-export-backup",
+    "allow-import-backup",
+      "allow-save-text-file",
+    "allow-get-data-dir",
+    "allow-set-data-dir",
+    "allow-restart-app",
+      "clipboard-manager:allow-write-text",
+      "clipboard-manager:allow-read-text",
+      "clipboard-manager:allow-clear",
+      "allow-set-autostart",
+    "allow-autostart-enabled",
+    "allow-set-new-task-shortcut"
+  ]
+}

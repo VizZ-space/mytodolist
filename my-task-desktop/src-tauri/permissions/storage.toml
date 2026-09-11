@@ -1,0 +1,69 @@
+[[permission]]
+identifier = "allow-load-store"
+description = "允许调用 load_store 命令从本地 SQLite 读取数据"
+commands.allow = ["load_store"]
+
+[[permission]]
+identifier = "allow-save-store"
+description = "允许调用 save_store 命令向本地 SQLite 写入数据"
+commands.allow = ["save_store"]
+
+[[permission]]
+identifier = "allow-ai-chat"
+description = "允许调用 ai_chat 命令请求 OpenAI 兼容接口生成总结"
+commands.allow = ["ai_chat"]
+
+[[permission]]
+identifier = "allow-snapshot-info"
+description = "允许查询每日自动快照的目录与份数"
+commands.allow = ["snapshot_info"]
+
+[[permission]]
+identifier = "allow-reveal-dir"
+description = "允许在访达中打开数据目录或快照目录"
+commands.allow = ["reveal_dir"]
+
+[[permission]]
+identifier = "allow-export-backup"
+description = "允许弹出系统保存对话框，把备份 JSON 写到用户选定的位置"
+commands.allow = ["export_backup"]
+
+[[permission]]
+identifier = "allow-import-backup"
+description = "允许弹出系统打开对话框，读取用户选定的备份 JSON"
+commands.allow = ["import_backup"]
+
+[[permission]]
+identifier = "allow-save-text-file"
+description = "允许弹出系统保存对话框，把 Markdown / 纯文本等内容写到用户选定的位置"
+commands.allow = ["save_text_file"]
+
+[[permission]]
+identifier = "allow-get-data-dir"
+description = "允许查询当前数据存储目录路径"
+commands.allow = ["get_data_dir"]
+
+[[permission]]
+identifier = "allow-set-data-dir"
+description = "允许选择新的数据存储目录并迁移数据"
+commands.allow = ["set_data_dir"]
+
+[[permission]]
+identifier = "allow-restart-app"
+description = "允许重启应用"
+commands.allow = ["restart_app"]
+
+[[permission]]
+identifier = "allow-set-autostart"
+description = "允许写入 / 删除 macOS LaunchAgent，开启或关闭登录时启动"
+commands.allow = ["set_autostart"]
+
+[[permission]]
+identifier = "allow-autostart-enabled"
+description = "允许查询当前是否已开启登录时启动"
+commands.allow = ["autostart_enabled"]
+
+[[permission]]
+identifier = "allow-set-new-task-shortcut"
+description = "允许修改菜单栏托盘「新建任务」的全局快捷键"
+commands.allow = ["set_new_task_shortcut"]

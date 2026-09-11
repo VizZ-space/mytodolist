@@ -1,0 +1,20 @@
+# ---- 依赖 ----
+node_modules/
+
+# ---- 构建产物 ----
+dist/
+my-task-desktop/dist/
+my-task-desktop/src-tauri/target/
+my-task-desktop/src-tauri/gen/schemas/
+
+# ---- 安装包（体积大且可重新生成，建议走 GitHub Releases）----
+windows-installer/*.exe
+windows-installer/*.msi
+
+# ---- 系统 / 编辑器 ----
+.DS_Store
+Thumbs.db
+desktop.ini
+*.log
+.vscode/
+.idea/
