@@ -706,6 +706,16 @@ h3{font-size:14px;font-weight:600;margin-bottom:8px}
 .fchip:hover{border-color:var(--pri-soft);color:var(--text)}
 .fchip.on{background:var(--pri);border-color:var(--pri);color:#fff;font-weight:600}
 .fchip.on svg{stroke:currentColor}
+/* 优先级筛选芯片配色：高=红 中=橙 低=蓝（未选中为浅色底+彩色字，选中为实底白字），与检查器徽章同色系 */
+.fchip.p-high{color:var(--danger);background:var(--danger-soft);border-color:rgba(255,59,48,.35)}
+.fchip.p-high:hover{border-color:var(--danger)}
+.fchip.p-high.on{background:var(--danger);border-color:var(--danger);color:#fff}
+.fchip.p-mid{color:var(--warn);background:var(--warn-soft);border-color:rgba(255,159,10,.35)}
+.fchip.p-mid:hover{border-color:var(--warn)}
+.fchip.p-mid.on{background:var(--warn);border-color:var(--warn);color:#fff}
+.fchip.p-low{color:var(--pri);background:var(--pri-soft);border-color:rgba(10,132,255,.35)}
+.fchip.p-low:hover{border-color:var(--pri)}
+.fchip.p-low.on{background:var(--pri);border-color:var(--pri);color:#fff}
 .board-fbar{align-items:center;gap:8px;flex-wrap:wrap}
 .board-fbar .bf-lbl{display:inline-flex;align-items:center;gap:4px;font-size:12.5px;color:var(--muted);margin-left:4px}
 .board-fbar .usel{height:32px;padding:0 10px;font-size:13px;border-radius:20px}
@@ -2556,7 +2566,7 @@ function quickAdd(){
   if(defPid&&!proj(defPid))defPid="";
   var defPri=pf.pri||"low";
   var pArr=[{v:"",label:"未归类"}].concat(db.projects.map(function(p){return {v:p.id,label:p.name}}));
-  var priArr=[{v:"low",label:"普通"},{v:"mid",label:"重要"},{v:"high",label:"最高"}];
+  var priArr=["low","mid","high"].map(function(k){return {v:k,label:PRI[k]}});
   var defCid=projClientId(defPid);
   /* A1 + C2：客户下拉已删除 —— 客户由所选项目自动推导，这里只做「看得见的回显」，
      不是控件也不是隐藏逻辑；需要覆盖时可去任务详情里手动指定。
@@ -2574,8 +2584,9 @@ function quickAdd(){
 
 function filterBar(){
   if(!db.tasks.length)return "";
-  var fs=[["all","全部"],["high","高 最高"],["mid","中 重要"],["low","低 普通"]];
-  return '<div class="fbar">'+fs.map(function(f){return '<button class="fchip'+(ui.pf===f[0]?" on":"")+'" data-act="pf" data-id="'+f[0]+'">'+icon(IC.flag,12)+" "+f[1]+"</button>"}).join("")+"</div>";
+  /* 优先级筛选条：统一用 PRI 的「高/中/低」三分法，芯片按 红/橙/蓝 着色（与检查器徽章一致） */
+  var fs=[["all","全部"],["high","高"],["mid","中"],["low","低"]];
+  return '<div class="fbar">'+fs.map(function(f){return '<button class="fchip'+(f[0]!=="all"?" p-"+f[0]:"")+(ui.pf===f[0]?" on":"")+'" data-act="pf" data-id="'+f[0]+'">'+icon(IC.flag,12)+" "+f[1]+"</button>"}).join("")+"</div>";
 }
 
 function matchesSmart(t,q){
