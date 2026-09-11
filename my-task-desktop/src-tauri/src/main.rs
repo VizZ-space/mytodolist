@@ -1,17 +1,24 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use std::sync::Mutex;
-use std::path::{Path, PathBuf};
-use tauri::State;
-use tauri::menu::{MenuBuilder, MenuItemBuilder, SubmenuBuilder, Menu, MenuItem, PredefinedMenuItem};
-use tauri::Emitter;
-use tauri::Manager;
-use tauri::tray::TrayIconBuilder;
-use tauri::tray::TrayIconId;
-use tauri_plugin_dialog::DialogExt;
-use tauri_plugin_global_shortcut::{GlobalShortcutExt, Shortcut, Modifiers, Code};
-use rusqlite::Connection;
 use std::collections::{HashMap, HashSet};
+use std::env;
+use std::fs;
+use std::path::{Path, PathBuf};
+use std::process::Command;
+use std::sync::{mpsc, Mutex};
+use std::time::Duration;
+
+use rusqlite::{params, Connection};
+use serde_json::{json, Value};
+use tauri::menu::{MenuBuilder, MenuItemBuilder, SubmenuBuilder};
+use tauri::{AppHandle, Emitter, Manager, State};
+// 托盘与托盘菜单项只在 macOS 编译；导入一并按平台门控，Windows 构建才不会出现「未使用导入」告警
+#[cfg(target_os = "macos")]
+use tauri::menu::{Menu, MenuItem, PredefinedMenuItem};
+#[cfg(target_os = "macos")]
+use tauri::tray::{TrayIconBuilder, TrayIconId};
+use tauri_plugin_dialog::DialogExt;
+use tauri_plugin_global_shortcut::{Code, GlobalShortcutExt, Modifiers, Shortcut};
 
 struct DbState(Mutex<Connection>);
 /// 应用数据目录：~/Documents/我的任务台
@@ -27,7 +34,7 @@ const MAIN_KEY: &str = "wb_taskdeck_data_v1";
 
 /// 列出快照文件，按文件名（tasks-YYYY-MM-DD.db，字典序即时间序）升序
 fn list_snapshots(snap_dir: &Path) -> Vec<PathBuf> {
-    let mut v: Vec<PathBuf> = match std::fs::read_dir(snap_dir) {
+    let mut v: Vec<PathBuf> = match fs::read_dir(snap_dir) {
         Ok(rd) => rd
             .filter_map(|e| e.ok().map(|e| e.path()))
             .filter(|p| {
@@ -61,7 +68,7 @@ fn daily_snapshot(conn: &Connection, app_dir: &Path) {
     };
 
     let snap_dir = app_dir.join("snapshots");
-    if std::fs::create_dir_all(&snap_dir).is_err() {
+    if fs::create_dir_all(&snap_dir).is_err() {
         return;
     }
 
@@ -79,14 +86,14 @@ fn daily_snapshot(conn: &Connection, app_dir: &Path) {
     let files = list_snapshots(&snap_dir);
     if files.len() > KEEP_SNAPSHOTS {
         for old in &files[..files.len() - KEEP_SNAPSHOTS] {
-            std::fs::remove_file(old).ok();
+            fs::remove_file(old).ok();
         }
     }
 }
 
 /// 给设置页显示：快照目录、份数、最新一份的日期
 #[tauri::command]
-fn snapshot_info(paths: State<Paths>) -> serde_json::Value {
+fn snapshot_info(paths: State<Paths>) -> Value {
     let snap_dir = paths.app_dir.join("snapshots");
     let files = list_snapshots(&snap_dir);
     let latest = files
@@ -94,7 +101,7 @@ fn snapshot_info(paths: State<Paths>) -> serde_json::Value {
         .and_then(|p| p.file_name().and_then(|n| n.to_str()))
         .map(|n| n.trim_start_matches("tasks-").trim_end_matches(".db").to_string())
         .unwrap_or_default();
-    serde_json::json!({
+    json!({
         "dir": snap_dir.to_string_lossy(),
         "dataDir": paths.app_dir.to_string_lossy(),
         "count": files.len(),
@@ -111,24 +118,24 @@ fn reveal_dir(which: String, paths: State<Paths>) -> Result<(), String> {
     } else {
         paths.app_dir.clone()
     };
-    std::fs::create_dir_all(&target).ok();
+    fs::create_dir_all(&target).ok();
     #[cfg(target_os = "macos")]
     {
-        std::process::Command::new("open")
+        Command::new("open")
             .arg(&target)
             .spawn()
             .map_err(|e| format!("打开文件夹失败：{}", e))?;
     }
     #[cfg(target_os = "windows")]
     {
-        std::process::Command::new("explorer.exe")
+        Command::new("explorer.exe")
             .arg(&target)
             .spawn()
             .map_err(|e| format!("打开文件夹失败：{}", e))?;
     }
     #[cfg(not(any(target_os = "macos", target_os = "windows")))]
     {
-        std::process::Command::new("xdg-open")
+        Command::new("xdg-open")
             .arg(&target)
             .spawn()
             .map_err(|e| format!("打开文件夹失败：{}", e))?;
@@ -138,23 +145,23 @@ fn reveal_dir(which: String, paths: State<Paths>) -> Result<(), String> {
 
 /// 配置文件路径：记录自定义数据目录（与 exe 同级的 data_dir.txt）
 fn config_file_path() -> PathBuf {
-    let exe = std::env::current_exe().unwrap_or_else(|_| PathBuf::from("."));
-    let exe_dir = exe.parent().unwrap_or_else(|| std::path::Path::new("."));
+    let exe = env::current_exe().unwrap_or_else(|_| PathBuf::from("."));
+    let exe_dir = exe.parent().unwrap_or_else(|| Path::new("."));
     exe_dir.join("data_dir.txt")
 }
 
 /// 读取自定义数据目录：有则用，无则默认 exe 同级 data/
 fn resolve_data_dir() -> PathBuf {
     let cfg = config_file_path();
-    if let Ok(custom) = std::fs::read_to_string(&cfg) {
+    if let Ok(custom) = fs::read_to_string(&cfg) {
         let custom = custom.trim();
-        if !custom.is_empty() && std::path::Path::new(custom).is_dir() {
+        if !custom.is_empty() && Path::new(custom).is_dir() {
             return PathBuf::from(custom);
         }
     }
     // 默认：exe 同级的 data 目录
-    let exe = std::env::current_exe().unwrap_or_else(|_| PathBuf::from("."));
-    let exe_dir = exe.parent().unwrap_or_else(|| std::path::Path::new("."));
+    let exe = env::current_exe().unwrap_or_else(|_| PathBuf::from("."));
+    let exe_dir = exe.parent().unwrap_or_else(|| Path::new("."));
     exe_dir.join("data")
 }
 
@@ -166,14 +173,14 @@ fn get_data_dir(paths: State<Paths>) -> String {
 
 /// 重启应用
 #[tauri::command]
-fn restart_app(app: tauri::AppHandle) {
+fn restart_app(app: AppHandle) {
     let _ = app.restart();
 }
 
 /// 选择新数据目录（弹出文件夹选择对话框），迁移数据并重启
 #[tauri::command]
-async fn set_data_dir(app: tauri::AppHandle, paths: State<'_, Paths>) -> Result<String, String> {
-    let (tx, rx) = std::sync::mpsc::channel();
+async fn set_data_dir(app: AppHandle, paths: State<'_, Paths>) -> Result<String, String> {
+    let (tx, rx) = mpsc::channel();
     app.dialog()
         .file()
         .set_title("选择数据存储目录")
@@ -188,29 +195,29 @@ async fn set_data_dir(app: tauri::AppHandle, paths: State<'_, Paths>) -> Result<
     let new_dir_str = new_dir.to_string_lossy().to_string();
 
     // 创建目标目录
-    std::fs::create_dir_all(&new_dir).map_err(|e| format!("创建目录失败：{}", e))?;
+    fs::create_dir_all(&new_dir).map_err(|e| format!("创建目录失败：{}", e))?;
 
     // 复制数据库和快照
     let old_db = paths.app_dir.join("tasks.db");
     let new_db = new_dir.join("tasks.db");
     if old_db.exists() {
-        std::fs::copy(&old_db, &new_db).map_err(|e| format!("复制数据库失败：{}", e))?;
+        fs::copy(&old_db, &new_db).map_err(|e| format!("复制数据库失败：{}", e))?;
     }
     let old_snap = paths.app_dir.join("snapshots");
     let new_snap = new_dir.join("snapshots");
     if old_snap.exists() {
-        std::fs::create_dir_all(&new_snap).ok();
-        if let Ok(entries) = std::fs::read_dir(&old_snap) {
+        fs::create_dir_all(&new_snap).ok();
+        if let Ok(entries) = fs::read_dir(&old_snap) {
             for entry in entries.flatten() {
                 let from = entry.path();
                 let to = new_snap.join(entry.file_name());
-                std::fs::copy(&from, &to).ok();
+                fs::copy(&from, &to).ok();
             }
         }
     }
 
     // 记录新路径
-    std::fs::write(config_file_path(), &new_dir_str).map_err(|e| format!("写入配置失败：{}", e))?;
+    fs::write(config_file_path(), &new_dir_str).map_err(|e| format!("写入配置失败：{}", e))?;
 
     Ok(new_dir_str)
 }
@@ -219,11 +226,11 @@ async fn set_data_dir(app: tauri::AppHandle, paths: State<'_, Paths>) -> Result<
 /// 返回空字符串表示用户取消。
 #[tauri::command]
 async fn export_backup(
-    app: tauri::AppHandle,
+    app: AppHandle,
     json: String,
     filename: String,
 ) -> Result<String, String> {
-    let (tx, rx) = std::sync::mpsc::channel();
+    let (tx, rx) = mpsc::channel();
     app.dialog()
         .file()
         .set_title("导出任务台备份")
@@ -236,7 +243,7 @@ async fn export_backup(
     match picked {
         Some(fp) => {
             let path = fp.into_path().map_err(|e| format!("路径无效：{}", e))?;
-            std::fs::write(&path, json).map_err(|e| format!("写入失败：{}", e))?;
+            fs::write(&path, json).map_err(|e| format!("写入失败：{}", e))?;
             Ok(path.to_string_lossy().to_string())
         }
         None => Ok(String::new()),
@@ -247,11 +254,11 @@ async fn export_backup(
 /// 返回空字符串表示用户取消。
 #[tauri::command]
 async fn save_text_file(
-    app: tauri::AppHandle,
+    app: AppHandle,
     content: String,
     filename: String,
 ) -> Result<String, String> {
-    let (tx, rx) = std::sync::mpsc::channel();
+    let (tx, rx) = mpsc::channel();
     app.dialog()
         .file()
         .set_title("导出文件")
@@ -265,7 +272,7 @@ async fn save_text_file(
     match picked {
         Some(fp) => {
             let path = fp.into_path().map_err(|e| format!("路径无效：{}", e))?;
-            std::fs::write(&path, content).map_err(|e| format!("写入失败：{}", e))?;
+            fs::write(&path, content).map_err(|e| format!("写入失败：{}", e))?;
             Ok(path.to_string_lossy().to_string())
         }
         None => Ok(String::new()),
@@ -275,8 +282,8 @@ async fn save_text_file(
 /// E4：原生「打开文件」对话框，读回备份 JSON 文本。
 /// 返回空字符串表示用户取消。
 #[tauri::command]
-async fn import_backup(app: tauri::AppHandle) -> Result<String, String> {
-    let (tx, rx) = std::sync::mpsc::channel();
+async fn import_backup(app: AppHandle) -> Result<String, String> {
+    let (tx, rx) = mpsc::channel();
     app.dialog()
         .file()
         .set_title("选择要恢复的备份文件")
@@ -288,7 +295,7 @@ async fn import_backup(app: tauri::AppHandle) -> Result<String, String> {
     match picked {
         Some(fp) => {
             let path = fp.into_path().map_err(|e| format!("路径无效：{}", e))?;
-            let txt = std::fs::read_to_string(&path).map_err(|e| format!("读取失败：{}", e))?;
+            let txt = fs::read_to_string(&path).map_err(|e| format!("读取失败：{}", e))?;
             Ok(txt)
         }
         None => Ok(String::new()),
@@ -298,7 +305,7 @@ async fn import_backup(app: tauri::AppHandle) -> Result<String, String> {
 /// 直接读 store 表的原始值（用于 AI 配置等非主数据）
 fn read_store_raw(conn: &Connection, key: &str) -> Option<String> {
     let mut stmt = conn.prepare("SELECT v FROM store WHERE k = ?").ok()?;
-    let mut rows = stmt.query(rusqlite::params![key]).ok()?;
+    let mut rows = stmt.query(params![key]).ok()?;
     match rows.next().ok()? {
         Some(r) => r.get(0).ok(),
         None => None,
@@ -309,7 +316,7 @@ fn read_store_raw(conn: &Connection, key: &str) -> Option<String> {
 fn write_store_raw(conn: &Connection, key: &str, value: &str) -> rusqlite::Result<()> {
     conn.execute(
         "INSERT OR REPLACE INTO store(k, v) VALUES(?, ?)",
-        rusqlite::params![key, value],
+        params![key, value],
     )?;
     Ok(())
 }
@@ -324,9 +331,9 @@ fn b2i(b: Option<bool>) -> i64 {
 }
 
 /// meta 值统一转成可存文本（字符串原样，其余 JSON 化）
-fn meta_str(v: &serde_json::Value) -> String {
+fn meta_str(v: &Value) -> String {
     match v {
-        serde_json::Value::String(s) => s.clone(),
+        Value::String(s) => s.clone(),
         other => other.to_string(),
     }
 }
@@ -335,21 +342,21 @@ fn meta_str(v: &serde_json::Value) -> String {
 /// 读取规范化表，重建 (projects 数组, tasks 数组)，每个 task 含 subtasks/logs。
 /// 结构与 load_main 的读取完全一致，供增量保存时做差异比对，避免每次全量重写。
 struct FullData {
-    projects: Vec<serde_json::Value>,
-    tasks: Vec<serde_json::Value>,
-    clients: Vec<serde_json::Value>,
-    tags: Vec<serde_json::Value>,
-    notes: Vec<serde_json::Value>,
-    smart_lists: Vec<serde_json::Value>,
-    proj_stages: Vec<serde_json::Value>,
+    projects: Vec<Value>,
+    tasks: Vec<Value>,
+    clients: Vec<Value>,
+    tags: Vec<Value>,
+    notes: Vec<Value>,
+    smart_lists: Vec<Value>,
+    proj_stages: Vec<Value>,
 }
 
 fn read_full(conn: &Connection) -> FullData {
-    let mut projects: Vec<serde_json::Value> = Vec::new();
+    let mut projects: Vec<Value> = Vec::new();
     if let Ok(mut stmt) = conn.prepare("SELECT id,name,color,summary,goal,status,landing,isContract,signDate,landYear,budget,contract,client_id FROM projects ORDER BY sort_idx") {
         if let Ok(mut rows) = stmt.query([]) {
             while let Ok(Some(r)) = rows.next() {
-                projects.push(serde_json::json!({
+                projects.push(json!({
                     "id": r.get::<_,String>(0).unwrap_or_default(),
                     "name": r.get::<_,String>(1).unwrap_or_default(),
                     "color": r.get::<_,String>(2).unwrap_or_default(),
@@ -369,11 +376,11 @@ fn read_full(conn: &Connection) -> FullData {
     }
 
     // 项目阶段（自定义，可增删改）
-    let mut proj_stages: Vec<serde_json::Value> = Vec::new();
+    let mut proj_stages: Vec<Value> = Vec::new();
     if let Ok(mut stmt) = conn.prepare("SELECT id,name,ord,landed FROM proj_stages ORDER BY ord") {
         if let Ok(mut rows) = stmt.query([]) {
             while let Ok(Some(r)) = rows.next() {
-                proj_stages.push(serde_json::json!({
+                proj_stages.push(json!({
                     "id": r.get::<_,String>(0).unwrap_or_default(),
                     "name": r.get::<_,String>(1).unwrap_or_default(),
                     "ord": r.get::<_,i64>(2).unwrap_or(0),
@@ -384,11 +391,11 @@ fn read_full(conn: &Connection) -> FullData {
     }
 
     // 客户 / 标签 / 笔记 / 智能列表：供 save_main 增量比对
-    let mut clients: Vec<serde_json::Value> = Vec::new();
+    let mut clients: Vec<Value> = Vec::new();
     if let Ok(mut stmt) = conn.prepare("SELECT id,name,color,category FROM clients ORDER BY sort_idx") {
         if let Ok(mut rows) = stmt.query([]) {
             while let Ok(Some(r)) = rows.next() {
-                clients.push(serde_json::json!({
+                clients.push(json!({
                     "id": r.get::<_,String>(0).unwrap_or_default(),
                     "name": r.get::<_,String>(1).unwrap_or_default(),
                     "color": r.get::<_,String>(2).unwrap_or_default(),
@@ -397,11 +404,11 @@ fn read_full(conn: &Connection) -> FullData {
             }
         }
     }
-    let mut tags: Vec<serde_json::Value> = Vec::new();
+    let mut tags: Vec<Value> = Vec::new();
     if let Ok(mut stmt) = conn.prepare("SELECT id,name,color,category FROM tags ORDER BY sort_idx") {
         if let Ok(mut rows) = stmt.query([]) {
             while let Ok(Some(r)) = rows.next() {
-                tags.push(serde_json::json!({
+                tags.push(json!({
                     "id": r.get::<_,String>(0).unwrap_or_default(),
                     "name": r.get::<_,String>(1).unwrap_or_default(),
                     "color": r.get::<_,String>(2).unwrap_or_default(),
@@ -410,15 +417,15 @@ fn read_full(conn: &Connection) -> FullData {
             }
         }
     }
-    let mut notes: Vec<serde_json::Value> = Vec::new();
+    let mut notes: Vec<Value> = Vec::new();
     if let Ok(mut stmt) = conn.prepare("SELECT id,title,cat,md,created_at,updated_at,pinned,tags FROM notes ORDER BY sort_idx") {
         if let Ok(mut rows) = stmt.query([]) {
             while let Ok(Some(r)) = rows.next() {
                 /* E3：多标签以 JSON 数组字符串落库（与 tasks.tags 同格式） */
                 let ntags_raw: String = r.get(7).unwrap_or_default();
-                let ntags: serde_json::Value = serde_json::from_str(&ntags_raw)
-                    .unwrap_or(serde_json::Value::Array(vec![]));
-                notes.push(serde_json::json!({
+                let ntags: Value = serde_json::from_str(&ntags_raw)
+                    .unwrap_or(Value::Array(vec![]));
+                notes.push(json!({
                     "id": r.get::<_,String>(0).unwrap_or_default(),
                     "title": r.get::<_,String>(1).unwrap_or_default(),
                     "cat": r.get::<_,String>(2).unwrap_or_default(),
@@ -431,14 +438,14 @@ fn read_full(conn: &Connection) -> FullData {
             }
         }
     }
-    let mut smart_lists: Vec<serde_json::Value> = Vec::new();
+    let mut smart_lists: Vec<Value> = Vec::new();
     if let Ok(mut stmt) = conn.prepare("SELECT id,name,query FROM smart_lists ORDER BY sort_idx") {
         if let Ok(mut rows) = stmt.query([]) {
             while let Ok(Some(r)) = rows.next() {
                 let qraw: String = r.get(2).unwrap_or_default();
-                let query: serde_json::Value = serde_json::from_str(&qraw)
-                    .unwrap_or(serde_json::Value::Null);
-                smart_lists.push(serde_json::json!({
+                let query: Value = serde_json::from_str(&qraw)
+                    .unwrap_or(Value::Null);
+                smart_lists.push(json!({
                     "id": r.get::<_,String>(0).unwrap_or_default(),
                     "name": r.get::<_,String>(1).unwrap_or_default(),
                     "query": query,
@@ -448,12 +455,12 @@ fn read_full(conn: &Connection) -> FullData {
     }
 
     // 批量读取子任务 / 日志，按 task_id 分组，避免每条任务一次嵌套查询
-    let mut subs_map: HashMap<String, Vec<serde_json::Value>> = HashMap::new();
+    let mut subs_map: HashMap<String, Vec<Value>> = HashMap::new();
     if let Ok(mut stmt) = conn.prepare("SELECT id,task_id,title,done,done_at,due,priority,note_id,status FROM subtasks ORDER BY task_id,sort_idx") {
         if let Ok(mut rows) = stmt.query([]) {
             while let Ok(Some(r)) = rows.next() {
                 let tid: String = r.get(1).unwrap_or_default();
-                subs_map.entry(tid).or_default().push(serde_json::json!({
+                subs_map.entry(tid).or_default().push(json!({
                     "id": r.get::<_,String>(0).unwrap_or_default(),
                     "title": r.get::<_,String>(2).unwrap_or_default(),
                     "done": r.get::<_,i64>(3).unwrap_or(0) == 1,
@@ -466,12 +473,12 @@ fn read_full(conn: &Connection) -> FullData {
             }
         }
     }
-    let mut logs_map: HashMap<String, Vec<serde_json::Value>> = HashMap::new();
+    let mut logs_map: HashMap<String, Vec<Value>> = HashMap::new();
     if let Ok(mut stmt) = conn.prepare("SELECT id,task_id,at,text FROM logs ORDER BY task_id,at") {
         if let Ok(mut rows) = stmt.query([]) {
             while let Ok(Some(r)) = rows.next() {
                 let tid: String = r.get(1).unwrap_or_default();
-                logs_map.entry(tid).or_default().push(serde_json::json!({
+                logs_map.entry(tid).or_default().push(json!({
                     "id": r.get::<_,String>(0).unwrap_or_default(),
                     "at": r.get::<_,i64>(2).unwrap_or(0),
                     "text": r.get::<_,String>(3).unwrap_or_default(),
@@ -480,7 +487,7 @@ fn read_full(conn: &Connection) -> FullData {
         }
     }
 
-    let mut tasks: Vec<serde_json::Value> = Vec::new();
+    let mut tasks: Vec<Value> = Vec::new();
     if let Ok(mut stmt) = conn.prepare("SELECT id,project_id,client_id,title,priority,due,note,done,done_at,status,created_at,repeat,waiting,waiting_for,waiting_since,planned,tags,important,note_id FROM tasks ORDER BY sort_idx") {
         if let Ok(mut rows) = stmt.query([]) {
             while let Ok(Some(r)) = rows.next() {
@@ -488,9 +495,9 @@ fn read_full(conn: &Connection) -> FullData {
                 let subs = subs_map.remove(&id).unwrap_or_default();
                 let logs = logs_map.remove(&id).unwrap_or_default();
                 let tags_raw: String = r.get(16).unwrap_or_default();
-                let tags: serde_json::Value = serde_json::from_str(&tags_raw)
-                    .unwrap_or(serde_json::Value::Array(vec![]));
-                tasks.push(serde_json::json!({
+                let tags: Value = serde_json::from_str(&tags_raw)
+                    .unwrap_or(Value::Array(vec![]));
+                tasks.push(json!({
                     "id": id,
                     "projectId": r.get::<_,String>(1).unwrap_or_default(),
                     "clientId": r.get::<_,String>(2).unwrap_or_default(),
@@ -520,7 +527,7 @@ fn read_full(conn: &Connection) -> FullData {
 }
 
 /// 项目签名：用于判断内容是否变化（不含 sort_idx，顺序由数组下标决定）
-fn proj_sig(p: &serde_json::Value) -> String {
+fn proj_sig(p: &Value) -> String {
     format!("{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}",
         p["id"].as_str().unwrap_or(""),
         p["name"].as_str().unwrap_or(""),
@@ -539,21 +546,21 @@ fn proj_sig(p: &serde_json::Value) -> String {
 }
 
 /// 客户 / 标签 / 笔记 / 智能列表 签名：与 save_main 写入的字段保持一致
-fn client_sig(c: &serde_json::Value) -> String {
+fn client_sig(c: &Value) -> String {
     format!("{}|{}|{}|{}",
         c["id"].as_str().unwrap_or(""),
         c["name"].as_str().unwrap_or(""),
         c["color"].as_str().unwrap_or(""),
         c["category"].as_str().unwrap_or(""))
 }
-fn tag_sig(t: &serde_json::Value) -> String {
+fn tag_sig(t: &Value) -> String {
     format!("{}|{}|{}|{}",
         t["id"].as_str().unwrap_or(""),
         t["name"].as_str().unwrap_or(""),
         t["color"].as_str().unwrap_or(""),
         t["category"].as_str().unwrap_or(""))
 }
-fn note_sig(n: &serde_json::Value) -> String {
+fn note_sig(n: &Value) -> String {
     /* E3：tags 必须进签名，否则"只改标签"这次改动会被判定为无变化而不落库 */
     format!("{}|{}|{}|{}|{}|{}|{}|{}",
         n["id"].as_str().unwrap_or(""),
@@ -565,7 +572,7 @@ fn note_sig(n: &serde_json::Value) -> String {
         b2i(n["pinned"].as_bool()),
         n["tags"].to_string())
 }
-fn smart_sig(s: &serde_json::Value) -> String {
+fn smart_sig(s: &Value) -> String {
     format!("{}|{}|{}",
         s["id"].as_str().unwrap_or(""),
         s["name"].as_str().unwrap_or(""),
@@ -574,7 +581,7 @@ fn smart_sig(s: &serde_json::Value) -> String {
 
 /// 任务签名：涵盖 16 个字段 + 子任务 + 日志，作为行级变化判定依据。
 /// idx 为数组下标（影响 sort_idx）；子任务带 j 下标；日志按内容排序（与 ORDER BY at 一致）。
-fn task_sig(t: &serde_json::Value, idx: usize) -> String {
+fn task_sig(t: &Value, idx: usize) -> String {
     let mut s = format!("{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}",
         idx,
         t["id"].as_str().unwrap_or(""),
@@ -623,7 +630,7 @@ fn task_sig(t: &serde_json::Value, idx: usize) -> String {
 }
 
 fn save_main(conn: &mut Connection, value: &str) -> Result<(), String> {
-    let v: serde_json::Value =
+    let v: Value =
         serde_json::from_str(value).map_err(|e| format!("数据解析失败：{}", e))?;
     // 先读取已落盘状态用于差异比对（必须在开启事务之前，避免与 tx 的可变借用冲突）
     let cur = read_full(conn);
@@ -638,7 +645,7 @@ fn save_main(conn: &mut Connection, value: &str) -> Result<(), String> {
         .unwrap_or_default();
     for pid in cur_proj_map.keys() {
         if !in_proj_ids.contains(pid) {
-            tx.execute("DELETE FROM projects WHERE id=?", rusqlite::params![pid.to_string()]).map_err(|e| e.to_string())?;
+            tx.execute("DELETE FROM projects WHERE id=?", params![pid.to_string()]).map_err(|e| e.to_string())?;
         }
     }
     if let Some(arr) = v["projects"].as_array() {
@@ -648,7 +655,7 @@ fn save_main(conn: &mut Connection, value: &str) -> Result<(), String> {
             if changed {
                 tx.execute(
                     "INSERT OR REPLACE INTO projects(id,name,color,summary,goal,status,landing,isContract,signDate,landYear,budget,contract,client_id,sort_idx) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
-                    rusqlite::params![
+                    params![
                         id,
                         p["name"].as_str().unwrap_or(""),
                         p["color"].as_str().unwrap_or(""),
@@ -677,7 +684,7 @@ fn save_main(conn: &mut Connection, value: &str) -> Result<(), String> {
         .map(|a| a.iter().map(|s| s["id"].as_str().unwrap_or("").to_string()).collect()).unwrap_or_default();
     for sid in &cur_stage_ids {
         if !in_stage_ids.contains(sid) {
-            tx.execute("DELETE FROM proj_stages WHERE id=?", rusqlite::params![sid.to_string()]).map_err(|e| e.to_string())?;
+            tx.execute("DELETE FROM proj_stages WHERE id=?", params![sid.to_string()]).map_err(|e| e.to_string())?;
         }
     }
     if let Some(arr) = v["projStages"].as_array() {
@@ -685,7 +692,7 @@ fn save_main(conn: &mut Connection, value: &str) -> Result<(), String> {
             let sid = s["id"].as_str().unwrap_or("").to_string();
             tx.execute(
                 "INSERT OR REPLACE INTO proj_stages(id,name,ord,landed) VALUES(?,?,?,?)",
-                rusqlite::params![
+                params![
                     sid,
                     s["name"].as_str().unwrap_or(""),
                     i as i64,
@@ -704,7 +711,7 @@ fn save_main(conn: &mut Connection, value: &str) -> Result<(), String> {
         .unwrap_or_default();
     for cid in cur_client_map.keys() {
         if !in_client_ids.contains(cid) {
-            tx.execute("DELETE FROM clients WHERE id=?", rusqlite::params![cid.to_string()]).map_err(|e| e.to_string())?;
+            tx.execute("DELETE FROM clients WHERE id=?", params![cid.to_string()]).map_err(|e| e.to_string())?;
         }
     }
     if let Some(arr) = v["clients"].as_array() {
@@ -714,7 +721,7 @@ fn save_main(conn: &mut Connection, value: &str) -> Result<(), String> {
             if changed {
                 tx.execute(
                     "INSERT OR REPLACE INTO clients(id,name,color,category,sort_idx) VALUES(?,?,?,?,?)",
-                    rusqlite::params![
+                    params![
                         id,
                         c["name"].as_str().unwrap_or(""),
                         c["color"].as_str().unwrap_or(""),
@@ -736,7 +743,7 @@ fn save_main(conn: &mut Connection, value: &str) -> Result<(), String> {
         .unwrap_or_default();
     for tgid in cur_tag_map.keys() {
         if !in_tag_ids.contains(tgid) {
-            tx.execute("DELETE FROM tags WHERE id=?", rusqlite::params![tgid.to_string()]).map_err(|e| e.to_string())?;
+            tx.execute("DELETE FROM tags WHERE id=?", params![tgid.to_string()]).map_err(|e| e.to_string())?;
         }
     }
     if let Some(arr) = v["tags"].as_array() {
@@ -746,7 +753,7 @@ fn save_main(conn: &mut Connection, value: &str) -> Result<(), String> {
             if changed {
                 tx.execute(
                     "INSERT OR REPLACE INTO tags(id,name,color,category,sort_idx) VALUES(?,?,?,?,?)",
-                    rusqlite::params![
+                    params![
                         id,
                         t["name"].as_str().unwrap_or(""),
                         t["color"].as_str().unwrap_or(""),
@@ -768,7 +775,7 @@ fn save_main(conn: &mut Connection, value: &str) -> Result<(), String> {
         .unwrap_or_default();
     for nid in cur_note_map.keys() {
         if !in_note_ids.contains(nid) {
-            tx.execute("DELETE FROM notes WHERE id=?", rusqlite::params![nid.to_string()]).map_err(|e| e.to_string())?;
+            tx.execute("DELETE FROM notes WHERE id=?", params![nid.to_string()]).map_err(|e| e.to_string())?;
         }
     }
     if let Some(arr) = v["notes"].as_array() {
@@ -778,7 +785,7 @@ fn save_main(conn: &mut Connection, value: &str) -> Result<(), String> {
             if changed {
                 tx.execute(
                     "INSERT OR REPLACE INTO notes(id,title,cat,md,created_at,updated_at,pinned,tags,sort_idx) VALUES(?,?,?,?,?,?,?,?,?)",
-                    rusqlite::params![
+                    params![
                         id,
                         n["title"].as_str().unwrap_or(""),
                         n["cat"].as_str().unwrap_or(""),
@@ -804,7 +811,7 @@ fn save_main(conn: &mut Connection, value: &str) -> Result<(), String> {
         .unwrap_or_default();
     for slid in cur_sl_map.keys() {
         if !in_sl_ids.contains(slid) {
-            tx.execute("DELETE FROM smart_lists WHERE id=?", rusqlite::params![slid.to_string()]).map_err(|e| e.to_string())?;
+            tx.execute("DELETE FROM smart_lists WHERE id=?", params![slid.to_string()]).map_err(|e| e.to_string())?;
         }
     }
     if let Some(arr) = v["smartLists"].as_array() {
@@ -814,7 +821,7 @@ fn save_main(conn: &mut Connection, value: &str) -> Result<(), String> {
             if changed {
                 tx.execute(
                     "INSERT OR REPLACE INTO smart_lists(id,name,query,sort_idx) VALUES(?,?,?,?)",
-                    rusqlite::params![
+                    params![
                         id,
                         s["name"].as_str().unwrap_or(""),
                         s["query"].to_string(),
@@ -833,7 +840,7 @@ fn save_main(conn: &mut Connection, value: &str) -> Result<(), String> {
             if let Some(name) = c.as_str() {
                 tx.execute(
                     "INSERT OR REPLACE INTO note_cats(name,sort_idx) VALUES(?,?)",
-                    rusqlite::params![name, i as i64],
+                    params![name, i as i64],
                 )
                 .map_err(|e| e.to_string())?;
             }
@@ -849,9 +856,9 @@ fn save_main(conn: &mut Connection, value: &str) -> Result<(), String> {
         .unwrap_or_default();
     for tid in cur_task_map.keys() {
         if !in_task_ids.contains(tid) {
-            tx.execute("DELETE FROM tasks WHERE id=?", rusqlite::params![tid.to_string()]).map_err(|e| e.to_string())?;
-            tx.execute("DELETE FROM subtasks WHERE task_id=?", rusqlite::params![tid.to_string()]).map_err(|e| e.to_string())?;
-            tx.execute("DELETE FROM logs WHERE task_id=?", rusqlite::params![tid.to_string()]).map_err(|e| e.to_string())?;
+            tx.execute("DELETE FROM tasks WHERE id=?", params![tid.to_string()]).map_err(|e| e.to_string())?;
+            tx.execute("DELETE FROM subtasks WHERE task_id=?", params![tid.to_string()]).map_err(|e| e.to_string())?;
+            tx.execute("DELETE FROM logs WHERE task_id=?", params![tid.to_string()]).map_err(|e| e.to_string())?;
         }
     }
     if let Some(arr) = v["tasks"].as_array() {
@@ -865,7 +872,7 @@ fn save_main(conn: &mut Connection, value: &str) -> Result<(), String> {
             tx.execute(
                 "INSERT OR REPLACE INTO tasks(id,project_id,client_id,title,priority,due,note,done,done_at,status,created_at,repeat,waiting,waiting_for,waiting_since,planned,sort_idx,tags,important,note_id) \
                  VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
-                rusqlite::params![
+                params![
                     tid,
                     t["projectId"].as_str().unwrap_or(""),
                     t["clientId"].as_str().unwrap_or(""),
@@ -891,12 +898,12 @@ fn save_main(conn: &mut Connection, value: &str) -> Result<(), String> {
             .map_err(|e| e.to_string())?;
 
             // 子任务/日志仅在“本任务变化”时才重写，避免全量刷新
-            tx.execute("DELETE FROM subtasks WHERE task_id=?", rusqlite::params![tid.clone()]).map_err(|e| e.to_string())?;
+            tx.execute("DELETE FROM subtasks WHERE task_id=?", params![tid.clone()]).map_err(|e| e.to_string())?;
             if let Some(sa) = t["subtasks"].as_array() {
                 for (j, s) in sa.iter().enumerate() {
                     tx.execute(
                         "INSERT INTO subtasks(id,task_id,title,done,done_at,sort_idx,due,priority,note_id,status) VALUES(?,?,?,?,?,?,?,?,?,?)",
-                        rusqlite::params![
+                        params![
                             s["id"].as_str().unwrap_or(""),
                             tid,
                             s["title"].as_str().unwrap_or(""),
@@ -912,12 +919,12 @@ fn save_main(conn: &mut Connection, value: &str) -> Result<(), String> {
                     .map_err(|e| e.to_string())?;
                 }
             }
-            tx.execute("DELETE FROM logs WHERE task_id=?", rusqlite::params![tid.clone()]).map_err(|e| e.to_string())?;
+            tx.execute("DELETE FROM logs WHERE task_id=?", params![tid.clone()]).map_err(|e| e.to_string())?;
             if let Some(la) = t["logs"].as_array() {
                 for l in la {
                     tx.execute(
                         "INSERT INTO logs(id,task_id,at,text) VALUES(?,?,?,?)",
-                        rusqlite::params![
+                        params![
                             l["id"].as_str().unwrap_or(""),
                             tid,
                             l["at"].as_i64().unwrap_or(0),
@@ -935,7 +942,7 @@ fn save_main(conn: &mut Connection, value: &str) -> Result<(), String> {
         let s = meta_str(ver);
         tx.execute(
             "INSERT OR REPLACE INTO app_meta(k,v) VALUES(?,?)",
-            rusqlite::params!["version", s],
+            params!["version", s],
         )
         .map_err(|e| e.to_string())?;
     }
@@ -943,7 +950,7 @@ fn save_main(conn: &mut Connection, value: &str) -> Result<(), String> {
         let s = meta_str(sd);
         tx.execute(
             "INSERT OR REPLACE INTO app_meta(k,v) VALUES(?,?)",
-            rusqlite::params!["seeded", s],
+            params!["seeded", s],
         )
         .map_err(|e| e.to_string())?;
     }
@@ -951,7 +958,7 @@ fn save_main(conn: &mut Connection, value: &str) -> Result<(), String> {
         let s = meta_str(pr);
         tx.execute(
             "INSERT OR REPLACE INTO app_meta(k,v) VALUES(?,?)",
-            rusqlite::params!["prefs", s],
+            params!["prefs", s],
         )
         .map_err(|e| e.to_string())?;
     }
@@ -959,7 +966,7 @@ fn save_main(conn: &mut Connection, value: &str) -> Result<(), String> {
         let s = meta_str(ex);
         tx.execute(
             "INSERT OR REPLACE INTO app_meta(k,v) VALUES(?,?)",
-            rusqlite::params!["exportedAt", s],
+            params!["exportedAt", s],
         )
         .map_err(|e| e.to_string())?;
     }
@@ -970,17 +977,17 @@ fn save_main(conn: &mut Connection, value: &str) -> Result<(), String> {
 
 /// 从规范化表重建整包 db JSON（空库返回 None，让前端走示例数据）
 fn load_main(conn: &Connection) -> Option<String> {
-    let mut db: serde_json::Map<String, serde_json::Value> = serde_json::Map::new();
-    db.insert("version".into(), serde_json::json!(1));
-    db.insert("seeded".into(), serde_json::json!(false));
+    let mut db: serde_json::Map<String, Value> = serde_json::Map::new();
+    db.insert("version".into(), json!(1));
+    db.insert("seeded".into(), json!(false));
 
     if let Ok(mut stmt) = conn.prepare("SELECT k,v FROM app_meta") {
         if let Ok(mut rows) = stmt.query([]) {
             while let Ok(Some(r)) = rows.next() {
                 let k: String = r.get(0).unwrap_or_default();
                 let val: String = r.get(1).unwrap_or_default();
-                let parsed: serde_json::Value =
-                    serde_json::from_str(&val).unwrap_or(serde_json::Value::String(val));
+                let parsed: Value =
+                    serde_json::from_str(&val).unwrap_or(Value::String(val));
                 db.insert(k, parsed);
             }
         }
@@ -990,7 +997,7 @@ fn load_main(conn: &Connection) -> Option<String> {
     if let Ok(mut stmt) = conn.prepare("SELECT id,name,color,summary,goal,status,landing,isContract,signDate,landYear,budget,contract,client_id FROM projects ORDER BY sort_idx") {
         if let Ok(mut rows) = stmt.query([]) {
             while let Ok(Some(r)) = rows.next() {
-                projects.push(serde_json::json!({
+                projects.push(json!({
                     "id": r.get::<_,String>(0).unwrap_or_default(),
                     "name": r.get::<_,String>(1).unwrap_or_default(),
                     "color": r.get::<_,String>(2).unwrap_or_default(),
@@ -1010,11 +1017,11 @@ fn load_main(conn: &Connection) -> Option<String> {
     }
 
     // 项目阶段（自定义，可增删改）
-    let mut proj_stages: Vec<serde_json::Value> = Vec::new();
+    let mut proj_stages: Vec<Value> = Vec::new();
     if let Ok(mut stmt) = conn.prepare("SELECT id,name,ord,landed FROM proj_stages ORDER BY ord") {
         if let Ok(mut rows) = stmt.query([]) {
             while let Ok(Some(r)) = rows.next() {
-                proj_stages.push(serde_json::json!({
+                proj_stages.push(json!({
                     "id": r.get::<_,String>(0).unwrap_or_default(),
                     "name": r.get::<_,String>(1).unwrap_or_default(),
                     "ord": r.get::<_,i64>(2).unwrap_or(0),
@@ -1023,15 +1030,15 @@ fn load_main(conn: &Connection) -> Option<String> {
             }
         }
     }
-    db.insert("projects".into(), serde_json::Value::Array(projects.clone()));
-    db.insert("projStages".into(), serde_json::Value::Array(proj_stages.clone()));
+    db.insert("projects".into(), Value::Array(projects.clone()));
+    db.insert("projStages".into(), Value::Array(proj_stages.clone()));
 
     // 客户 / 标签 / 笔记 / 智能列表 / 笔记分类
     let mut clients = Vec::new();
     if let Ok(mut stmt) = conn.prepare("SELECT id,name,color,category FROM clients ORDER BY sort_idx") {
         if let Ok(mut rows) = stmt.query([]) {
             while let Ok(Some(r)) = rows.next() {
-                clients.push(serde_json::json!({
+                clients.push(json!({
                     "id": r.get::<_,String>(0).unwrap_or_default(),
                     "name": r.get::<_,String>(1).unwrap_or_default(),
                     "color": r.get::<_,String>(2).unwrap_or_default(),
@@ -1040,12 +1047,12 @@ fn load_main(conn: &Connection) -> Option<String> {
             }
         }
     }
-    db.insert("clients".into(), serde_json::Value::Array(clients.clone()));
+    db.insert("clients".into(), Value::Array(clients.clone()));
     let mut tags = Vec::new();
     if let Ok(mut stmt) = conn.prepare("SELECT id,name,color,category FROM tags ORDER BY sort_idx") {
         if let Ok(mut rows) = stmt.query([]) {
             while let Ok(Some(r)) = rows.next() {
-                tags.push(serde_json::json!({
+                tags.push(json!({
                     "id": r.get::<_,String>(0).unwrap_or_default(),
                     "name": r.get::<_,String>(1).unwrap_or_default(),
                     "color": r.get::<_,String>(2).unwrap_or_default(),
@@ -1054,16 +1061,16 @@ fn load_main(conn: &Connection) -> Option<String> {
             }
         }
     }
-    db.insert("tags".into(), serde_json::Value::Array(tags.clone()));
+    db.insert("tags".into(), Value::Array(tags.clone()));
     let mut notes = Vec::new();
     if let Ok(mut stmt) = conn.prepare("SELECT id,title,cat,md,created_at,updated_at,pinned,tags FROM notes ORDER BY sort_idx") {
         if let Ok(mut rows) = stmt.query([]) {
             while let Ok(Some(r)) = rows.next() {
                 /* E3：多标签以 JSON 数组字符串落库（与 tasks.tags 同格式） */
                 let ntags_raw: String = r.get(7).unwrap_or_default();
-                let ntags: serde_json::Value = serde_json::from_str(&ntags_raw)
-                    .unwrap_or(serde_json::Value::Array(vec![]));
-                notes.push(serde_json::json!({
+                let ntags: Value = serde_json::from_str(&ntags_raw)
+                    .unwrap_or(Value::Array(vec![]));
+                notes.push(json!({
                     "id": r.get::<_,String>(0).unwrap_or_default(),
                     "title": r.get::<_,String>(1).unwrap_or_default(),
                     "cat": r.get::<_,String>(2).unwrap_or_default(),
@@ -1076,15 +1083,15 @@ fn load_main(conn: &Connection) -> Option<String> {
             }
         }
     }
-    db.insert("notes".into(), serde_json::Value::Array(notes.clone()));
+    db.insert("notes".into(), Value::Array(notes.clone()));
     let mut smart_lists = Vec::new();
     if let Ok(mut stmt) = conn.prepare("SELECT id,name,query FROM smart_lists ORDER BY sort_idx") {
         if let Ok(mut rows) = stmt.query([]) {
             while let Ok(Some(r)) = rows.next() {
                 let qraw: String = r.get(2).unwrap_or_default();
-                let query: serde_json::Value = serde_json::from_str(&qraw)
-                    .unwrap_or(serde_json::Value::Null);
-                smart_lists.push(serde_json::json!({
+                let query: Value = serde_json::from_str(&qraw)
+                    .unwrap_or(Value::Null);
+                smart_lists.push(json!({
                     "id": r.get::<_,String>(0).unwrap_or_default(),
                     "name": r.get::<_,String>(1).unwrap_or_default(),
                     "query": query,
@@ -1092,16 +1099,16 @@ fn load_main(conn: &Connection) -> Option<String> {
             }
         }
     }
-    db.insert("smartLists".into(), serde_json::Value::Array(smart_lists.clone()));
-    let mut note_cats: Vec<serde_json::Value> = Vec::new();
+    db.insert("smartLists".into(), Value::Array(smart_lists.clone()));
+    let mut note_cats: Vec<Value> = Vec::new();
     if let Ok(mut stmt) = conn.prepare("SELECT name FROM note_cats ORDER BY sort_idx") {
         if let Ok(mut rows) = stmt.query([]) {
             while let Ok(Some(r)) = rows.next() {
-                note_cats.push(serde_json::json!(r.get::<_,String>(0).unwrap_or_default()));
+                note_cats.push(json!(r.get::<_,String>(0).unwrap_or_default()));
             }
         }
     }
-    db.insert("noteCats".into(), serde_json::Value::Array(note_cats.clone()));
+    db.insert("noteCats".into(), Value::Array(note_cats.clone()));
 
     let mut tasks = Vec::new();
     if let Ok(mut stmt) = conn.prepare(
@@ -1115,9 +1122,9 @@ fn load_main(conn: &Connection) -> Option<String> {
                 if let Ok(mut s2) =
                     conn.prepare("SELECT id,title,done,done_at,due,priority,note_id,status FROM subtasks WHERE task_id=? ORDER BY sort_idx")
                 {
-                    if let Ok(mut sr) = s2.query(rusqlite::params![id.clone()]) {
+                    if let Ok(mut sr) = s2.query(params![id.clone()]) {
                         while let Ok(Some(sr2)) = sr.next() {
-                            subs.push(serde_json::json!({
+                            subs.push(json!({
                                 "id": sr2.get::<_,String>(0).unwrap_or_default(),
                                 "title": sr2.get::<_,String>(1).unwrap_or_default(),
                                 "done": sr2.get::<_,i64>(2).unwrap_or(0) == 1,
@@ -1134,9 +1141,9 @@ fn load_main(conn: &Connection) -> Option<String> {
                 if let Ok(mut l2) =
                     conn.prepare("SELECT id,at,text FROM logs WHERE task_id=? ORDER BY at")
                 {
-                    if let Ok(mut lr) = l2.query(rusqlite::params![id.clone()]) {
+                    if let Ok(mut lr) = l2.query(params![id.clone()]) {
                         while let Ok(Some(lr2)) = lr.next() {
-                            logs.push(serde_json::json!({
+                            logs.push(json!({
                                 "id": lr2.get::<_,String>(0).unwrap_or_default(),
                                 "at": lr2.get::<_,i64>(1).unwrap_or(0),
                                 "text": lr2.get::<_,String>(2).unwrap_or_default(),
@@ -1145,9 +1152,9 @@ fn load_main(conn: &Connection) -> Option<String> {
                     }
                 }
                 let tags_raw: String = r.get(16).unwrap_or_default();
-                let tags: serde_json::Value = serde_json::from_str(&tags_raw)
-                    .unwrap_or(serde_json::Value::Array(vec![]));
-                tasks.push(serde_json::json!({
+                let tags: Value = serde_json::from_str(&tags_raw)
+                    .unwrap_or(Value::Array(vec![]));
+                tasks.push(json!({
                     "id": id,
                     "projectId": r.get::<_,String>(1).unwrap_or_default(),
                     "clientId": r.get::<_,String>(2).unwrap_or_default(),
@@ -1173,12 +1180,12 @@ fn load_main(conn: &Connection) -> Option<String> {
             }
         }
     }
-    db.insert("tasks".into(), serde_json::Value::Array(tasks.clone()));
+    db.insert("tasks".into(), Value::Array(tasks.clone()));
 
     if !db.contains_key("prefs") {
         db.insert(
             "prefs".into(),
-            serde_json::json!({ "pid": "", "pri": "P2" }),
+            json!({ "pid": "", "pri": "P2" }),
         );
     }
 
@@ -1191,7 +1198,7 @@ fn load_main(conn: &Connection) -> Option<String> {
     if !has_data {
         return None;
     }
-    Some(serde_json::Value::Object(db).to_string())
+    Some(Value::Object(db).to_string())
 }
 
 /// 首次启动：若 store 里还有旧的单 blob 主数据，且新表为空，则平滑迁移过去
@@ -1199,7 +1206,7 @@ fn migrate(conn: &mut Connection) {
     let has_old = conn
         .query_row(
             "SELECT 1 FROM store WHERE k = ?1",
-            rusqlite::params![MAIN_KEY],
+            params![MAIN_KEY],
             |_| Ok(true),
         )
         .unwrap_or(false);
@@ -1211,7 +1218,7 @@ fn migrate(conn: &mut Connection) {
             if save_main(&mut *conn, &json).is_ok() {
                 let _ = conn.execute(
                     "DELETE FROM store WHERE k = ?1",
-                    rusqlite::params![MAIN_KEY],
+                    params![MAIN_KEY],
                 );
             }
         }
@@ -1263,7 +1270,7 @@ async fn ai_chat(
         format!("{}/chat/completions", base)
     };
 
-    let body = serde_json::json!({
+    let body = json!({
         "model": model,
         "messages": [
             { "role": "system", "content": system },
@@ -1274,7 +1281,7 @@ async fn ai_chat(
     });
 
     let client = reqwest::Client::builder()
-        .timeout(std::time::Duration::from_secs(240))
+        .timeout(Duration::from_secs(240))
         .build()
         .map_err(|e| format!("创建网络客户端失败：{}", e))?;
 
@@ -1311,7 +1318,7 @@ async fn ai_chat(
         return Err(format!("接口返回 {} {}：{}", status.as_u16(), hint, brief));
     }
 
-    let v: serde_json::Value =
+    let v: Value =
         serde_json::from_str(&text).map_err(|_| format!("返回内容不是合法 JSON：{}", text.chars().take(300).collect::<String>()))?;
 
     // 标准 OpenAI 格式
@@ -1333,8 +1340,8 @@ async fn ai_chat(
 
 /// B5：给「关于」面板用的基础信息（版本 / Bundle ID / 数据目录）
 #[tauri::command]
-fn app_info(app: tauri::AppHandle, paths: State<Paths>) -> serde_json::Value {
-    serde_json::json!({
+fn app_info(app: AppHandle, paths: State<Paths>) -> Value {
+    json!({
         "version": env!("CARGO_PKG_VERSION"),
         "identifier": app.config().identifier,
         "productName": app.config().product_name.clone().unwrap_or_default(),
@@ -1343,7 +1350,7 @@ fn app_info(app: tauri::AppHandle, paths: State<Paths>) -> serde_json::Value {
 }
 
 /// B3：构建一套中文原生菜单（macOS 风格：第一个子菜单是 App 菜单）
-fn build_menu(app: &tauri::AppHandle) -> tauri::Result<tauri::menu::Menu<tauri::Wry>> {
+fn build_menu(app: &AppHandle) -> tauri::Result<tauri::menu::Menu<tauri::Wry>> {
     let about = MenuItemBuilder::with_id("about", "关于 todo-list").build(app)?;
     let settings = MenuItemBuilder::with_id("settings", "设置").accelerator("CmdOrCtrl+,").build(app)?;
     let quit = MenuItemBuilder::with_id("quit", "退出 todo-list").accelerator("CmdOrCtrl+Q").build(app)?;
@@ -1430,7 +1437,7 @@ fn init_schema(conn: &Connection) {
             ("st_accept", "已验收", 4i64, 1i64),
         ];
         for (id, name, ord, landed) in seeds.iter() {
-            conn.execute("INSERT OR IGNORE INTO proj_stages(id,name,ord,landed) VALUES(?,?,?,?)", rusqlite::params![id, name, ord, landed]).ok();
+            conn.execute("INSERT OR IGNORE INTO proj_stages(id,name,ord,landed) VALUES(?,?,?,?)", params![id, name, ord, landed]).ok();
         }
     }
     conn.execute(
@@ -1502,7 +1509,7 @@ struct NewTaskShortcut(pub Mutex<String>);
 
 /// 构建托盘菜单；新建任务的加速键使用传入的 accel。
 #[cfg(target_os = "macos")]
-fn build_tray_menu(app: &tauri::AppHandle, accel: &str) -> tauri::Result<Menu<tauri::Wry>> {
+fn build_tray_menu(app: &AppHandle, accel: &str) -> tauri::Result<Menu<tauri::Wry>> {
     let show = MenuItem::with_id(app, "show", "显示窗口", true, None::<&str>)?;
     let new = MenuItem::with_id(app, "new", "新建任务", true, Some(accel))?;
     let quit = MenuItem::with_id(app, "quit", "退出 todo-list", true, Some("CmdOrCtrl+Q"))?;
@@ -1511,7 +1518,7 @@ fn build_tray_menu(app: &tauri::AppHandle, accel: &str) -> tauri::Result<Menu<ta
 }
 
 #[cfg(target_os = "macos")]
-fn setup_tray(app: &tauri::AppHandle) -> tauri::Result<()> {
+fn setup_tray(app: &AppHandle) -> tauri::Result<()> {
     // 读取当前保存的快捷键，作为托盘菜单「新建任务」的加速键
     let accel = app.state::<NewTaskShortcut>().inner().0.lock().unwrap().clone();
     let menu = build_tray_menu(app, accel.as_str())?;
@@ -1552,7 +1559,7 @@ fn setup_tray(app: &tauri::AppHandle) -> tauri::Result<()> {
 
 /// 设置面板调用：更新「新建任务」全局快捷键，并立即重建托盘菜单使其生效。
 #[tauri::command]
-fn set_new_task_shortcut(app: tauri::AppHandle, accel: String) -> Result<(), String> {
+fn set_new_task_shortcut(app: AppHandle, accel: String) -> Result<(), String> {
     *app.state::<NewTaskShortcut>().inner().0.lock().unwrap() = accel.clone();
     #[cfg(target_os = "macos")]
     {
@@ -1568,14 +1575,8 @@ fn set_new_task_shortcut(app: tauri::AppHandle, accel: String) -> Result<(), Str
 /// 纯 std 实现，零依赖、离线可用；Program 用当前可执行文件自身路径。
 #[cfg(target_os = "macos")]
 fn autostart_plist_path() -> PathBuf {
-    let home = std::env::var("HOME").unwrap_or_else(|_| "/".to_string());
+    let home = env::var("HOME").unwrap_or_else(|_| "/".to_string());
     PathBuf::from(home).join("Library/LaunchAgents/com.zhuanz.mytask.plist")
-}
-
-/// Windows 开机启动：写注册表 HKCU\Software\Microsoft\Windows\CurrentVersion\Run
-#[cfg(target_os = "windows")]
-fn autostart_reg_key() -> String {
-    "HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Run".to_string()
 }
 
 #[cfg(target_os = "macos")]
@@ -1588,7 +1589,7 @@ fn escape_xml(s: &str) -> String {
 fn set_autostart_macos(enabled: bool) -> Result<(), String> {
     let path = autostart_plist_path();
     if enabled {
-        let exe = std::env::current_exe().map_err(|e| e.to_string())?;
+        let exe = env::current_exe().map_err(|e| e.to_string())?;
         let exe_str = exe
             .to_str()
             .ok_or_else(|| "无法读取可执行文件路径".to_string())?
@@ -1604,16 +1605,16 @@ fn set_autostart_macos(enabled: bool) -> Result<(), String> {
              </dict>\n</plist>\n",
             escape_xml(&exe_str)
         );
-        std::fs::write(&path, plist).map_err(|e| e.to_string())?;
+        fs::write(&path, plist).map_err(|e| e.to_string())?;
         // 立即加载（best effort，失败不影响下次登录生效）
-        let _ = std::process::Command::new("launchctl")
+        let _ = Command::new("launchctl")
             .args(["load", path.to_str().unwrap_or("")])
             .output();
     } else if path.exists() {
-        let _ = std::process::Command::new("launchctl")
+        let _ = Command::new("launchctl")
             .args(["unload", path.to_str().unwrap_or("")])
             .output();
-        std::fs::remove_file(&path).map_err(|e| e.to_string())?;
+        fs::remove_file(&path).map_err(|e| e.to_string())?;
     }
     Ok(())
 }
@@ -1628,8 +1629,7 @@ fn autostart_enabled_macos() -> bool {
 #[cfg(target_os = "windows")]
 #[tauri::command]
 fn set_autostart_windows(enabled: bool) -> Result<(), String> {
-    use std::process::Command;
-    let exe = std::env::current_exe().map_err(|e| e.to_string())?;
+    let exe = env::current_exe().map_err(|e| e.to_string())?;
     let exe_str = exe.to_str().ok_or("无法读取可执行文件路径")?;
     if enabled {
         let _ = Command::new("reg").args(["add", "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run", "/v", "todo-list", "/t", "REG_SZ", "/d", exe_str, "/f"]).output();
@@ -1642,7 +1642,6 @@ fn set_autostart_windows(enabled: bool) -> Result<(), String> {
 #[cfg(target_os = "windows")]
 #[tauri::command]
 fn autostart_enabled_windows() -> bool {
-    use std::process::Command;
     let out = Command::new("reg").args(["query", "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run", "/v", "todo-list"]).output();
     match out {
         Ok(o) => String::from_utf8_lossy(&o.stdout).contains("todo-list"),
@@ -1672,6 +1671,8 @@ fn autostart_enabled() -> bool {
 }
 
 /// 系统通知：macOS 用 osascript 原生弹出，零额外依赖、离线可用。
+/// 只在 macOS 分支被调用，按平台门控以免 Windows 构建报「未使用」。
+#[cfg(target_os = "macos")]
 fn escape_osascript(s: &str) -> String {
     s.replace('\\', "\\\\").replace('"', "\\\"").replace('\n', " ")
 }
@@ -1684,7 +1685,7 @@ fn notify(title: String, body: String) {
             escape_osascript(&body),
             escape_osascript(&title)
         );
-        let _ = std::process::Command::new("osascript")
+        let _ = Command::new("osascript")
             .args(["-e", &script])
             .output();
     }
@@ -1695,7 +1696,7 @@ fn notify(title: String, body: String) {
 }
 
 /// 注册 ⌘N 全局快捷键（即使窗口隐藏/应用非活跃也能唤起新建）。
-fn register_global_shortcuts(app: &tauri::AppHandle) {
+fn register_global_shortcuts(app: &AppHandle) {
     let sc = Shortcut::new(Some(Modifiers::SUPER), Code::KeyN);
     if let Err(e) = app.global_shortcut().register(sc) {
         eprintln!("全局快捷键注册失败（不影响主功能）：{}", e);
@@ -1704,7 +1705,7 @@ fn register_global_shortcuts(app: &tauri::AppHandle) {
 
 fn main() {
     let app_dir = resolve_data_dir();
-    std::fs::create_dir_all(&app_dir).ok();
+    fs::create_dir_all(&app_dir).ok();
     let path = app_dir.join("tasks.db");
     let mut conn = Connection::open(&path).expect("无法打开数据库");
     init_schema(&conn);
@@ -1800,7 +1801,7 @@ mod tests {
     #[test]
     fn roundtrip_preserves_data() {
         let mut conn = mem();
-        let sample = serde_json::json!({
+        let sample = json!({
             "version": 1,
             "seeded": true,
             "projects": [{"id":"p1","name":"项目A","color":"#f00"}],
@@ -1813,7 +1814,7 @@ mod tests {
         }).to_string();
         save_main(&mut conn, &sample).unwrap();
         let out = load_main(&conn).expect("should reconstruct");
-        let v: serde_json::Value = serde_json::from_str(&out).unwrap();
+        let v: Value = serde_json::from_str(&out).unwrap();
 
         assert_eq!(v["version"].as_i64(), Some(1));
         assert_eq!(v["seeded"].as_bool(), Some(true));
@@ -1852,7 +1853,7 @@ mod tests {
     #[test]
     fn migrate_old_blob() {
         let mut conn = mem();
-        let blob = serde_json::json!({
+        let blob = json!({
             "version":1,"seeded":true,
             "projects":[{"id":"p1","name":"旧项目","color":"#0f0"}],
             "tasks":[{"id":"t1","projectId":"p1","title":"旧任务","priority":"P2","due":"","note":"","done":true,"doneAt":5i64,"status":"done","createdAt":9i64,"repeat":"","waiting":false,"waitingFor":"","waitingSince":0,"planned":false,"subtasks":[],"logs":[]}],
@@ -1860,18 +1861,18 @@ mod tests {
         }).to_string();
         conn.execute(
             "INSERT INTO store(k,v) VALUES(?1,?2)",
-            rusqlite::params![MAIN_KEY, blob],
+            params![MAIN_KEY, blob],
         )
         .unwrap();
         migrate(&mut conn);
         let out = load_main(&conn).expect("migrated");
-        let v: serde_json::Value = serde_json::from_str(&out).unwrap();
+        let v: Value = serde_json::from_str(&out).unwrap();
         assert_eq!(v["tasks"].as_array().map(|a| a.len()), Some(1));
         assert_eq!(v["projects"][0]["name"].as_str(), Some("旧项目"));
         let leftover: i64 = conn
             .query_row(
                 "SELECT COUNT(*) FROM store WHERE k=?1",
-                rusqlite::params![MAIN_KEY],
+                params![MAIN_KEY],
                 |r| r.get(0),
             )
             .unwrap();
@@ -1881,7 +1882,7 @@ mod tests {
     #[test]
     fn incremental_save_only_touches_changed() {
         let mut conn = mem();
-        let base = serde_json::json!({
+        let base = json!({
             "version": 1, "seeded": true,
             "projects": [{"id":"p1","name":"项目A","color":"#f00"}],
             "tasks": [
@@ -1895,7 +1896,7 @@ mod tests {
 
         // 加载后，未变化的任务签名应与当前落盘状态一致（即不会误判为“变化”而触发全量重写）
         let cur = read_full(&conn);
-        let loaded: serde_json::Value = serde_json::from_str(&load_main(&conn).unwrap()).unwrap();
+        let loaded: Value = serde_json::from_str(&load_main(&conn).unwrap()).unwrap();
         for (i, t) in loaded["tasks"].as_array().unwrap().iter().enumerate() {
             let id = t["id"].as_str().unwrap();
             let ci = cur.tasks.iter().position(|c| c["id"].as_str().unwrap() == id).unwrap();
@@ -1904,10 +1905,10 @@ mod tests {
 
         // 仅修改 t2 的标题
         let mut changed = base.clone();
-        changed["tasks"][1]["title"] = serde_json::json!("任务2-改");
+        changed["tasks"][1]["title"] = json!("任务2-改");
         save_main(&mut conn, &changed.to_string()).unwrap();
 
-        let v: serde_json::Value = serde_json::from_str(&load_main(&conn).unwrap()).unwrap();
+        let v: Value = serde_json::from_str(&load_main(&conn).unwrap()).unwrap();
         let tasks = v["tasks"].as_array().unwrap();
         assert_eq!(tasks.len(), 3, "任务总数应保持不变");
         assert_eq!(tasks.iter().find(|t| t["id"].as_str() == Some("t2")).unwrap()["title"].as_str(), Some("任务2-改"));
@@ -1919,9 +1920,9 @@ mod tests {
 
         // 删除 t3（连同其数据），再保存
         let mut without_t3 = changed.clone();
-        without_t3["tasks"] = serde_json::json!([changed["tasks"][0], changed["tasks"][1]]);
+        without_t3["tasks"] = json!([changed["tasks"][0], changed["tasks"][1]]);
         save_main(&mut conn, &without_t3.to_string()).unwrap();
-        let v2: serde_json::Value = serde_json::from_str(&load_main(&conn).unwrap()).unwrap();
+        let v2: Value = serde_json::from_str(&load_main(&conn).unwrap()).unwrap();
         assert_eq!(v2["tasks"].as_array().unwrap().len(), 2, "t3 应被删除");
         let subs_left: i64 = conn.query_row("SELECT COUNT(*) FROM subtasks", [], |r| r.get(0)).unwrap();
         assert_eq!(subs_left, 1, "t1 的 1 个子任务应保留，t3 无子任务");
@@ -1939,14 +1940,14 @@ mod tests {
         // 升级：init_schema 应通过 ensure_col 补齐缺失列
         init_schema(&conn);
         // save_main 引用 summary/goal/tags/important/noteId/clientId，升级后必须成功
-        let sample = serde_json::json!({
+        let sample = json!({
             "version":1,"seeded":true,
             "projects":[{"id":"p1","name":"旧项目","color":"#f00","summary":"新摘要","goal":"新目标"}],
             "tasks":[{"id":"t1","projectId":"p1","title":"任务1","priority":"high","due":"","note":"","done":false,"doneAt":0,"status":"todo","createdAt":1,"repeat":"","waiting":false,"waitingFor":"","waitingSince":0,"planned":false,"subtasks":[],"logs":[],"tags":["tg1"],"important":true,"noteId":"n1","clientId":"c1"}],
             "prefs":{"pid":"","pri":"low"}
         }).to_string();
         save_main(&mut conn, &sample).expect("save_main 应在升级后成功");
-        let v: serde_json::Value = serde_json::from_str(&load_main(&conn).unwrap()).unwrap();
+        let v: Value = serde_json::from_str(&load_main(&conn).unwrap()).unwrap();
         assert_eq!(v["projects"][0]["summary"].as_str(), Some("新摘要"));
         assert_eq!(v["projects"][0]["goal"].as_str(), Some("新目标"));
         assert_eq!(v["tasks"][0]["important"].as_bool(), Some(true));
@@ -1958,7 +1959,7 @@ mod tests {
     fn proj_fields_and_stages_roundtrip() {
         let mut conn = Connection::open(":memory:").unwrap();
         init_schema(&conn);
-        let sample = serde_json::json!({
+        let sample = json!({
             "version":1,"seeded":true,
             "projects":[{"id":"p1","name":"客户A","color":"#0a84ff","summary":"s","goal":"g",
                 "status":"st_accept","landing":"high","isContract":true,"signDate":"2026-03-15","landYear":2026,
@@ -1972,7 +1973,7 @@ mod tests {
             "prefs":{"pid":"","pri":"low"}
         }).to_string();
         save_main(&mut conn, &sample).expect("save_main 成功");
-        let v: serde_json::Value = serde_json::from_str(&load_main(&conn).unwrap()).unwrap();
+        let v: Value = serde_json::from_str(&load_main(&conn).unwrap()).unwrap();
         assert_eq!(v["projects"][0]["status"].as_str(), Some("st_accept"));
         assert_eq!(v["projects"][0]["landing"].as_str(), Some("high"));
         assert_eq!(v["projects"][0]["isContract"].as_i64(), Some(1));
@@ -1989,7 +1990,7 @@ mod tests {
     fn note_tags_roundtrip() {
         let mut conn = Connection::open(":memory:").unwrap();
         init_schema(&conn);
-        let sample = serde_json::json!({
+        let sample = json!({
             "version":1,"seeded":true,
             "notes":[
                 {"id":"n1","title":"会议记录","cat":"工作","md":"# 会议记录","createdAt":1,"updatedAt":2,"pinned":false,"tags":["tg1","tg2"]},
@@ -1998,7 +1999,7 @@ mod tests {
             "prefs":{"pid":"","pri":"low"}
         });
         save_main(&mut conn, &sample.to_string()).expect("save_main 成功");
-        let v: serde_json::Value = serde_json::from_str(&load_main(&conn).unwrap()).unwrap();
+        let v: Value = serde_json::from_str(&load_main(&conn).unwrap()).unwrap();
         let notes = v["notes"].as_array().unwrap();
         assert_eq!(notes.len(), 2);
         let n1 = notes.iter().find(|n| n["id"].as_str() == Some("n1")).unwrap();
@@ -2010,9 +2011,9 @@ mod tests {
 
         // 只改标签（内容不变）也必须被判定为"有变化"从而落库 —— 依赖 note_sig 含 tags
         let mut only_tags = sample.clone();
-        only_tags["notes"][1]["tags"] = serde_json::json!(["tg3"]);
+        only_tags["notes"][1]["tags"] = json!(["tg3"]);
         save_main(&mut conn, &only_tags.to_string()).unwrap();
-        let v2: serde_json::Value = serde_json::from_str(&load_main(&conn).unwrap()).unwrap();
+        let v2: Value = serde_json::from_str(&load_main(&conn).unwrap()).unwrap();
         let n2b = v2["notes"].as_array().unwrap().iter().find(|n| n["id"].as_str() == Some("n2")).unwrap().clone();
         assert_eq!(n2b["tags"].as_array().map(|a| a.len()), Some(1), "仅改标签也应落库");
         assert_eq!(n2b["tags"][0].as_str(), Some("tg3"));
@@ -2027,13 +2028,65 @@ mod tests {
         conn.execute("CREATE TABLE notes(id TEXT PRIMARY KEY, title TEXT, cat TEXT, md TEXT, created_at INTEGER, updated_at INTEGER, pinned INTEGER, sort_idx INTEGER)", []).unwrap();
         conn.execute("INSERT INTO notes(id,title,cat,md,created_at,updated_at,pinned,sort_idx) VALUES('old','老笔记','','body',1,2,0,0)", []).unwrap();
         init_schema(&conn);
-        let sample = serde_json::json!({
+        let sample = json!({
             "version":1,"seeded":true,
             "notes":[{"id":"old","title":"老笔记","cat":"","md":"body","createdAt":1,"updatedAt":2,"pinned":false,"tags":["tg9"]}],
             "prefs":{"pid":"","pri":"low"}
         }).to_string();
         save_main(&mut conn, &sample).expect("升级后 save_main 必须成功（tags 列已补）");
-        let v: serde_json::Value = serde_json::from_str(&load_main(&conn).unwrap()).unwrap();
+        let v: Value = serde_json::from_str(&load_main(&conn).unwrap()).unwrap();
         assert_eq!(v["notes"][0]["tags"][0].as_str(), Some("tg9"));
+    }
+
+    /// A1/C2 回归：项目的 client_id 必须真的落库（任务的客户由它推导）
+    /// —— 与 note_tags_roundtrip 同型：读 / 写 / 签名 三处任一漏掉，客户归属都会静默丢失
+    #[test]
+    fn project_client_id_roundtrip() {
+        let mut conn = Connection::open(":memory:").unwrap();
+        init_schema(&conn);
+        let sample = json!({
+            "version":1,"seeded":true,
+            "projects":[
+                {"id":"p1","name":"客户 A 交付","color":"#0071e3","clientId":"c1"},
+                {"id":"p2","name":"内部事务","color":"#e5484d","clientId":""}
+            ],
+            "prefs":{"pid":"","pri":"low"}
+        });
+        save_main(&mut conn, &sample.to_string()).expect("save_main 成功");
+        let v: Value = serde_json::from_str(&load_main(&conn).unwrap()).unwrap();
+        let projects = v["projects"].as_array().unwrap();
+        assert_eq!(projects.len(), 2);
+        let p1 = projects.iter().find(|p| p["id"].as_str() == Some("p1")).unwrap();
+        assert_eq!(p1["clientId"].as_str(), Some("c1"), "项目的 clientId 应完整保留");
+        let p2 = projects.iter().find(|p| p["id"].as_str() == Some("p2")).unwrap();
+        assert_eq!(p2["clientId"].as_str(), Some(""));
+
+        // 只改 clientId（其余字段不变）也必须被判定为"有变化"从而落库 —— 依赖 proj_sig 含 clientId
+        let mut only_client = sample.clone();
+        only_client["projects"][1]["clientId"] = json!("c2");
+        save_main(&mut conn, &only_client.to_string()).unwrap();
+        let v2: Value = serde_json::from_str(&load_main(&conn).unwrap()).unwrap();
+        let p2b = v2["projects"].as_array().unwrap().iter()
+            .find(|p| p["id"].as_str() == Some("p2")).unwrap().clone();
+        assert_eq!(p2b["clientId"].as_str(), Some("c2"), "仅改 clientId 也应落库");
+    }
+
+    /// A1 回归：老库的 projects 表没有 client_id 列，init_schema 必须靠 ensure_col 平滑补上
+    #[test]
+    fn old_projects_table_upgrade_adds_client_id() {
+        let mut conn = Connection::open(":memory:").unwrap();
+        conn.execute("CREATE TABLE store(k TEXT PRIMARY KEY, v TEXT)", []).unwrap();
+        // 旧 schema：无 client_id 列
+        conn.execute("CREATE TABLE projects(id TEXT PRIMARY KEY, name TEXT, color TEXT, summary TEXT, goal TEXT, sort_idx INTEGER)", []).unwrap();
+        conn.execute("INSERT INTO projects(id,name,color,sort_idx) VALUES('old','老项目','#0071e3',0)", []).unwrap();
+        init_schema(&conn);
+        let sample = json!({
+            "version":1,"seeded":true,
+            "projects":[{"id":"old","name":"老项目","color":"#0071e3","clientId":"c9"}],
+            "prefs":{"pid":"","pri":"low"}
+        }).to_string();
+        save_main(&mut conn, &sample).expect("升级后 save_main 必须成功（client_id 列已补）");
+        let v: Value = serde_json::from_str(&load_main(&conn).unwrap()).unwrap();
+        assert_eq!(v["projects"][0]["clientId"].as_str(), Some("c9"));
     }
 }

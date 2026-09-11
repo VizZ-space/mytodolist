@@ -12,8 +12,10 @@
   - `.gitignore` 排除：`node_modules/`、`dist/`、`src-tauri/target/`、`src-tauri/gen/schemas/`、`windows-installer/*.exe|*.msi`
   - 已提交 73 个文件（源码 / 配置 / 图标 / 4 份 md / `.workbuddy/memory`）；安装包刻意未入库，如需分发应走 GitHub Releases
   - 本机**未安装 `gh` CLI**，凭据由 Git Credential Manager 管理
-- **前端是单文件**：全部 HTML/CSS/JS 都在 `my-task-desktop/src/index.html`（5155 行 / 359 KB），改 UI 只动这一个文件。
-- **后端**：`src-tauri/src/main.rs`（1971 行），SQLite 建表在 `init_schema`，表有 projects / tasks / subtasks / clients / tags / smart_lists / logs / notes / note_cats / proj_stages。
+- **前端是单文件**：全部 HTML/CSS/JS 都在 `my-task-desktop/src/index.html`（5089 行），改 UI 只动这一个文件。
+- **后端**：`src-tauri/src/main.rs`（2092 行），SQLite 建表在 `init_schema`，表有 projects / tasks / subtasks / clients / tags / smart_lists / logs / notes / note_cats / proj_stages。
+- **Rust 已完成 import 规范化（2026-09-11 第二轮）**：文件顶部统一 `use` 导入（`serde_json::{json,Value}` / `rusqlite::params` / `std::fs` 等，共 181 处内联全路径改为 use）；macOS 专用的 `Menu/MenuItem/PredefinedMenuItem/TrayIconBuilder/TrayIconId/escape_osascript` 走 `#[cfg(target_os = "macos")]` 门控导入。**保持规范：新增依赖也走 use，别写内联全路径。**
+  - **大坑：Windows 构建的「unused import/function」告警对 macOS 专用代码是误报** —— 只被 `#[cfg(target_os="macos")]` 分支使用的符号，在 Windows 上报 unused，正确处理是按平台门控导入/定义，**删了会破坏 macOS 构建**。
 - **数据模型：客户与项目原为「平级实体」，现已建立从属关系。**
   - 历史事实：`projects` 原本**没有 `client_id` 列**，`clients(id,name,color,category,sort_idx)` 独立存在，两者都通过 `tasks.client_id` / `tasks.project_id` 直接挂在任务上，因此当时**无法"由项目推导客户"**。
   - **2026-09-11 变更**：已给 `projects` 加 `client_id TEXT` 列（`CREATE TABLE` + `ensure_col` 兼容追加），`proj_sig` / `read_full` / 项目 upsert 三处同步扩列，`tasks.client_id` 保留作为「覆盖值」。于是「客户由项目推导」成立：前端 `projClientId(pid)`，快速添加行只做回显（`.qcli`），任务详情可「手动指定」覆盖。
@@ -43,12 +45,14 @@
 
 - **冒烟测试**：`my-task-desktop/.smoke/smoke.mjs`，用法
   `cd my-task-desktop && node .smoke/smoke.mjs`
-  - 自带静态服务器（serve `dist/`）+ 拉起本机 Chrome `--headless=new` + 走 CDP 驱动；采集 `Runtime.exceptionThrown` + `Log.entryAdded` 断言 **0 条 JS 错误**。
+  - 自带静态服务器（serve `dist/`）+ 拉起本机 Chrome `--headless=new` + 走 CDP 驱动；采集 `Runtime.exceptionThrown` + `Log.entryAdded` 断言 **0 条 JS 错误**。当前 **27/27 断言**。
   - **改完 `src/index.html` 必须先 `vite build` 再跑**（它测的是 `dist/`，不是源码）。
   - 断言全部走**用户可见入口**（点按钮 / 敲回车），不读模块内部变量 —— 因为源码是 `type="module"`，`Runtime.evaluate` 拿不到 `db` / `ui`。这也顺带保证了"入口真的可用"。
   - 已 gitignore，不入库。
   - **写这类测试的坑**：① 每次断言前确认处于预期视图（切换视图会重建 DOM）；② 判断"默认可见字段数"要排除 `<details>` 内部、包着 `<details>` 的容器、以及 `offsetParent===null`（`display:none`）的隐藏块；③ 涉及状态的断言（如"首启空态"）必须放在最前面，否则会被前面步骤造出的数据污染。
-- **Rust 测试**：`cargo test --no-default-features`（`src-tauri/` 下有 `mod tests`，覆盖 save/load 往返，含 `clientId` 字段）。首次编译依赖约 5-10 分钟。
+  - **静态审计工具**：`.smoke/audit.mjs`（死入口/零引用函数/未用变量/未用图标/未用 CSS 全项审计，当前全 0）；`xss-probe.mjs`（真实浏览器属性注入探针）。属性注入类断言必须用真实解析器验证，不能靠读码推理 —— HTML tokenizer 只在遇到**字面**引号时才结束属性值，实体编码的 `&quot;` 不会终止属性。
+- **Rust 测试**：`cargo test --no-default-features`（`src-tauri/` 下 `mod tests`，10/10：save/load 往返 + `note_tags`/`project_client_id` 回归 + 老表自动升级两则）。首次编译依赖约 5-10 分钟。
+- **评审纪律（receiving-code-review 实证教训）**：评审给的 Critical 必须先在代码里找到对应行验证再实施；本轮 1 条 XSS Critical 经 `.smoke/xss-probe.mjs` 实测为误报（`inlineMd` 首行已 `esc()`，转义发生在 `[[ ]]` 提取之前）。
 
 ## 本机环境注意
 

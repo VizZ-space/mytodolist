@@ -95,16 +95,6 @@ select{-webkit-appearance:none;appearance:none;background-image:url("data:image/
 .tauri .topbar{padding-left:84px}
 .app-title{font-size:14px;font-weight:600;color:var(--text);padding-left:4px}
 .search{position:relative;width:210px}
-.tabs-row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px;flex-wrap:nowrap}
-/* 顶部功能栏：视图切换 + 搜索 + 工具，整合进原本空白的 header.topbar */
-.th-tabs{display:flex;align-items:center;gap:3px;background:var(--tabs-bg);padding:3px;border-radius:9px;flex:none}
-.th-tabs .tab{font-size:13px;padding:5px 13px}
-.th-tabs .tab svg{margin-right:5px;vertical-align:-2px}
-.th-tools{display:flex;align-items:center;gap:8px;flex:none;margin-left:auto}
-.th-tools .search{width:220px}
-.tabs-tools{display:flex;align-items:center;gap:8px;flex:none}
-.top-tools{display:none;align-items:center;gap:8px}
-.tabs-tools .search{width:170px}
 .search input{padding-left:32px;font-size:14px;height:34px;background:rgba(118,118,128,.12);border-color:transparent;border-radius:9px;box-shadow:none;transition:background .16s,box-shadow .16s,border-color .16s}
 .search input:focus{box-shadow:0 0 0 3.5px rgba(0,122,255,.2);background:rgba(118,118,128,.16);border-color:transparent}
 .search .ic{position:absolute;left:9px;top:9px;color:var(--muted)}
@@ -126,7 +116,6 @@ select{-webkit-appearance:none;appearance:none;background-image:url("data:image/
 .sidebar{width:228px;flex:none;background:var(--sidebar);backdrop-filter:saturate(180%) blur(24px);-webkit-backdrop-filter:saturate(180%) blur(24px);border-right:1px solid var(--line);overflow:auto;padding:14px 12px 26px}
 .side-h{font-size:11px;font-weight:700;color:var(--faint);padding:6px 10px 4px;letter-spacing:.06em}
 .cat-h{font-size:11.5px;color:var(--muted);padding:8px 10px 3px;letter-spacing:.03em;border-top:1px solid var(--line);margin-top:6px}
-.cat-h.cat-def{color:var(--accent)}
 .side-sep{height:1px;background:var(--line2);margin:11px 8px 7px;opacity:.9}
 .pitem{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:9px;width:100%;text-align:left;font-size:13.5px;min-height:36px;color:var(--text);transition:background .14s ease,color .14s ease}
 .pitem:hover{background:var(--hover)}
@@ -154,7 +143,6 @@ select{-webkit-appearance:none;appearance:none;background-image:url("data:image/
 .sel{box-shadow:0 0 0 2px var(--pri);border-radius:var(--r)}
 .kcard.sel,.qcard.sel{border-radius:var(--r)}
 .ct.sel,.wc.sel{border-radius:var(--r-sm)}
-.sel-pin{position:absolute;top:-9px;right:-9px;width:20px;height:20px;border-radius:50%;background:var(--pri);color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,.2);z-index:4}
 
 /* ---------- right inspector ---------- */
 .inspector{width:300px;flex:none;background:var(--sidebar);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border-left:1px solid var(--line);overflow:auto;padding:14px 14px 28px}
@@ -311,11 +299,9 @@ h3{font-size:14px;font-weight:600;margin-bottom:8px}
 .subedit{flex:1;min-width:0;font-size:13.5px;padding:4px 7px;border:1px solid var(--accent);border-radius:6px;background:var(--sheet);color:var(--text)}
 .subedit:focus{outline:none;box-shadow:0 0 0 2px var(--accent-soft)}
 .subedit-row{flex:1;min-width:0;display:flex;gap:6px}
-.subdue-input{font:13px inherit;padding:4px 7px;border:1px solid var(--accent);border-radius:6px;background:var(--sheet);color:var(--text);width:130px;flex:none}
 .subdue{font-family:inherit;font-size:11px;color:var(--muted);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:1px 6px;flex:none;font-variant-numeric:tabular-nums;cursor:pointer}
 .subdue:hover{border-color:var(--accent);color:var(--accent)}
 .subdue.od{color:var(--danger);border-color:var(--danger)}
-.subpri-input{font:12px inherit;padding:3px 6px;border:1px solid var(--accent);border-radius:6px;background:var(--sheet);color:var(--text)}
 .spri{font-size:10.5px;line-height:18px;height:18px;padding:0 6px;border-radius:5px;display:inline-flex;align-items:center;flex:none;cursor:pointer;border:1px solid transparent;font-weight:600;font-variant-numeric:tabular-nums}
 .spri.high{background:var(--danger-soft);color:var(--danger)}
 .spri.mid{background:var(--warn-soft);color:var(--warn)}
@@ -385,12 +371,6 @@ h3{font-size:14px;font-weight:600;margin-bottom:8px}
 .tn-t{flex:1;min-width:0;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .tn-act{display:inline-flex;gap:6px;flex:none}
 .sbox.doing{background:var(--pri-soft);border-color:var(--pri);color:var(--pri)}
-.spill{font-size:11.5px;font-weight:600;padding:3px 11px;border-radius:20px;border:1px solid transparent;cursor:pointer;flex:none;transition:filter .12s ease,box-shadow .12s ease,transform .08s ease;white-space:nowrap}
-.spill:hover{box-shadow:var(--shadow-1)}
-.spill:active{transform:scale(.96)}
-.spill.sp-todo{background:var(--pill-bg);color:var(--muted)}
-.spill.sp-doing{background:var(--pri-soft);color:var(--pri)}
-.spill.sp-done{background:var(--ok-soft);color:var(--ok-text)}
 .substat-empty{display:flex;align-items:flex-start;gap:8px;font-size:12.5px;color:var(--muted);line-height:1.5;background:var(--subtle);border:1px dashed var(--line);border-radius:var(--r-sm);padding:11px 13px}
 .substat-empty .lic{color:var(--faint);flex:none;margin-top:1px}
 .subadd{display:flex;align-items:center;gap:9px;padding:4px 0 2px}
@@ -433,9 +413,6 @@ h3{font-size:14px;font-weight:600;margin-bottom:8px}
 .rlabel .cur{font-size:11px;font-weight:500;padding:2px 7px;border-radius:20px;background:var(--pri-soft);color:var(--pri)}
 .rlabel .cur.past{background:var(--subtle);color:var(--muted)}
 .rsl{font-size:12.5px;color:var(--muted)}
-.rsel{width:auto;min-width:120px;height:30px;padding:0 26px 0 10px;font-size:13px;border-radius:8px;
-  border:1px solid var(--line2);background:var(--card) url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='7' viewBox='0 0 10 7'><path d='M1 1l4 4 4-4' fill='none' stroke='%236e6e73' stroke-width='1.6' stroke-linecap='round'/></svg>") no-repeat right 9px center;
-  -webkit-appearance:none;appearance:none;cursor:pointer}
 .wbh{display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap}
 .wbh h3{margin:0}
 
@@ -525,8 +502,6 @@ h3{font-size:14px;font-weight:600;margin-bottom:8px}
 .sheet h3{font-size:16px;margin-bottom:14px}
 .fld{margin-bottom:12px}
 .fld label{display:block;font-size:12.5px;color:var(--muted);margin-bottom:5px}
-.frow{display:flex;gap:10px}
-.frow>*{flex:1;min-width:0}
 .client-row{display:flex;gap:6px;align-items:center}
 .client-row select{flex:1;min-width:0}
 .client-row .tbtn{flex:none;width:34px;height:34px;padding:0;justify-content:center;border-radius:8px;border:1px solid var(--line2);background:var(--card);color:var(--muted);cursor:pointer}
@@ -616,15 +591,12 @@ h3{font-size:14px;font-weight:600;margin-bottom:8px}
   .tabbar{display:flex}
   .main{padding:12px 12px 24px}
   .topbar{padding:9px 10px;gap:7px}
-  .th-tools{display:flex;flex:1;min-width:0;justify-content:flex-end}
-  .th-tools .search{width:auto;flex:1;min-width:0;max-width:160px}
   .search{width:auto;flex:1;min-width:0}
   .tbtn span{display:none}
   .tbtn.keep span{display:inline}
   .logprev{display:flex}
   .logprev-wide{display:none}
   .tbtn{padding:0 10px;height:38px;min-width:38px;justify-content:center}
-  .th-tabs{display:none}
   .set-sheet{width:94vw}
   .set-grid{flex-direction:column;gap:0}
   .set-ai{margin-top:16px;padding-top:16px;border-top:1px solid var(--line)}
@@ -728,10 +700,6 @@ h3{font-size:14px;font-weight:600;margin-bottom:8px}
 .dline{height:8px;background:var(--tabs-bg);border-radius:99px;overflow:hidden;margin-bottom:5px}
 .dline i{display:block;height:100%;border-radius:99px}
 .dps{font-size:12px;color:var(--muted)}
-.dpies{display:flex;gap:24px;flex-wrap:wrap}
-.dpie{display:flex;align-items:center;gap:10px}
-.dpl{display:flex;flex-direction:column;font-size:13px;gap:2px}
-.dpl b{font-size:14px}
 @media(max-width:900px){.dgrid{grid-template-columns:repeat(2,1fr)}}
 .fbar{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:14px}
 .fchip{display:inline-flex;align-items:center;gap:4px;padding:6px 12px;border-radius:20px;border:1px solid var(--line);background:var(--card);font-size:13px;color:var(--muted);cursor:pointer;transition:all .12s}
@@ -778,11 +746,8 @@ h3{font-size:14px;font-weight:600;margin-bottom:8px}
 .bkinfo svg{flex:none;margin-top:1px}
 .bkinfo div{display:flex;flex-direction:column;gap:2px}
 .bkinfo span{font-size:12px;opacity:.85}
-/* ---- 等待中（C1） ---- */
-.chip.wait{background:var(--warn-soft);border-color:transparent;color:var(--warn);font-weight:500}
-.chip.rep{background:var(--pill-bg);border-color:transparent;color:var(--muted)}
+/* ---- 分段卡片（久未跟进等）---- */
 .sec-box{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:12px 16px;margin-bottom:14px}
-.sec-box.wait{border-color:var(--warn-soft)}
 .sec-h{display:flex;align-items:center;gap:8px;font-weight:600;font-size:13.5px;margin-bottom:6px}
 .sec-h .cnt{font-size:11.5px;font-weight:500;padding:1px 8px;border-radius:20px;background:var(--pill-bg);color:var(--muted)}
 .sec-h .spacer{flex:1}
@@ -808,7 +773,6 @@ h3{font-size:14px;font-weight:600;margin-bottom:8px}
 .logbox{width:100%;box-sizing:border-box;font:13.5px/1.5 inherit;padding:7px 9px;border:1px solid var(--pri);border-radius:8px;background:var(--card);color:var(--text);resize:vertical;min-height:56px}
 .logact{display:flex;gap:7px;margin-top:6px;justify-content:flex-end}
 /* ---------- 列表/看板 切换 ---------- */
-.btoggle{display:flex;align-items:center;gap:6px;margin:2px 0 14px}
 .seg{display:inline-flex;gap:4px;background:var(--tabs-bg);padding:3px;border-radius:9px}
 .seg button{border:0;background:transparent;padding:5px 16px;border-radius:8px;font-size:13px;color:var(--muted);cursor:pointer;transition:background .12s,color .12s}
 .seg button.on{background:var(--card);color:var(--text);font-weight:500;box-shadow:0 1px 2px rgba(0,0,0,.07)}
@@ -849,30 +813,9 @@ h3{font-size:14px;font-weight:600;margin-bottom:8px}
 .vh-nav .vh-label{font-size:13px;color:var(--muted);min-width:96px;text-align:center;font-variant-numeric:tabular-nums}
 .vh-nav .tbtn{padding:4px 9px}
 
-/* 预测 / 今日：左 mini 日历 + 右内容 */
-.forecast{display:flex;gap:18px;align-items:stretch}
-.forecast-left{flex:0 0 248px;position:sticky;top:8px;align-self:flex-start}
-.forecast-right{flex:1;min-width:0;display:flex;flex-direction:column}
 .today-rest{flex:1;min-height:0;display:flex;flex-direction:column;margin-top:6px}
 .today-rest h3{margin:0 0 10px;flex:none}
 .today-rest .task-list{flex:1;min-height:0}
-.minical{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 12px 14px}
-.mc-head{font-size:13px;font-weight:600;color:var(--text);margin-bottom:8px;display:flex;justify-content:space-between}
-.mc-dow{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:3px}
-.mc-dow span{text-align:center;font-size:10.5px;color:var(--faint)}
-.mc-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
-.mcell{position:relative;border:none;background:transparent;color:var(--muted);font:inherit;font-size:11.5px;border-radius:7px;aspect-ratio:1/1;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .12s}
-.mcell:hover{background:var(--pri-soft)}
-.mcell.out{color:var(--faint);opacity:.55}
-.mcell.today{background:var(--pri);color:#fff;font-weight:600}
-.mcell.sel{box-shadow:inset 0 0 0 1.5px var(--pri)}
-.mcell .mb{position:absolute;bottom:4px;width:4px;height:4px;border-radius:50%;background:var(--pri)}
-.mcell.today .mb{background:#fff}
-.mc-detail{margin-top:10px;border-top:1px solid var(--line);padding-top:8px}
-.mc-dh{font-size:12.5px;font-weight:600;margin-bottom:6px;display:flex;align-items:center;gap:6px}
-.mc-it{padding:5px 7px;border-radius:7px;font-size:12.5px;color:var(--text);cursor:pointer}
-.mc-it:hover{background:var(--pri-soft)}
-.mc-it.done{color:var(--faint);text-decoration:line-through}
 
 /* 日历网格 */
 .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
@@ -885,7 +828,6 @@ h3{font-size:14px;font-weight:600;margin-bottom:8px}
 .ccell.hasod{border-color:var(--danger)}
 .cnum{font-size:13px;font-weight:600;color:var(--text)}
 .ccell.today .cnum{color:var(--pri)}
-.cdots{display:flex;gap:3px;flex-wrap:wrap}
 .cdot{width:7px;height:7px;border-radius:50%;display:inline-block;flex:none}
 .cdot.done{opacity:.4}
 .cdot.od{box-shadow:0 0 0 1.5px var(--danger)}
@@ -947,19 +889,6 @@ h3{font-size:14px;font-weight:600;margin-bottom:8px}
 .dragging-active{user-select:none;-webkit-user-select:none;cursor:grabbing}
 .qcol.drag-over,.kcol.drag-over{box-shadow:inset 0 0 0 2px var(--pri);background:rgba(0,122,255,.06)}
 
-/* 时间线 */
-.tl{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
-.tl-axis{position:relative;height:16px;margin:0 0 6px 160px;border-bottom:1px dashed var(--line)}
-.tl-axis span{position:absolute;top:0;transform:translateX(-50%);font-size:10.5px;color:var(--faint);white-space:nowrap}
-.tl-row{display:flex;align-items:center;gap:10px;padding:5px 0}
-.tl-label{flex:0 0 150px;font-size:13px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer}
-.tl-label:hover{color:var(--pri)}
-.tl-track{position:relative;flex:1;height:22px;display:flex;align-items:center}
-.tl-today{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--pri);opacity:.5}
-.tl-bar{position:absolute;top:50%;transform:translate(-50%,-50%);width:12px;height:12px;border-radius:50%;background:var(--pri)}
-.tl-bar.od{background:var(--danger)}
-.tl-due{position:absolute;left:calc(100% + 8px);font-size:11.5px;color:var(--muted);white-space:nowrap}
-.tl-due.od{color:var(--danger)}
 /* ===================== 笔记模块样式 ===================== */
 /* ===================== 笔记模块（Apple Notes 风格） ===================== */
 .notes{position:absolute;inset:0;display:flex;background:var(--bg)}
@@ -997,7 +926,6 @@ h3{font-size:14px;font-weight:600;margin-bottom:8px}
 .ni-act{width:24px;height:24px;border:none;background:transparent;border-radius:6px;color:var(--muted);cursor:pointer;display:inline-flex;align-items:center;justify-content:center}
 .ni-act:hover{background:var(--card);color:var(--text)}
 .ni-act.del:hover{background:var(--danger-soft);color:var(--danger)}
-.note-empty{padding:24px 12px;text-align:center;color:var(--faint);font-size:13px}
 /* 第三栏：编辑区 */
 .nb-edit{flex:1;min-width:0;min-height:0;display:flex;overflow:hidden;background:var(--card)}
 .note-blank{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:var(--muted);text-align:center;padding:30px}
@@ -1010,9 +938,6 @@ h3{font-size:14px;font-weight:600;margin-bottom:8px}
 .ntb:hover{background:var(--hover)}
 .ntb.on{background:var(--pri);color:#fff}
 .nt-sep{width:1px;height:18px;background:var(--line);margin:0 4px}
-.ntb-export{height:30px;padding:0 12px;border:1px solid var(--line2);border-radius:7px;background:var(--card);color:var(--pri);font-size:13px;font-weight:500;box-shadow:var(--shadow-1);transition:background .14s,box-shadow .14s,transform .08s,border-color .14s}
-.ntb-export:hover{background:var(--pri-soft);box-shadow:var(--shadow-2);border-color:var(--pri)}
-.ntb-export:active{transform:translateY(1px);box-shadow:var(--shadow-1)}
 /* E2：标题级别下拉 + 「更多 ▾」浮层（Word 式常驻工具栏，不引入新交互概念） */
 .ntb-sel{height:30px;border:1px solid var(--line2);border-radius:7px;background:var(--card);color:var(--text);font-size:13px;padding:0 6px;cursor:pointer;box-shadow:var(--shadow-1)}
 .ntb-sel:focus{outline:none;border-color:var(--pri)}
@@ -1188,7 +1113,6 @@ var KEY="wb_taskdeck_data_v1";
 var PRI={high:"高",mid:"中",low:"低"};
 /* 防御：任何非法/缺失的优先级都归一为合法键，保证 PRI[...] 永不取到 undefined */
 function priKey(p){return PRI[p]?p:"low"}
-var SUBST={todo:"待处理",doing:"进行中",done:"已完成"};
 function subStatusOf(s){return s.status==="done"?"done":(s.status==="doing"?"doing":"todo")}
 var COLORS=["#0071e3","#e5484d","#f5a524","#129a63","#8b5cf6","#ec4899","#0891b2","#78716c"]; /* 优先级点色（任务卡片左侧指示） */
 /* 客户与标签各用一套独立调色板，且两套交集为空，从根本上避免颜色重合 */
@@ -1254,7 +1178,6 @@ var IC={
   flag:'<path d="M5 21V4M5 4h12l-2.4 4L17 12H5"/>',
   chat:'<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
   power:'<path d="M12 4v7"/><path d="M7.5 7.5a6.5 6.5 0 1 0 9 0"/>',
-  tl:'<path d="M3 12h4l3-9 4 18 3-9h4"/>',
   quad:'<rect x="3" y="3" width="7.5" height="7.5"/><rect x="13.5" y="3" width="7.5" height="7.5"/><rect x="3" y="13.5" width="7.5" height="7.5"/><rect x="13.5" y="13.5" width="7.5" height="7.5"/>',
   board:'<rect x="3" y="4" width="5" height="16" rx="1"/><rect x="10" y="4" width="5" height="11" rx="1"/><rect x="17" y="4" width="4" height="14" rx="1"/>',
   note:'<path d="M6 3h9l5 5v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/><path d="M14 3v6h6M9 13h7M9 16h7"/>',
@@ -1582,7 +1505,7 @@ function normalizeProject(p){
   if(typeof p.contract!=="number"||!isFinite(p.contract))p.contract=0;
   if(typeof p.summary!=="string")p.summary="";
   if(typeof p.goal!=="string")p.goal="";
-  if(typeof p.color!=="string"||!p.color)p.color=CLIENT_COLORS[0];
+  p.color=safeColor(p.color,CLIENT_COLORS[0]);
   if(typeof p.status!=="string"||!p.status)p.status=(db&&db.projStages&&db.projStages[0]?db.projStages[0].id:"");
   if(typeof p.landing!=="string")p.landing="";
   p.isContract=(p.isContract===1||p.isContract===true);
@@ -1600,7 +1523,7 @@ function normalizeStage(s){
   return s;
 }
 var DEFAULT_PROJ_STAGES=[["st_pre","售前阶段",1,0],["st_sign","合同签订",2,1],["st_deliver","交付中",3,1],["st_accept","已验收",4,1]];
-function normalizeClient(c){if(typeof c.category!=="string")c.category="";return c}
+function normalizeClient(c){if(typeof c.category!=="string")c.category="";c.color=safeColor(c.color,CLIENT_COLORS[0]);return c}
 function normalizeNote(n){
   if(typeof n.id!=="string"||!n.id)n.id=uid();
   if(typeof n.title!=="string")n.title="";
@@ -1614,7 +1537,13 @@ function normalizeNote(n){
   if(typeof n.updatedAt!=="number")n.updatedAt=n.createdAt;
   return n;
 }
-function normalizeTag(tg){if(typeof tg.category!=="string")tg.category="";return tg}
+function normalizeTag(tg){if(typeof tg.category!=="string")tg.category="";tg.color=safeColor(tg.color,TAG_COLORS[0]);return tg}
+/* 颜色只允许 #rgb / #rrggbb。颜色值会直接拼进 style="background:…"，
+   而「导入备份」是不可信输入 —— 非颜色文本在这里就拦掉，别等到渲染时才防。 */
+function safeColor(v,fallback){
+  var s=String(v==null?"":v).trim();
+  return /^#[0-9a-fA-F]{3}(?:[0-9a-fA-F]{3})?$/.test(s)?s:fallback;
+}
 /* 全量归一化（load 与 tryImport 共用）：补齐所有新版本字段，防旧备份脏数据击穿渲染 */
 function normalizeAll(d){
   if(!Array.isArray(d.tasks))throw 0;
@@ -1630,6 +1559,12 @@ function normalizeAll(d){
   d.tags.forEach(normalizeTag);
   if(!Array.isArray(d.notes))d.notes=[];
   d.notes.forEach(normalizeNote);
+  /* 清掉指向"已不存在的标签"的孤儿 id：删过标签的旧数据、或导入的备份都可能带进来。
+     留着的话界面上看不见、却会一直被写回库里，数据越攒越脏。 */
+  var validTagIds=d.tags.map(function(tg){return tg.id});
+  var dropOrphanTags=function(o){if(Array.isArray(o.tags))o.tags=o.tags.filter(function(tid){return validTagIds.indexOf(tid)>=0})};
+  d.notes.forEach(dropOrphanTags);
+  d.tasks.forEach(dropOrphanTags);
   if(!Array.isArray(d.noteCats))d.noteCats=["未归类"];
   if(d.noteCats.indexOf("未归类")<0)d.noteCats.unshift("未归类");
   if(!Array.isArray(d.smartLists))d.smartLists=[];
@@ -1726,14 +1661,6 @@ function setStatus(t,st){
 function quadOf(t){var imp=!!t.important,urg=!!t.due&&dayDiff(t.due)<=3;return imp?(urg?1:2):(urg?3:4);}
 /* 象限中文名 */
 function quadName(qn){return ["","重要 · 紧急","重要 · 不紧急","紧急 · 不重要","不重要 · 不紧急"][qn]||"";}
-/* 在任务数组中把 dragId 移动到 refId 之前（同容器排序用，不改业务字段） */
-function reorderTask(dragId,refId){
-  if(!dragId||dragId===refId)return;
-  var i=db.tasks.findIndex(function(t){return t.id===dragId});if(i<0)return;
-  var t=db.tasks.splice(i,1)[0];
-  if(refId){var j=db.tasks.findIndex(function(x){return x.id===refId});if(j>=0){db.tasks.splice(j,0,t);save();render();return}}
-  db.tasks.push(t);save();render();
-}
 /* 按分类分组，未归类置顶；空分类统一归入未归类。category 非字符串（旧备份可能存数字）一律当空串处理 */
 function groupByCat(arr){
   var g={};arr.forEach(function(x){var k=(typeof x.category==="string"?x.category:"").trim();if(!k)k="未归类";(g[k]=g[k]||[]).push(x)});
@@ -2166,6 +2093,18 @@ function insertWikiLink(title){
   var ed=document.getElementById("noteEditor");if(!ed)return;
   var n=currentNote();if(!n)return;
   var link="[["+title+"]]";
+  var exists=!!noteByTitle(title);
+  /* 直接插入「看得见的双链」，而不是先塞纯文本等下次重渲染才生效 ——
+     「引用笔记」是常驻可见入口，点完就该立刻是可点的链接，而不是一段源码。 */
+  function makeLink(){
+    var a=document.createElement("a");
+    a.className="wikilink"+(exists?"":" missing");
+    a.setAttribute("data-wl",title);
+    a.setAttribute("href","javascript:void(0)");
+    a.textContent=title;
+    if(!exists){var s=document.createElement("span");s.className="wl-new";s.textContent="＋";a.appendChild(s);}
+    return a;
+  }
   var sel=window.getSelection();
   var r=(sel&&sel.rangeCount)?sel.getRangeAt(0):null;
   /* 光标确实落在编辑器里才就地插入；否则一律「安全追加到末尾」。
@@ -2174,21 +2113,21 @@ function insertWikiLink(title){
   if(r&&ed.contains(r.startContainer)){
     ed.focus();
     if(!r.collapsed)r.deleteContents();
-    var node=document.createTextNode(link);
-    r.insertNode(node);r.setStartAfter(node);r.collapse(true);
+    var a=makeLink();
+    r.insertNode(a);
+    /* 光标落在刚插入的链接「之后」（紧邻其后，而不是落进链接内部），方便继续输入 */
+    r.setStartAfter(a);r.collapse(true);
     sel.removeAllRanges();sel.addRange(r);
     flushNoteEditor();
   }else{
     n.md=(n.md||"")+(n.md&&!/\n$/.test(n.md)?"\n":"")+link;
     n.updatedAt=Date.now();save();
     ed.innerHTML=md2html(n.md);
-  }
-  /* 光标落在刚插入的链接之后（紧邻其后，而不是落进链接内部），方便继续输入 */
-  var ls=ed.querySelectorAll("a.wikilink");
-  if(ls.length){
-    var last=ls[ls.length-1],after=document.createRange();
-    after.setStartAfter(last);after.collapse(true);
-    var s2=window.getSelection();s2.removeAllRanges();s2.addRange(after);
+    var ls=ed.querySelectorAll("a.wikilink");
+    if(ls.length){
+      var after=document.createRange();after.setStartAfter(ls[ls.length-1]);after.collapse(true);
+      var s2=window.getSelection();s2.removeAllRanges();s2.addRange(after);
+    }
   }
   refreshBacklinks();
 }
@@ -2753,28 +2692,8 @@ function fmtYuan(n){n=Number(n)||0;return "¥"+n.toLocaleString("zh-CN")}
 function numOrZero(v){var n=parseFloat(v);return isFinite(n)?n:0}
 function dotColor(t){return {high:COLORS[0],mid:COLORS[2],low:COLORS[4]}[t.priority]||COLORS[4]}
 function tasksByDue(d){return db.tasks.filter(function(t){return t.due===d})}
-function relLabel(off){if(off===0)return"今天";if(off>0)return off+"天后";return (-off)+"天前"}
 function weekRangeLabel(s){var a=weekStart(s),b=shift(a,6);return (a.getMonth()+1)+"/"+a.getDate()+" – "+(b.getMonth()+1)+"/"+b.getDate()}
 
-function miniCal(){
-  var sel=ui.calSel||today();var s=parseYmd(sel);var y=s.getFullYear(),m=s.getMonth();
-  var start=weekStart(new Date(y,m,1));var td=today();
-  var cells=[];for(var i=0;i<42;i++)cells.push(shift(start,i));
-  var grid=cells.map(function(d){
-    var ds=ymd(d),inM=d.getMonth()===m,isT=ds===td,isS=ds===sel;
-    var n=db.tasks.filter(function(t){return t.due===ds&&!t.done}).length;
-    return '<button class="mcell'+(inM?"":" out")+(isT?" today":"")+(isS?" sel":"")+(n?" has":"")+'" data-act="calPick" data-id="'+ds+'">'+
-      '<span class="mn">'+d.getDate()+'</span>'+(n?'<span class="mb"></span>':'')+'</button>';
-  }).join("");
-  var list=tasksByDue(sel);
-  var detail=list.length?list.slice().sort(function(a,b){return (a.done?1:0)-(b.done?1:0)}).map(function(t){
-    return '<div class="mc-it'+(t.done?" done":"")+'" data-act="edit" data-id="'+t.id+'">'+esc(t.title)+'</div>';
-  }).join(""):'<div class="muted" style="font-size:12.5px;padding:4px 2px">无到期任务</div>';
-  return '<div class="minical"><div class="mc-head"><span>'+y+'年 '+(m+1)+'月</span></div>'+
-    '<div class="mc-dow">'+["一","二","三","四","五","六","日"].map(function(w){return '<span>'+w+'</span>'}).join("")+'</div>'+
-    '<div class="mc-grid">'+grid+'</div>'+
-    '<div class="mc-detail"><div class="mc-dh">'+fmtDate(sel)+'<span class="cnt">'+list.length+'</span></div>'+detail+'</div></div>';
-}
 
 function viewCalendar(){
   var mode=ui.calMode||"month";var sel=ui.calSel||today();var s=parseYmd(sel);
@@ -3039,7 +2958,6 @@ var LOG_TYPES=[{k:"note",i:"✎",n:"跟进"}];
 var PERIODS=[["week","周报"],["month","月报"],["year","年报"],["half","半年报"],["custom","自定义"]];
 function periodName(ty){for(var i=0;i<PERIODS.length;i++)if(PERIODS[i][0]===ty)return PERIODS[i][1];return "报告"}
 function nextName(ty){return{week:"下周",month:"下月",quarter:"下季度",half:"下一阶段",year:"明年"}[ty]||"下一阶段"}
-function weekRange(off){var s=weekStart(new Date());s.setDate(s.getDate()+off*7);var e=new Date(s);e.setDate(e.getDate()+7);return[s,e]}
 
 /* off = 0 当前期，-1 上一期，+1 下一期。跨年由 Date 自动进位 */
 function periodRange(ty,off){
@@ -4297,6 +4215,19 @@ function delStage(i){
   openStages();
 }
 
+/* 删除标签时，把它的 id 从所有任务与笔记的 tags 数组里摘掉。
+   只清任务会留下"指向已删标签的孤儿 id"：界面上看不到，但会被写回库里，数据缓慢脏化，
+   而且以后重建同名标签也认不回来。 */
+function purgeTagId(tid){
+  [db.tasks,db.notes].forEach(function(arr){
+    (arr||[]).forEach(function(o){
+      if(!Array.isArray(o.tags))return;
+      var k=o.tags.indexOf(tid);
+      if(k>=0)o.tags.splice(k,1);
+    });
+  });
+}
+
 /* ---- 客户 / 标签 / 智能列表动作（从点击派发器抽出，保持原逻辑） ---- */
 function actEntity(a,el,id){
   if(a==="pickClient"){ui.cid=(id==="__none"?"none":id);ui.pid="all";ui.tag="";ui.smart=null;render();return true}
@@ -4345,7 +4276,7 @@ function actEntity(a,el,id){
     else db.tags.push({id:uid(),name:tn,color:$("#tc").value,category:$("#tcat").value.trim()});
     save();closeModal();render();toast("标签已保存");return true;
   }
-  if(a==="delTag"){var di=db.tags.findIndex(function(x){return x.id===id});if(di>=0){var did=db.tags[di].id;db.tags.splice(di,1);db.tasks.forEach(function(t){if(t.tags){var k=t.tags.indexOf(did);if(k>=0)t.tags.splice(k,1)}});ui.tag=""}save();closeModal();render();toast("标签已删除");return true}
+  if(a==="delTag"){var di=db.tags.findIndex(function(x){return x.id===id});if(di>=0){purgeTagId(db.tags[di].id);db.tags.splice(di,1);ui.tag=""}save();closeModal();render();toast("标签已删除");return true}
   if(a==="newSmart"){openSmart(null);return true}
   if(a==="editSmart"){openSmart(id);return true}
   if(a==="saveSmart"){

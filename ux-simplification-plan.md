@@ -586,3 +586,77 @@ Tier 3  复盘层   →  日历 / 看板 / 四象限 / 报告 / 历史 / 笔记 
 - **笔记全文检索下沉到 SQLite FTS**：当前是内存过滤，笔记量大了再说（方案 E4 已注明"现阶段内存过滤够用"）。
 - **任务卡 chip 数量**：A2 只收敛了右下角操作区；chip 仍较多，但按"可点即入口"原则刻意保留。
 - **改造包 C4 / D4 / E8 等方案中未编号细项**：如需继续，请直接点名。
+
+---
+
+### 2026-09-11 · 第二轮：一致性验证 + 三阶段代码审查 + 死代码清理 + import 规范化
+
+#### 1. 业务逻辑一致性验证 —— 结论：与原始设计思路一致
+
+对照 `overview.md`（原始 4 大模块）、`todo-app-design-research.md`（P0/P1 优先级与"客户=Area / 项目=Project"的归类模型）、本方案 §3 八条原则 / §3.5 双通道硬约束 / §8 验收标准，逐项核对当前实现：
+
+| 原始设计意图 | 当前实现 | 判定 |
+|---|---|---|
+| 任务可拆子任务、子任务回算进度 | 保留（`subStatusHtml` / `subStatusOf`） | ✅ |
+| 任务可关联项目；客户为项目上层 | `projects.clientId` 已加；快速添加行客户下拉→推导回显 | ✅ |
+| 标签跨项目横向分类（调研 P1） | 任务标签保留，并复用为笔记多标签（E3） | ✅ 超额 |
+| 日历视图（调研 P1） | `viewCalendar` + `calMonth`/`calWeek` | ✅ |
+| 收藏箱式捕获优先 | C1 就地新增；`⌘K` 降为加速通道 | ✅ |
+| 强默认代替提问 | 任务/项目弹窗默认 3–4 项，其余进可见折叠 | ✅ |
+| 原则 7：每个功能都有可见入口 | 冒烟逐项点过；新增 `data-act` 审计 = **0 死入口** | ✅ |
+| 原则 5：导航 ≤5 常驻且笔记在列 | `NAV_COMMON` 5 项（含笔记）+ `NAV_MORE` 5 项降权可见 | ✅ |
+| D1 首启不自欺 | `load()` → `emptyData()`，示例需主动载入 | ✅ |
+
+**发现并记录的行为级偏差（非缺陷，均为本轮之前的设计取舍）：**
+1. C2 方案原文要求"跟进记录与子任务不放进新建流程"，实现是**收进 `details#taskMore`** 而非移出弹窗。因折叠区常驻可见，"默认 4 项"的验收指标仍然满足，故按 §7 风险表的"折叠区标题常驻可见"应对之策保留。
+2. C2 客户字段未直接删除，而是"推导回显 + 手动指定覆盖"（已在 §9 第一轮记录，原因是项目未指定客户时会出现无归属）。
+
+#### 2. 三阶段代码审查（按用户指定技能执行）
+
+审查范围：`92a5dd3..HEAD` 的 `src/index.html` 与 `src-tauri/src/main.rs`。
+
+**阶段一 · code-simplifier** —— 产出死代码清单 + 简化建议，并**明确指出哪些不该改**（`openProject` 的草稿映射、非显而易见的 bug 修复注释、"可点即入口"的 chip 均判定为"不简化"）。
+
+**阶段二 · requesting-code-review** —— 按 code-reviewer 模板派发独立审查，得到 1 Critical / 2 Important / 3 Minor。
+
+**阶段三 · receiving-code-review** —— 逐条**先验证再实施**，未采纳任何未经验证的建议：
+
+| 审查意见 | 验证过程 | 裁定 |
+|---|---|---|
+| **Critical：`inlineMd` 双链对笔记标题未转义 → 存储型 XSS** | 读码发现 `inlineMd` 开头即 `s=esc(s)`（转义**早于** `[[ ]]` 提取）；并写 `.smoke/xss-probe.mjs` 用真实浏览器验证：注入标题 `a" onmouseover="…` 后 `getAttribute('onmouseover')===null`、`window.__pwn===0`，实体编码的引号无法终止属性值 | **驳回**（误报） |
+| Important：`projects.client_id` 缺回归测试 | 核实 8 个测试中确实只覆盖 `notes.tags` | **采纳** → 新增 2 个测试 |
+| Important：删除标签后笔记的 `tags` 仍留孤儿 id | 核实 `delTag` 只清 `db.tasks`、漏了 `db.notes` | **采纳** → 修 `delTag` + `normalizeAll` 兜底 |
+| Minor：`emptyState` 的 `why` 未转义 | 核实所有调用方传静态串（且含刻意 `<br>`），`esc()` 反而会破坏渲染 | **不采纳**，改为在函数处注明"只接受可信静态串"的契约 |
+| Minor：颜色值直接拼进 `style` 属性 | 核实 `pickColor` 只出固定调色板，但 `normalizeProject` 接受任意字符串 → 经"导入备份"可达 | **采纳** → 新增 `safeColor()` 在数据入口收敛为 `#hex` |
+| Minor：`insertWikiLink` 就地插入的是裸文本，需等下次重渲染才变成链接 | 读码确认；且此分支此前**无任何用例覆盖** | **采纳** → 改为直接插入 `<a class="wikilink">`，并补冒烟用例 |
+
+#### 3. 死代码清理（已删除 120 行）
+
+| 类别 | 内容 |
+|---|---|
+| JS 零引用函数（4） | `reorderTask`（拖拽重排从未接线）、`relLabel`、`miniCal`、`weekRange` |
+| JS 未用变量（1） | `SUBST`（同行的 `subStatusOf` 才是活的） |
+| 图标（1） | `IC.tl`（时间线图标） |
+| CSS 规则（约 40 条） | 已删视图的遗留：`.tl*`（时间线，C5 删了 `viewTimeline`）、`.forecast*`（从未实现的预测视图）、`.tabs-row/.th-tabs*/.th-tools*/.tabs-tools*/.top-tools`（B2 删掉的重复导航，含 @media 覆盖）、`.minical/.mc-*`（`miniCal` 的样式）、`.ntb-export`（E2 换成 `.ntb-tx`）、`.spill*`、`.chip.wait`、`.chip.rep`、`.sec-box.wait`、`.frow`、`.dpies/.dpie/.dpl`、`.rsel`、`.btoggle`、`.cdots`、`.note-empty`、`.cat-def`、`.sel-pin`、`.subdue-input`、`.subpri-input`、`.tabs-row` |
+| Rust 零引用函数（1） | `autostart_reg_key`（Windows 注册表路径拼装，已被 `set_autostart_windows` 内联字面量取代） |
+
+全部经"精确整块文本 + 唯一命中"校验后删除（`.smoke/prune.mjs`），删除后静态审计：**零引用函数 0、零引用变量 0、未用图标 0、未用 CSS 类 0、死入口 0**。
+
+> 注：未被采纳的"未使用"告警中，`Menu` / `MenuItem` / `PredefinedMenuItem` / `TrayIconBuilder` / `TrayIconId` / `escape_osascript` 经核实**只在 `#[cfg(target_os = "macos")]` 分支使用**，属跨平台误报。处理方式是**按平台门控导入/定义**（而不是删除），确保 macOS 构建不被破坏。
+
+#### 4. R7 代码规范：Rust 全路径引用改为 `use` 导入
+
+把内联全路径改为 `use` 导入，共 **181 处**：
+`serde_json::Value/json`（105）、`rusqlite::params`（34）、`std::fs::`（17）、`tauri::AppHandle`（11）、`std::process::Command`（8）、`std::env::`（5）、`std::sync::mpsc::channel`（4）、`std::path::Path::new`（3）、`std::time::Duration`（1）；并合并 `use` 块、删除 2 处函数内重复的局部 `use`。
+保留 `serde_json::from_str`、`rusqlite::Result`、`#[tauri::command]`、`tauri::Wry` 等单次使用且属惯例的限定路径。
+
+#### 5. 本轮验证结果
+
+| 验证项 | 结果 |
+|---|---|
+| `vite build` | ✅ 通过 |
+| 无头 Chrome 冒烟（`.smoke/smoke.mjs`） | ✅ **27/27**（新增 1 条"光标在正文内插入双链"用例），**0 条 JS 运行时错误** |
+| `cargo test --no-default-features` | ✅ **10/10**（新增 `project_client_id_roundtrip`、`old_projects_table_upgrade_adds_client_id`），**0 告警** |
+| 静态审计（`.smoke/audit.mjs`） | ✅ 死入口 0 / 零引用函数 0 / 零引用变量 0 / 未用图标 0 / 未用 CSS 0 |
+
+**规模变化**：`index.html` 5159 → 5090 行（−69）；`main.rs` 2039 → 2094 行（净增，含新增 2 个测试，同时因 import 收紧而略降体积）。
