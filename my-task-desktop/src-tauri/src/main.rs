@@ -346,7 +346,7 @@ struct FullData {
 
 fn read_full(conn: &Connection) -> FullData {
     let mut projects: Vec<serde_json::Value> = Vec::new();
-    if let Ok(mut stmt) = conn.prepare("SELECT id,name,color,summary,goal,status,landing,isContract,signDate,landYear,budget,contract FROM projects ORDER BY sort_idx") {
+    if let Ok(mut stmt) = conn.prepare("SELECT id,name,color,summary,goal,status,landing,isContract,signDate,landYear,budget,contract,client_id FROM projects ORDER BY sort_idx") {
         if let Ok(mut rows) = stmt.query([]) {
             while let Ok(Some(r)) = rows.next() {
                 projects.push(serde_json::json!({
@@ -362,6 +362,7 @@ fn read_full(conn: &Connection) -> FullData {
                     "landYear": r.get::<_,i64>(9).unwrap_or(0),
                     "budget": r.get::<_,f64>(10).unwrap_or(0.0),
                     "contract": r.get::<_,f64>(11).unwrap_or(0.0),
+                    "clientId": r.get::<_,String>(12).unwrap_or_default(),
                 }));
             }
         }
@@ -410,9 +411,13 @@ fn read_full(conn: &Connection) -> FullData {
         }
     }
     let mut notes: Vec<serde_json::Value> = Vec::new();
-    if let Ok(mut stmt) = conn.prepare("SELECT id,title,cat,md,created_at,updated_at,pinned FROM notes ORDER BY sort_idx") {
+    if let Ok(mut stmt) = conn.prepare("SELECT id,title,cat,md,created_at,updated_at,pinned,tags FROM notes ORDER BY sort_idx") {
         if let Ok(mut rows) = stmt.query([]) {
             while let Ok(Some(r)) = rows.next() {
+                /* E3：多标签以 JSON 数组字符串落库（与 tasks.tags 同格式） */
+                let ntags_raw: String = r.get(7).unwrap_or_default();
+                let ntags: serde_json::Value = serde_json::from_str(&ntags_raw)
+                    .unwrap_or(serde_json::Value::Array(vec![]));
                 notes.push(serde_json::json!({
                     "id": r.get::<_,String>(0).unwrap_or_default(),
                     "title": r.get::<_,String>(1).unwrap_or_default(),
@@ -421,6 +426,7 @@ fn read_full(conn: &Connection) -> FullData {
                     "createdAt": r.get::<_,i64>(4).unwrap_or(0),
                     "updatedAt": r.get::<_,i64>(5).unwrap_or(0),
                     "pinned": r.get::<_,i64>(6).unwrap_or(0) == 1,
+                    "tags": ntags,
                 }));
             }
         }
@@ -515,7 +521,7 @@ fn read_full(conn: &Connection) -> FullData {
 
 /// 项目签名：用于判断内容是否变化（不含 sort_idx，顺序由数组下标决定）
 fn proj_sig(p: &serde_json::Value) -> String {
-    format!("{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}",
+    format!("{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}",
         p["id"].as_str().unwrap_or(""),
         p["name"].as_str().unwrap_or(""),
         p["color"].as_str().unwrap_or(""),
@@ -528,6 +534,7 @@ fn proj_sig(p: &serde_json::Value) -> String {
         p["landYear"].as_i64().unwrap_or(0),
         p["budget"].as_f64().unwrap_or(0.0),
         p["contract"].as_f64().unwrap_or(0.0),
+        p["clientId"].as_str().unwrap_or(""),
     )
 }
 
@@ -547,14 +554,16 @@ fn tag_sig(t: &serde_json::Value) -> String {
         t["category"].as_str().unwrap_or(""))
 }
 fn note_sig(n: &serde_json::Value) -> String {
-    format!("{}|{}|{}|{}|{}|{}|{}",
+    /* E3：tags 必须进签名，否则"只改标签"这次改动会被判定为无变化而不落库 */
+    format!("{}|{}|{}|{}|{}|{}|{}|{}",
         n["id"].as_str().unwrap_or(""),
         n["title"].as_str().unwrap_or(""),
         n["cat"].as_str().unwrap_or(""),
         n["md"].as_str().unwrap_or(""),
         n["createdAt"].as_i64().unwrap_or(0),
         n["updatedAt"].as_i64().unwrap_or(0),
-        b2i(n["pinned"].as_bool()))
+        b2i(n["pinned"].as_bool()),
+        n["tags"].to_string())
 }
 fn smart_sig(s: &serde_json::Value) -> String {
     format!("{}|{}|{}",
@@ -638,7 +647,7 @@ fn save_main(conn: &mut Connection, value: &str) -> Result<(), String> {
             let changed = cur_proj_map.get(&id).map_or(true, |csig| proj_sig(p) != *csig);
             if changed {
                 tx.execute(
-                    "INSERT OR REPLACE INTO projects(id,name,color,summary,goal,status,landing,isContract,signDate,landYear,budget,contract,sort_idx) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                    "INSERT OR REPLACE INTO projects(id,name,color,summary,goal,status,landing,isContract,signDate,landYear,budget,contract,client_id,sort_idx) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
                     rusqlite::params![
                         id,
                         p["name"].as_str().unwrap_or(""),
@@ -652,6 +661,7 @@ fn save_main(conn: &mut Connection, value: &str) -> Result<(), String> {
                         p["landYear"].as_i64().unwrap_or(0),
                         p["budget"].as_f64().unwrap_or(0.0),
                         p["contract"].as_f64().unwrap_or(0.0),
+                        p["clientId"].as_str().unwrap_or(""),
                         i as i64
                     ],
                 )
@@ -767,7 +777,7 @@ fn save_main(conn: &mut Connection, value: &str) -> Result<(), String> {
             let changed = cur_note_map.get(&id).map_or(true, |cs| note_sig(n) != *cs);
             if changed {
                 tx.execute(
-                    "INSERT OR REPLACE INTO notes(id,title,cat,md,created_at,updated_at,pinned,sort_idx) VALUES(?,?,?,?,?,?,?,?)",
+                    "INSERT OR REPLACE INTO notes(id,title,cat,md,created_at,updated_at,pinned,tags,sort_idx) VALUES(?,?,?,?,?,?,?,?,?)",
                     rusqlite::params![
                         id,
                         n["title"].as_str().unwrap_or(""),
@@ -776,6 +786,7 @@ fn save_main(conn: &mut Connection, value: &str) -> Result<(), String> {
                         n["createdAt"].as_i64().unwrap_or(0),
                         n["updatedAt"].as_i64().unwrap_or(0),
                         b2i(n["pinned"].as_bool()),
+                        n["tags"].to_string(),
                         i as i64
                     ],
                 )
@@ -976,7 +987,7 @@ fn load_main(conn: &Connection) -> Option<String> {
     }
 
     let mut projects = Vec::new();
-    if let Ok(mut stmt) = conn.prepare("SELECT id,name,color,summary,goal,status,landing,isContract,signDate,landYear,budget,contract FROM projects ORDER BY sort_idx") {
+    if let Ok(mut stmt) = conn.prepare("SELECT id,name,color,summary,goal,status,landing,isContract,signDate,landYear,budget,contract,client_id FROM projects ORDER BY sort_idx") {
         if let Ok(mut rows) = stmt.query([]) {
             while let Ok(Some(r)) = rows.next() {
                 projects.push(serde_json::json!({
@@ -992,6 +1003,7 @@ fn load_main(conn: &Connection) -> Option<String> {
                     "landYear": r.get::<_,i64>(9).unwrap_or(0),
                     "budget": r.get::<_,f64>(10).unwrap_or(0.0),
                     "contract": r.get::<_,f64>(11).unwrap_or(0.0),
+                    "clientId": r.get::<_,String>(12).unwrap_or_default(),
                 }));
             }
         }
@@ -1044,9 +1056,13 @@ fn load_main(conn: &Connection) -> Option<String> {
     }
     db.insert("tags".into(), serde_json::Value::Array(tags.clone()));
     let mut notes = Vec::new();
-    if let Ok(mut stmt) = conn.prepare("SELECT id,title,cat,md,created_at,updated_at,pinned FROM notes ORDER BY sort_idx") {
+    if let Ok(mut stmt) = conn.prepare("SELECT id,title,cat,md,created_at,updated_at,pinned,tags FROM notes ORDER BY sort_idx") {
         if let Ok(mut rows) = stmt.query([]) {
             while let Ok(Some(r)) = rows.next() {
+                /* E3：多标签以 JSON 数组字符串落库（与 tasks.tags 同格式） */
+                let ntags_raw: String = r.get(7).unwrap_or_default();
+                let ntags: serde_json::Value = serde_json::from_str(&ntags_raw)
+                    .unwrap_or(serde_json::Value::Array(vec![]));
                 notes.push(serde_json::json!({
                     "id": r.get::<_,String>(0).unwrap_or_default(),
                     "title": r.get::<_,String>(1).unwrap_or_default(),
@@ -1055,6 +1071,7 @@ fn load_main(conn: &Connection) -> Option<String> {
                     "createdAt": r.get::<_,i64>(4).unwrap_or(0),
                     "updatedAt": r.get::<_,i64>(5).unwrap_or(0),
                     "pinned": r.get::<_,i64>(6).unwrap_or(0) == 1,
+                    "tags": ntags,
                 }));
             }
         }
@@ -1391,6 +1408,9 @@ fn init_schema(conn: &Connection) {
     ensure_col(conn, "projects", "landYear", "INTEGER");
     ensure_col(conn, "projects", "budget", "REAL");
     ensure_col(conn, "projects", "contract", "REAL");
+    // A1/C2：项目归属客户。加了这一列之后，任务的客户可以由所选项目自动推导，用户少做一个决定。
+    // 走 ensure_col 兼容追加：老库无损，老数据 client_id 为 NULL，前端按空串处理。
+    ensure_col(conn, "projects", "client_id", "TEXT");
     conn.execute(
         "CREATE TABLE IF NOT EXISTS proj_stages(id TEXT PRIMARY KEY, name TEXT, ord INTEGER, landed INTEGER)",
         [],
@@ -1439,7 +1459,7 @@ fn init_schema(conn: &Connection) {
     )
     .ok();
     conn.execute(
-        "CREATE TABLE IF NOT EXISTS notes(id TEXT PRIMARY KEY, title TEXT, cat TEXT, md TEXT, created_at INTEGER, updated_at INTEGER, pinned INTEGER, sort_idx INTEGER)",
+        "CREATE TABLE IF NOT EXISTS notes(id TEXT PRIMARY KEY, title TEXT, cat TEXT, md TEXT, created_at INTEGER, updated_at INTEGER, pinned INTEGER, sort_idx INTEGER, tags TEXT)",
         [],
     )
     .ok();
@@ -1462,6 +1482,8 @@ fn init_schema(conn: &Connection) {
     ensure_col(conn, "subtasks", "priority", "TEXT");
     ensure_col(conn, "subtasks", "note_id", "TEXT");
     ensure_col(conn, "subtasks", "status", "TEXT");
+    // E3：笔记多标签。老库没有这一列，补齐后前端挂上的标签才能真正落库（原先只存在于内存，一存一读就丢）。
+    ensure_col(conn, "notes", "tags", "TEXT");
     conn.execute(
         "CREATE TABLE IF NOT EXISTS logs(id TEXT PRIMARY KEY, task_id TEXT, at INTEGER, text TEXT)",
         [],
@@ -1960,5 +1982,58 @@ mod tests {
         assert_eq!(v["projects"][0]["contract"].as_f64(), Some(800000.0));
         assert_eq!(v["projStages"].as_array().map(|a| a.len()), Some(4));
         assert_eq!(v["projStages"][3]["name"].as_str(), Some("已验收"));
+    }
+
+    /// E3 回归：笔记的多标签必须真正落库（修复前 notes 表的读/写/签名都不含 tags，标签一存一读就丢）
+    #[test]
+    fn note_tags_roundtrip() {
+        let mut conn = Connection::open(":memory:").unwrap();
+        init_schema(&conn);
+        let sample = serde_json::json!({
+            "version":1,"seeded":true,
+            "notes":[
+                {"id":"n1","title":"会议记录","cat":"工作","md":"# 会议记录","createdAt":1,"updatedAt":2,"pinned":false,"tags":["tg1","tg2"]},
+                {"id":"n2","title":"无标签","cat":"","md":"","createdAt":3,"updatedAt":4,"pinned":true,"tags":[]}
+            ],
+            "prefs":{"pid":"","pri":"low"}
+        });
+        save_main(&mut conn, &sample.to_string()).expect("save_main 成功");
+        let v: serde_json::Value = serde_json::from_str(&load_main(&conn).unwrap()).unwrap();
+        let notes = v["notes"].as_array().unwrap();
+        assert_eq!(notes.len(), 2);
+        let n1 = notes.iter().find(|n| n["id"].as_str() == Some("n1")).unwrap();
+        assert_eq!(n1["tags"].as_array().map(|a| a.len()), Some(2), "n1 的 2 个标签应完整保留");
+        assert_eq!(n1["tags"][0].as_str(), Some("tg1"));
+        assert_eq!(n1["title"].as_str(), Some("会议记录"));
+        let n2 = notes.iter().find(|n| n["id"].as_str() == Some("n2")).unwrap();
+        assert_eq!(n2["tags"].as_array().map(|a| a.len()), Some(0));
+
+        // 只改标签（内容不变）也必须被判定为"有变化"从而落库 —— 依赖 note_sig 含 tags
+        let mut only_tags = sample.clone();
+        only_tags["notes"][1]["tags"] = serde_json::json!(["tg3"]);
+        save_main(&mut conn, &only_tags.to_string()).unwrap();
+        let v2: serde_json::Value = serde_json::from_str(&load_main(&conn).unwrap()).unwrap();
+        let n2b = v2["notes"].as_array().unwrap().iter().find(|n| n["id"].as_str() == Some("n2")).unwrap().clone();
+        assert_eq!(n2b["tags"].as_array().map(|a| a.len()), Some(1), "仅改标签也应落库");
+        assert_eq!(n2b["tags"][0].as_str(), Some("tg3"));
+    }
+
+    /// E3 回归：老库的 notes 表没有 tags 列，init_schema 必须靠 ensure_col 平滑补上
+    #[test]
+    fn old_notes_table_upgrade_adds_tags() {
+        let mut conn = Connection::open(":memory:").unwrap();
+        conn.execute("CREATE TABLE store(k TEXT PRIMARY KEY, v TEXT)", []).unwrap();
+        // 旧 schema：无 tags 列
+        conn.execute("CREATE TABLE notes(id TEXT PRIMARY KEY, title TEXT, cat TEXT, md TEXT, created_at INTEGER, updated_at INTEGER, pinned INTEGER, sort_idx INTEGER)", []).unwrap();
+        conn.execute("INSERT INTO notes(id,title,cat,md,created_at,updated_at,pinned,sort_idx) VALUES('old','老笔记','','body',1,2,0,0)", []).unwrap();
+        init_schema(&conn);
+        let sample = serde_json::json!({
+            "version":1,"seeded":true,
+            "notes":[{"id":"old","title":"老笔记","cat":"","md":"body","createdAt":1,"updatedAt":2,"pinned":false,"tags":["tg9"]}],
+            "prefs":{"pid":"","pri":"low"}
+        }).to_string();
+        save_main(&mut conn, &sample).expect("升级后 save_main 必须成功（tags 列已补）");
+        let v: serde_json::Value = serde_json::from_str(&load_main(&conn).unwrap()).unwrap();
+        assert_eq!(v["notes"][0]["tags"][0].as_str(), Some("tg9"));
     }
 }

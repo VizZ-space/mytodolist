@@ -11,6 +11,9 @@ my-task-desktop/src-tauri/gen/schemas/
 windows-installer/*.exe
 windows-installer/*.msi
 
+# ---- 本地冒烟测试脚本（依赖本机 Chrome，不入库）----
+my-task-desktop/.smoke/
+
 # ---- 系统 / 编辑器 ----
 .DS_Store
 Thumbs.db

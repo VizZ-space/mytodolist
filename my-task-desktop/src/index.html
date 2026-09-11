@@ -1013,6 +1013,18 @@ h3{font-size:14px;font-weight:600;margin-bottom:8px}
 .ntb-export{height:30px;padding:0 12px;border:1px solid var(--line2);border-radius:7px;background:var(--card);color:var(--pri);font-size:13px;font-weight:500;box-shadow:var(--shadow-1);transition:background .14s,box-shadow .14s,transform .08s,border-color .14s}
 .ntb-export:hover{background:var(--pri-soft);box-shadow:var(--shadow-2);border-color:var(--pri)}
 .ntb-export:active{transform:translateY(1px);box-shadow:var(--shadow-1)}
+/* E2：标题级别下拉 + 「更多 ▾」浮层（Word 式常驻工具栏，不引入新交互概念） */
+.ntb-sel{height:30px;border:1px solid var(--line2);border-radius:7px;background:var(--card);color:var(--text);font-size:13px;padding:0 6px;cursor:pointer;box-shadow:var(--shadow-1)}
+.ntb-sel:focus{outline:none;border-color:var(--pri)}
+.ntb-tx{gap:6px;padding:0 10px;border-color:var(--line2);background:var(--card);box-shadow:var(--shadow-1)}
+.ntb-tx:hover{background:var(--pri-soft);border-color:var(--pri);color:var(--pri)}
+.nt-more{position:relative}
+.nt-more>summary{list-style:none;cursor:pointer}
+.nt-more>summary::-webkit-details-marker{display:none}
+.nt-more[open]>summary{background:var(--hover)}
+.nt-more-body{position:absolute;z-index:60;top:calc(100% + 5px);left:0;min-width:196px;background:var(--card);border:1px solid var(--line2);border-radius:10px;box-shadow:0 12px 32px rgba(0,0,0,.16);padding:6px;display:flex;flex-direction:column;gap:2px}
+.nt-more-body .ntb{justify-content:flex-start;width:100%;height:32px;padding:0 10px}
+.nt-more-body .nt-sep{width:100%;height:1px;margin:4px 0}
 .note-meta{padding:18px 30px 0;max-width:780px;width:100%;margin:0 auto;box-sizing:border-box}
 .note-title{width:100%;border:none;background:transparent;font-size:22px;font-weight:700;color:var(--text);padding:6px 0;font-family:inherit}
 .note-title:focus{outline:none;box-shadow:none}
@@ -1080,6 +1092,72 @@ h3{font-size:14px;font-weight:600;margin-bottom:8px}
 .strow{display:flex;align-items:center;gap:10px;margin-bottom:8px}
 .strow .stname{flex:1;height:32px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--text);padding:0 10px;font-size:13px}
 .strow .switch-row{margin:0}
+
+/* ============ C / D / E 改造新增样式 ============ */
+/* D2：统一空状态 —— 这里放什么 / 为什么有用 / 一个明确动作 */
+.estate{display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;padding:34px 18px 38px;color:var(--muted)}
+.estate-inline{padding:18px 14px 22px}
+.estate .est-ic{color:var(--faint);opacity:.55;line-height:0}
+.estate .est-t{font-size:14.5px;font-weight:600;color:var(--text);margin:0}
+.estate .est-w{font-size:13px;line-height:1.7;margin:0;max-width:420px}
+.estate .est-acts{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:6px}
+.estate-mini{padding:14px 0;text-align:center;color:var(--faint);font-size:12.5px}
+
+/* D1：示例数据提示 —— 首次使用 / 示例数据横幅，都带明确动作 */
+.demo-hint{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin:16px 0 0;padding:12px 14px;border:1px dashed var(--line2);border-radius:var(--r);background:var(--subtle);color:var(--muted);font-size:13px}
+.demo-banner{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:12px;padding:11px 14px;border:1px solid var(--line2);border-radius:var(--r);background:var(--pri-soft);color:var(--text);font-size:13px}
+.demo-banner .mini{margin-left:0}
+
+/* A1/C2：客户由项目推导 —— 可见回显，不是控件 */
+.qcli{display:inline-flex;align-items:center;gap:5px;flex:0 0 auto;height:38px;padding:0 10px;border-radius:9px;background:var(--subtle);border:1px solid var(--line);color:var(--muted);font-size:12.5px;white-space:nowrap}
+.qcli-k{color:var(--faint);font-size:11.5px}
+.qcli-none{color:var(--faint)}
+.derived-row{display:flex;align-items:center;gap:9px;height:38px;padding:0 12px;border:1px solid var(--line);border-radius:9px;background:var(--subtle);font-size:13px}
+.derived-row .dv-k{color:var(--muted);flex:none}
+.derived-row .dv-v{flex:1;min-width:0;display:flex;align-items:center;gap:6px;color:var(--text)}
+
+/* E2：笔记「模板 ▾」下拉右对齐，避免溢出 */
+.tpl-more .nt-more-body{left:auto;right:0;min-width:170px}
+
+/* E3：笔记多标签 chips（可见点选） */
+.note-tagrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:8px 0 12px;border-bottom:1px solid var(--line);font-size:13px;color:var(--muted)}
+.ntag-box{display:flex;gap:6px;flex-wrap:wrap;flex:1;min-width:0}
+.ntag{display:inline-flex;align-items:center;gap:5px;height:26px;padding:0 10px;border:1px solid var(--line2);border-radius:13px;background:var(--card);color:var(--muted);font-size:12.5px;cursor:pointer;transition:border-color .12s,background .12s,color .12s}
+.ntag:hover{border-color:var(--pri);color:var(--pri)}
+.ntag.on{background:var(--pri-soft);border-color:var(--pri);color:var(--pri);font-weight:600}
+.ntag-dot{width:7px;height:7px;border-radius:50%;flex:none;display:inline-block}
+.ntag-none{color:var(--faint);font-size:12.5px}
+.nc-sec{padding:10px 12px 4px;font-size:11.5px;color:var(--faint);font-weight:600;letter-spacing:.4px}
+.ncr-tip{flex:1 1 0;min-width:0;font-size:11.5px;color:var(--faint);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* E4：搜索命中高亮 + 标签行 + 命中计数 */
+.nhit{background:rgba(255,204,0,.42);color:inherit;border-radius:3px;padding:0 1px}
+.ni-tagrow{display:flex;gap:5px;flex-wrap:wrap;margin:3px 0 2px}
+.ni-tag{display:inline-flex;align-items:center;gap:4px;font-size:11px;color:var(--muted);background:var(--pill-bg);border-radius:10px;padding:1px 8px}
+.ni-tag i{width:6px;height:6px;border-radius:50%;display:inline-block}
+.ni-hits{color:var(--pri);font-weight:600}
+
+/* E5：双链与反链面板 */
+.wikilink{color:var(--pri);text-decoration:none;border-bottom:1px solid var(--pri-soft);cursor:pointer}
+.wikilink:hover{background:var(--pri-soft)}
+.wikilink.missing{color:var(--muted);border-bottom:1px dashed var(--line2)}
+.wikilink .wl-new{font-weight:700;color:var(--pri)}
+.bl-wrap{padding:6px 30px 26px;max-width:780px;width:100%;margin:0 auto;box-sizing:border-box}
+.bl-panel{border-top:1px solid var(--line);padding-top:10px;display:flex;flex-direction:column;gap:8px}
+.bl-panel.bl-none{flex-direction:row;align-items:center;gap:8px;color:var(--faint);font-size:12.5px;line-height:1.6}
+.bl-sec{display:flex;flex-direction:column;gap:5px}
+.bl-h{font-size:11.5px;font-weight:600;color:var(--faint);letter-spacing:.3px}
+.bl-it{display:inline-flex;align-items:center;gap:6px;align-self:flex-start;max-width:100%;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--text);font-size:12.5px;padding:5px 10px;cursor:pointer;transition:border-color .12s,color .12s}
+.bl-it:hover{border-color:var(--pri);color:var(--pri)}
+
+/* D3：上手三步引导条 —— 带文字、指向具体按钮，随时可跳过 */
+.ob-strip{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px;padding:10px 14px;border:1px solid var(--line2);border-radius:var(--r);background:var(--card);box-shadow:var(--shadow-1);font-size:12.5px;color:var(--muted)}
+.ob-strip .ob-t{display:inline-flex;align-items:center;gap:6px;font-weight:600;color:var(--text)}
+.ob-strip .spacer{flex:1}
+.ob-it{display:inline-flex;align-items:center;gap:6px;color:var(--muted)}
+.ob-it i{width:16px;height:16px;border-radius:50%;background:var(--line);color:var(--muted);display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-style:normal;font-weight:700;flex:none}
+.ob-it.done{color:var(--faint);text-decoration:line-through}
+.ob-it.done i{background:var(--pri-soft);color:var(--pri)}
 </style>
 </head>
 <body>
@@ -1116,15 +1194,23 @@ var COLORS=["#0071e3","#e5484d","#f5a524","#129a63","#8b5cf6","#ec4899","#0891b2
 /* 客户与标签各用一套独立调色板，且两套交集为空，从根本上避免颜色重合 */
 var CLIENT_COLORS=["#0071e3","#e5484d","#f5a524","#8b5cf6","#ec4899","#0891b2","#0ea5e9","#d946ef"];
 var TAG_COLORS=["#129a63","#78716c","#65a30d","#ca8a04","#db2777","#7c3aed","#0d9488","#ea580c"];
+/* E6：新建笔记的可见模板 —— 点一下就有骨架，不用从空白开始打字（「＋ 新建」仍是零摩擦的空白笔记） */
+var NOTE_TEMPLATES=[
+  {name:"空白笔记",md:""},
+  {name:"会议记录",md:"# 会议记录\n\n- 时间：\n- 参与人：\n- 议题：\n\n## 讨论要点\n\n- \n\n## 结论与待办\n\n- [ ] \n"},
+  {name:"读书笔记",md:"# 书名\n\n- 作者：\n- 读完时间：\n\n## 核心观点\n\n- \n\n## 我的思考\n\n- \n\n## 可执行清单\n\n- [ ] \n"},
+  {name:"周报",md:"# 周报（{{date}}）\n\n## 本周完成\n\n- \n\n## 进行中\n\n- \n\n## 下周计划\n\n- \n\n## 需要支持\n\n- \n"}
+];
 if(typeof window!=="undefined"&&(window.__TAURI_INTERNALS__||window.__TAURI__))document.body.classList.add("tauri");
 
-/* 菜单栏托盘「新建任务」→ 直接呼出命令面板（窗口已先被 Rust 显示并聚焦） */
+/* 菜单栏托盘「新建任务」→ 就地聚焦列表顶部的输入行（窗口已先被 Rust 显示并聚焦）。
+   C1：主入口改为「就地新增」，命令面板降级为加速通道（⌘K 仍随时可用）。 */
 if(window.__TAURI_INTERNALS__){
-  listen("tray-new",function(){openPalette();}).catch(function(){});
+  listen("tray-new",function(){inlineCapture();}).catch(function(){});
   listen("global-new",function(){
-    if(ui.view==="dashboard"||ui.view==="calendar"||ui.view==="quadrant"||ui.view==="timeline"||ui.view==="logbook")ui.view="all";
+    if(ui.view==="dashboard"||ui.view==="calendar"||ui.view==="quadrant"||ui.view==="logbook")ui.view="all";
     render();
-    setTimeout(function(){var q=$("#qt");if(q){q.focus();q.scrollIntoView({block:"center"})}else{openPalette()}},40);
+    setTimeout(inlineCapture,40);
   }).catch(function(){});
 }
 
@@ -1177,7 +1263,10 @@ var IC={
   gear:'<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9L17 7M7 17l-2.1 2.1" stroke-linecap="round"/>',
   dot:'<circle cx="12" cy="12" r="4.2" fill="currentColor" stroke="none"/>',
   rotate:'<path d="M3 12a9 9 0 1 0 2.6-6.4"/><path d="M3 4v5h5"/>',
-  more:'<circle cx="5" cy="12" r="1.7" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.7" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="1.7" fill="currentColor" stroke="none"/>'
+  more:'<circle cx="5" cy="12" r="1.7" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.7" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="1.7" fill="currentColor" stroke="none"/>',
+  quote:'<path d="M5 5v14"/><path d="M10 8h10M10 12h10M10 16h6"/>',
+  link:'<path d="M10 13a5 5 0 007.5.5l3-3a5 5 0 00-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 00-7.5-.5l-3 3a5 5 0 007 7l1.7-1.7"/>',
+  tpl:'<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M9 9v11"/>'
 };
 /* 平台自适应的修饰键提示：Windows 显示 Ctrl+，macOS 显示 ⌘。
    快捷键实现本身两者都接受（metaKey||ctrlKey），提示符号只是跟着平台走，避免 Windows 用户困惑。 */
@@ -1307,6 +1396,29 @@ function handleChg(chg,val){
   if(chg==="rpid"){ui.rpid=val;ui.aiOut="";renderMain();return}
   if(chg==="bproj"){ui.bproj=val;renderMain();return}
   if(chg==="tone"){ui.tone=val;return}
+  /* A1/C2：新增任务时换了项目 → 客户跟着推导（可见回显，不弹选择器） */
+  if(chg==="qproj"){
+    var cid=projClientId(val);
+    var h=$("#qc");if(h)h.value=cid;
+    var cl=$("#qcli");if(cl)cl.innerHTML=qcliHtml(cid);
+    return;
+  }
+  /* C2：任务详情里换了项目 → 同步推导客户（除非用户已手动指定） */
+  if(chg==="tproj"){
+    var cid2=projClientId(val);
+    var hv=$("#mcView");if(hv)hv.innerHTML=derivedClientHtml(cid2);
+    if(!ui.clientOverride){var hc=$("#mc");if(hc)hc.value=cid2;}
+    return;
+  }
+  /* C3：项目详情里换了客户 → 该项目下所有任务的客户同步更新（已经手动改过的任务也会跟着项目走） */
+  if(chg==="pclient"){
+    var p=ui.editing?proj(ui.editing):null;
+    if(p){
+      var old=p.clientId||"";
+      db.tasks.forEach(function(t){if(t.projectId===p.id&&(t.clientId||"")===old)t.clientId=val;});
+    }
+    return;
+  }
 }
 document.addEventListener("click",function(e){
   var us=e.target.closest("[data-usel]");
@@ -1334,7 +1446,7 @@ document.addEventListener("keydown",function(e){if(USOPEN&&e.key==="Escape")clos
 var storageOK=true;
 try{localStorage.setItem("__t","1");localStorage.removeItem("__t")}catch(e){storageOK=false}
 
-var db=null,bkTipShown=false,ui={view:"today",selId:null,pid:"all",cid:"all",tag:"",smart:null,pf:"all",bproj:"all",projYear:"all",q:"",open:{},editing:null,sheet:null,editLog:null,quickLog:null,editSub:null,noteId:"",noteCat:"all",noteQ:"",noteAutoNum:true,noteDel:null,
+var db=null,bkTipShown=false,ui={view:"today",selId:null,pid:"all",cid:"all",tag:"",smart:null,pf:"all",bproj:"all",projYear:"all",q:"",open:{},editing:null,sheet:null,editLog:null,quickLog:null,editSub:null,noteId:"",noteCat:"all",noteQ:"",noteTag:"",noteAutoNum:true,noteDel:null,
   rt:"week",roff:0,rpid:"all",tone:"boss",aiOut:"",aiBusy:false,aiPrompt:"",customStart:"",customEnd:"",calMode:"month",calSel:""},dragId=null,dragKind=null,undoBuf=null;
 
 /* AI 配置单独存一条记录，不混进 db —— 这样导出备份时不会把密钥带出去 */
@@ -1379,9 +1491,9 @@ function demo(){
     ],
     notes:[],noteCats:["未归类"],
     projects:[
-      {id:p1,name:"客户 A 交付"},
-      {id:p2,name:"产品迭代"},
-      {id:p3,name:"个人成长"}
+      {id:p1,name:"客户 A 交付",clientId:c1},
+      {id:p2,name:"产品迭代",clientId:c2},
+      {id:p3,name:"个人成长",clientId:""}
     ],
     tasks:[
       {id:uid(),title:"整理 Q3 需求评审材料",clientId:"",projectId:p2,priority:"high",due:ymd(shift(t,-2)),note:"评审会定在周五下午，材料要提前一天发出去",done:false,createdAt:Date.now()-6e8,important:true,tags:[tg2,tg4],subtasks:[
@@ -1406,7 +1518,42 @@ function demo(){
   d.prefs={pid:"",pri:"low"};
   d.tasks.forEach(normalizeTask);
   if(d.tasks[0])d.tasks[0].logs=[{id:uid(),at:Date.now()-864e5,text:"客户要求周五前先给一版大纲"}];
+  /* D1：示例数据带明确标记 —— 首启不再自动灌入，界面上也要能一眼区分"示例"和"我的数据" */
+  d.demoSeeded=true;
   return d;
+}
+/* D1：全新工作台的初始状态 —— 空的，并诚实地空着（而不是假装用户已经有 6 条任务） */
+function emptyData(){
+  return {version:1,seeded:false,demoSeeded:false,clients:[],tags:[],smartLists:[],notes:[],noteCats:["未归类"],projects:[],tasks:[],prefs:{pid:"",pri:"low"}};
+}
+/* D1：首启提示 —— 只在"真的什么都没有"时出现，给一个明确动作（写一条 / 载入示例） */
+function demoHintHtml(){
+  if(db.tasks.length||db.demoSeeded)return "";
+  return '<div class="demo-hint">'+icon(IC.spark,15)+'<span>第一次用？直接在最上面的输入框写一条任务试试。想先看看它怎么用，也可以</span>'+
+    '<button class="mini" data-act="loadDemo">载入示例数据</button></div>';
+}
+/* D1：示例数据横幅 —— 明确标记 + 一键清空，用户永远分得清哪个是自己的 */
+function demoBannerHtml(){
+  if(!db.demoSeeded)return "";
+  return '<div class="demo-banner">'+icon(IC.alert,14)+'<span>当前是<b>示例数据</b>，用来演示功能，不是你的真实内容。</span>'+
+    '<button class="mini" data-act="clearDemo">清空示例，从空白开始</button>'+
+    '<button class="mini" data-act="keepDemo">留着，我知道了</button></div>';
+}
+/* D3：3 步轻量引导 —— 带明确文字、指向具体的可见按钮，完成即消失；随时可跳过。
+   刻意不用"做中学、自己发现"那套（对大众用户太隐晦），每一步都写清楚点哪里。 */
+function onboardHtml(){
+  try{if(localStorage.getItem("onboardDone")==="1")return ""}catch(e){return ""}
+  if(!db.tasks.length)return "";/* 第一条还没加时不打扰，空状态里已经给了动作 */
+  var s1=db.tasks.length>0;
+  var s2=db.tasks.some(function(t){return t.due});
+  var s3=db.tasks.some(function(t){return t.projectId});
+  if(s1&&s2&&s3)return "";
+  function st(ok,n,txt){return '<span class="ob-it'+(ok?" done":"")+'"><i>'+(ok?icon(IC.check,11):n)+"</i>"+txt+"</span>"}
+  return '<div class="ob-strip"><span class="ob-t">'+icon(IC.spark,14)+"上手三步</span>"+
+    st(s1,"1","加一条任务（最上面的输入框）")+
+    st(s2,"2","给它设个日期（任务卡上的 📅）")+
+    st(s3,"3","归到某个项目（任务卡 ⋯ → 编辑任务 → 项目）")+
+    '<span class="spacer"></span><button class="mini" data-act="onboardDone">不用了</button></div>';
 }
 /* 老数据向后兼容：补齐新版本才有的字段，不动已有内容 */
 var pendingSubDue=null;
@@ -1441,6 +1588,8 @@ function normalizeProject(p){
   p.isContract=(p.isContract===1||p.isContract===true);
   if(typeof p.signDate!=="string")p.signDate="";
   if(typeof p.landYear!=="number")p.landYear=0;
+  /* A1/C2：项目归属客户 —— 任务的客户默认由它推导 */
+  if(typeof p.clientId!=="string")p.clientId="";
   return p;
 }
 function normalizeStage(s){
@@ -1458,6 +1607,9 @@ function normalizeNote(n){
   if(typeof n.md!=="string")n.md="";
   if(typeof n.cat!=="string")n.cat="";
   if(typeof n.pinned!=="boolean")n.pinned=false;
+  /* E3：多标签是数组字段，老数据没有 → 补齐成空数组。
+     必须补齐而不是留给下游兜底，否则写库时会序列化成 "null"。 */
+  if(!Array.isArray(n.tags))n.tags=[];
   if(typeof n.createdAt!=="number")n.createdAt=Date.now();
   if(typeof n.updatedAt!=="number")n.updatedAt=n.createdAt;
   return n;
@@ -1488,11 +1640,11 @@ function normalizeAll(d){
 async function load(){
   try{
     var raw=await invoke("load_store",{key:KEY});
-    if(!raw){db=demo();await saveNow();return}
+    if(!raw){db=normalizeAll(emptyData());await saveNow();return}
     var d=JSON.parse(raw);
     if(!d||!Array.isArray(d.tasks)||!Array.isArray(d.projects))throw 0;
     db=normalizeAll(d);
-  }catch(e){db=demo();try{await saveNow()}catch(_){}}
+  }catch(e){db=normalizeAll(emptyData());try{await saveNow()}catch(_){}}
   try{await initNoti()}catch(_){}
 }
 async function initNoti(){
@@ -1694,13 +1846,17 @@ function renderSide(){
     h+='<div class="empty" style="padding:8px;font-size:12.5px;color:var(--muted)">还没有标签，点击上方「+ 新建」创建</div>';
   }
 
-  /* ---- 智能列表（持久条件视图） ---- */
+  /* ---- 智能列表（持久条件视图） ----
+     C5：以前只有"已存在智能列表"时才显示这一段，而新建入口根本不存在（openSmart 是死代码）。
+     现在无论有没有，都给出常驻可见的「+ 新建」入口 —— 功能不该没有入口。 */
+  h+='<div class="side-sep"></div>';
+  h+='<div class="side-h" style="margin-top:10px;display:flex;align-items:center;justify-content:space-between;gap:8px"><span>智能列表</span><button class="mini" data-act="newSmart" style="font-size:11px;height:22px;padding:0 8px">+ 新建</button></div>';
   if(db.smartLists.length){
-    h+='<div class="side-sep"></div>';
-    h+='<div class="side-h" style="margin-top:10px">智能列表</div>';
     db.smartLists.forEach(function(s){
-      h+='<button class="pitem'+(ui.smart===s.id?" on":"")+'" data-act="pickSmart" data-id="'+s.id+'"><span class="pdot" style="background:var(--accent)"></span><span class="pnm">'+esc(s.name)+'</span></button>';
+      h+='<button class="pitem'+(ui.smart===s.id?" on":"")+'" data-act="pickSmart" data-id="'+s.id+'" title="按预设条件筛选任务"><span class="pdot" style="background:var(--accent)"></span><span class="pnm">'+esc(s.name)+'</span><span class="pedit" data-act="editSmart" data-id="'+s.id+'" title="编辑这个智能列表">'+icon(IC.pencil,12)+'</span></button>';
     });
+  }else{
+    h+='<div class="empty" style="padding:8px;font-size:12.5px;color:var(--muted)">还没有智能列表。它可以把「未完成 + 高优先级」这类常用的筛选条件存下来，一键复用。</div>';
   }
   $("#side").innerHTML=h;
 }
@@ -1719,7 +1875,7 @@ function renderTopbar(){
 
 function renderMain(){
   var h="";
-  if(ui.view==="timeline")ui.view="today";
+  /* C5：孤儿视图 timeline 已删除（无任何入口，功能与「历史」重叠） */
   var v=NAV_ALL.filter(function(x){return x[0]===ui.view})[0]||NAV_ALL[0];
   var collapsed=$("#insp")&&$("#insp").classList.contains("collapsed");
   var head='<div class="center-head"><div class="ch-title">'+icon(v[2],18)+esc(v[1])+'</div>'+
@@ -1729,7 +1885,7 @@ function renderMain(){
       '<button class="tbtn" data-act="export" title="导出 JSON 备份"><svg class="ic" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 11l5 5 5-5M4 20h16"/></svg><span>导出</span></button>'+
       '<button class="tbtn" data-act="import" title="导入恢复"><svg class="ic" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4M7 8l5-5 5 5M4 20h16"/></svg><span>导入</span></button>'+
       '<button class="tbtn" data-act="settings" title="设置"><svg class="ic" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9L17 7M7 17l-2.1 2.1"/></svg><span>设置</span></button>'+
-      '<button class="tbtn primary keep" data-act="newTask" title="新建任务  '+MODKEY+'N">'+icon(IC.plus,15)+'<span>新建</span></button>'+
+      '<button class="tbtn primary keep" data-act="newTask" title="新建任务：在列表顶部加一行，写完回车即可（'+MODKEY+'K 也可打开搜索面板）">'+icon(IC.plus,15)+'<span>新建</span></button>'+
       '<button class="tbtn" data-act="toggleInsp" title="显示 / 收起右侧面板  '+MODKEY+'\\">'+(collapsed?"展开面板":"收起面板")+'</button>'+
     '</div></div>';
   if(ui.view==="dashboard")h+=viewDashboard();
@@ -1743,7 +1899,7 @@ function renderMain(){
   else if(ui.view==="report"||ui.view==="weekly"){if(ui.view==="weekly"&&!ui.rt)ui.rt="week";h+=viewReport();}
   else if(ui.view==="projects")h+=viewProjects();
   else h+=viewToday();
-  $("#main").innerHTML=head+'<div class="main-scroll'+(ui.view==="notes"?" notes-scroll":"")+'">'+h+'</div>';
+  $("#main").innerHTML=head+'<div class="main-scroll'+(ui.view==="notes"?" notes-scroll":"")+'">'+demoBannerHtml()+onboardHtml()+h+'</div>';
   if(ui.selId){var selC=document.querySelector('#main [data-act="edit"][data-id="'+ui.selId+'"]');if(selC)selC.classList.add("sel");}
   var q=$("#q");if(q){q.value=ui.q||"";q.oninput=function(){ui.q=this.value;if(ui.view==="report"||ui.view==="weekly")ui.view="all";renderMain();};}
   var ap=$("#aiPrompt");if(ap){ap.value=ui.aiPrompt||"";ap.oninput=function(){ui.aiPrompt=this.value};}
@@ -1757,6 +1913,17 @@ function byId(arr,id){if(!id)return null;for(var i=0;i<arr.length;i++)if(arr[i].
 function clientById(id){return byId(db.clients,id)}
 function tagById(id){return byId(db.tags,id)}
 function clientNameOf(id){var c=clientById(id);return c?c.name:"";}
+/* A1/C2：客户由项目推导 —— 项目归属哪个客户，任务就默认跟着走，用户少做一个决定。
+   （projects.clientId 是本次新增的列，老数据为空，此时退回「未归类」并保留手动指定入口。） */
+function projClientId(pid){var p=pid?proj(pid):null;return (p&&p.clientId)?p.clientId:"";}
+function derivedClientHtml(cid){
+  var c=clientById(cid);
+  return c?('<span class="usel-dot" style="background:'+(c.color||"#999")+'"></span><b>'+esc(c.name)+"</b>"):'<span class="muted">未归类（该项目未指定客户）</span>';
+}
+function qcliHtml(cid){
+  var c=clientById(cid);
+  return '<span class="qcli-k">客户</span>'+(c?('<span class="usel-dot" style="background:'+(c.color||"#999")+'"></span>'+esc(c.name)):'<span class="qcli-none">未归类</span>');
+}
 function inspOverview(){
   var all=db.tasks,todo=all.filter(function(t){return !t.done});
   var od=todo.filter(function(t){return t.due&&dayDiff(t.due)<0});
@@ -1833,14 +2000,20 @@ function sanitizeUrl(u){
 /* 行内 Markdown：加粗/斜体/删除线/行内代码/链接（先做占位避免互相干扰，最后还原） */
 function inlineMd(s){
   if(s==null)return "";
-  var codes=[],links=[];
+  var codes=[],links=[],wls=[];
   s=esc(s);
   s=s.replace(/`([^`]+)`/g,function(_,c){codes.push(c);return " Lc"+(codes.length-1)+"Lc ";});
+  /* E5：[[笔记标题]] → 双链。已存在的笔记可点击跳转；不存在的显示为「待创建」，点一下即可新建。 */
+  s=s.replace(/\[\[([^\[\]]+)\]\]/g,function(_,t){wls.push(t);return " Lw"+(wls.length-1)+"Lw ";});
   s=s.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g,function(_,t,u){links.push([t,u]);return " Ll"+(links.length-1)+"Ll ";});
   s=s.replace(/\*\*([^*]+)\*\*/g,"<strong>$1</strong>").replace(/__([^_]+)__/g,"<strong>$1</strong>");
   s=s.replace(/\*([^*\n]+)\*/g,"<em>$1</em>").replace(/(^|[^_A-Za-z0-9])_([^_\n]+)_/g,"$1<em>$2</em>");
   s=s.replace(/~~([^~]+)~~/g,"<del>$1</del>");
   s=s.replace(/ Ll(\d+)Ll /g,function(_,i){var l=links[+i];return '<a href="'+sanitizeUrl(l[1])+'" target="_blank" rel="noopener">'+l[0]+"</a>";});
+  s=s.replace(/ Lw(\d+)Lw /g,function(_,i){
+    var t=wls[+i],ex=noteByTitle(t);
+    return '<a class="wikilink'+(ex?"":" missing")+'" data-wl="'+t+'" href="javascript:void(0)" title="'+(ex?"打开「"+t+"」":"还没有这篇笔记，点击创建")+'">'+t+(ex?"":" <span class=\"wl-new\">＋</span>")+"</a>";
+  });
   s=s.replace(/ Lc(\d+)Lc /g,function(_,i){return "<code>"+codes[+i]+"</code>";});
   return s;
 }
@@ -1876,7 +2049,11 @@ function mdInlineOut(c){
       else if(tag==="em"||tag==="i")s+="*"+inner+"*";
       else if(tag==="del"||tag==="s"||tag==="strike")s+="~~"+inner+"~~";
       else if(tag==="code")s+="`"+inner+"`";
-      else if(tag==="a")s+="["+inner+"]("+(ch.getAttribute("href")||"")+")";
+      else if(tag==="a"){
+        /* E5：双链回写为 [[标题]] 纯文本，保证导出的 Markdown 依然是可读的 */
+        if(ch.classList&&ch.classList.contains("wikilink"))s+="[["+(ch.getAttribute("data-wl")||inner)+"]]";
+        else s+="["+inner+"]("+(ch.getAttribute("href")||"")+")";
+      }
       else if(tag==="br")s+="\n";
       else if(tag==="span"||tag==="font")s+=inner;
       else s+=inner;
@@ -1905,7 +2082,10 @@ function html2md(node){
       else if(tag==="ol"){res.push("\n");var k=1;c.childNodes.forEach(function(li){if(li.nodeType===1&&li.tagName.toLowerCase()==="li"){res.push(k+". "+mdInlineOut(li)+"\n");k++;}});}
       else if(tag==="pre"){var code=c.querySelector?c.querySelector("code"):null;var txt=code?code.textContent:c.textContent;res.push("\n```\n"+txt+"\n```\n");}
       else if(tag==="div"){if(hasBlockEl(c)){walk(c);}else{res.push("\n"+mdInlineOut(c)+"\n");}}
-      else if(tag==="a"){res.push("["+mdInlineOut(c)+"]("+(c.getAttribute("href")||"")+")");}
+      else if(tag==="a"){
+        if(c.classList&&c.classList.contains("wikilink")){res.push("[["+(c.getAttribute("data-wl")||mdInlineOut(c))+"]]");}
+        else{res.push("["+mdInlineOut(c)+"]("+(c.getAttribute("href")||"")+")");}
+      }
       else{res.push(mdInlineOut(c));}
     });
   }
@@ -1915,34 +2095,203 @@ function html2md(node){
 /* ---- 数据访问 ---- */
 function currentNote(){return db.notes.filter(function(n){return n.id===ui.noteId})[0]||null;}
 function noteCatList(){var s=db.noteCats.slice();if(s.indexOf("未归类")<0)s.unshift("未归类");return s;}
+/* E5：按标题找笔记（双链解析用）。入参可能是已 HTML 转义的文本，两种都试一遍。 */
+function noteByTitle(t){
+  var k=(t||"").trim();if(!k)return null;
+  for(var i=0;i<db.notes.length;i++){
+    var nt=db.notes[i].title||"";
+    if(nt===k||esc(nt)===k)return db.notes[i];
+  }
+  return null;
+}
+/* E3：笔记的多标签 */
+function noteTagIds(n){return (n&&Array.isArray(n.tags))?n.tags:[]}
+function noteTagChipsHtml(n){
+  var cur=noteTagIds(n);
+  if(!db.tags.length)return '<span class="ntag-none">还没有标签，点右侧「＋ 新建标签」创建一个</span>';
+  return db.tags.map(function(tg){
+    var on=cur.indexOf(tg.id)>=0;
+    return '<button type="button" class="ntag'+(on?" on":"")+'" data-act="noteTagToggle" data-id="'+tg.id+'" title="'+(on?"点击移除":"点击添加")+'">'+
+      '<span class="ntag-dot" style="background:'+(tg.color||"#999")+'"></span>'+esc(tg.name)+'</button>';
+  }).join("");
+}
+function noteNewTagInline(){
+  $("#modal").innerHTML='<div class="mask" data-act="maskClose"><div class="sheet" style="max-width:460px" data-sheet="1"><h3>新建标签</h3>'+
+    '<div class="fld"><label>标签名称</label><input id="nnt" placeholder="例如：客户 A / 会议记录 / 灵感"></div>'+
+    '<p class="muted" style="font-size:12px;margin:8px 0 0">标签与任务标签是同一套，创建后任务和笔记都能用。</p>'+
+    '<div class="sheet-act"><button class="btn-ghost" data-act="closeModal">取消</button><button class="btn-pri" data-act="noteTagCreate">创建并挂上</button></div></div></div>';
+  setTimeout(function(){var e=$("#nnt");if(e)e.focus()},30);
+}
+/* E5：反链 —— 解析当前笔记里的 [[ ]] 出链，并全量扫描其他笔记找出引用了本文的（个人知识库规模下无需额外表） */
+function wikiTitlesIn(md){
+  var out=[],re=/\[\[([^\[\]]+)\]\]/g,m,txt=md||"";
+  while((m=re.exec(txt))){var t=m[1].trim();if(t&&out.indexOf(t)<0)out.push(t)}
+  return out;
+}
+function backlinksOf(n){
+  if(!n)return {out:[],inn:[]};
+  var outTitles=wikiTitlesIn(n.md),out=[];
+  outTitles.forEach(function(t){var x=noteByTitle(t);if(x&&out.indexOf(x)<0)out.push(x)});
+  var title=(n.title||"").trim(),inn=[];
+  if(title){
+    var needle="[["+title+"]]";
+    db.notes.forEach(function(o){if(o.id!==n.id&&(o.md||"").indexOf(needle)>=0)inn.push(o)});
+  }
+  return {out:out,inn:inn};
+}
+function backlinkPanelHtml(){
+  var n=currentNote();if(!n)return "";
+  var b=backlinksOf(n);
+  if(!b.out.length&&!b.inn.length)
+    return '<div class="bl-panel bl-none">'+icon(IC.link,13)+'<span>这篇还没和其他笔记建立链接。点工具栏「引用笔记」，或在正文里直接写 <code>[[笔记标题]]</code>。</span></div>';
+  var h='<div class="bl-panel">';
+  if(b.out.length)h+='<div class="bl-sec"><span class="bl-h">本文引用了 '+b.out.length+' 篇</span>'+b.out.map(function(x){return '<button class="bl-it" data-act="openNote" data-id="'+x.id+'" title="打开这篇笔记">'+icon(IC.link,12)+esc(x.title||"无标题笔记")+'</button>'}).join("")+'</div>';
+  if(b.inn.length)h+='<div class="bl-sec"><span class="bl-h">被 '+b.inn.length+' 篇引用</span>'+b.inn.map(function(x){return '<button class="bl-it" data-act="openNote" data-id="'+x.id+'" title="打开这篇笔记">'+icon(IC.note,12)+esc(x.title||"无标题笔记")+'</button>'}).join("")+'</div>';
+  h+='</div>';
+  return h;
+}
+function refreshBacklinks(){
+  var el=document.getElementById("backlinkBox");
+  if(el)el.innerHTML=backlinkPanelHtml();
+}
+function openWikiLink(title){
+  var t=(title||"").trim();if(!t)return;
+  flushNoteEditor();
+  var n=noteByTitle(t);
+  if(n){ui.noteId=n.id;render();return;}
+  ui.wikiNew=t;
+  confirmBox("还没有「"+t+"」这篇笔记，现在创建并打开它吗？","wikiCreateYes");
+}
+function insertWikiLink(title){
+  var ed=document.getElementById("noteEditor");if(!ed)return;
+  var n=currentNote();if(!n)return;
+  var link="[["+title+"]]";
+  var sel=window.getSelection();
+  var r=(sel&&sel.rangeCount)?sel.getRangeAt(0):null;
+  /* 光标确实落在编辑器里才就地插入；否则一律「安全追加到末尾」。
+     绝不用 deleteContents 去动编辑器之外的选区、也绝不整段重写已有内容
+     —— 「引用笔记」是常驻可见入口，点了必须有效，且不能误删用户的内容。 */
+  if(r&&ed.contains(r.startContainer)){
+    ed.focus();
+    if(!r.collapsed)r.deleteContents();
+    var node=document.createTextNode(link);
+    r.insertNode(node);r.setStartAfter(node);r.collapse(true);
+    sel.removeAllRanges();sel.addRange(r);
+    flushNoteEditor();
+  }else{
+    n.md=(n.md||"")+(n.md&&!/\n$/.test(n.md)?"\n":"")+link;
+    n.updatedAt=Date.now();save();
+    ed.innerHTML=md2html(n.md);
+  }
+  /* 光标落在刚插入的链接之后（紧邻其后，而不是落进链接内部），方便继续输入 */
+  var ls=ed.querySelectorAll("a.wikilink");
+  if(ls.length){
+    var last=ls[ls.length-1],after=document.createRange();
+    after.setStartAfter(last);after.collapse(true);
+    var s2=window.getSelection();s2.removeAllRanges();s2.addRange(after);
+  }
+  refreshBacklinks();
+}
+function openCitePicker(){
+  var q="";
+  function listHtml(){
+    var arr=db.notes.filter(function(n){return n.id!==ui.noteId});
+    if(q){var k=q.toLowerCase();arr=arr.filter(function(n){return (n.title||"").toLowerCase().indexOf(k)>=0})}
+    if(!arr.length)return '<div class="empty" style="padding:14px 0">没有可引用的笔记</div>';
+    return arr.map(function(n){
+      return '<button type="button" class="npick" data-act="citePick" data-id="'+n.id+'"><span class="npick-dot"></span><span class="npick-title">'+esc(n.title||"无标题笔记")+'</span>'+(n.cat?'<span class="npick-cat">'+esc(n.cat)+'</span>':'')+'</button>';
+    }).join("");
+  }
+  $("#modal").innerHTML='<div class="mask" data-act="maskClose"><div class="sheet" style="max-width:600px" data-sheet="1"><h3>引用另一篇笔记</h3>'+
+    '<p class="muted" style="font-size:12.5px;line-height:1.6;margin:-8px 0 10px">插入后建立双向链接：这篇底部能看到它，它那边也会出现在「被引用」里。也可以直接在正文写 <code>[[笔记标题]]</code>。</p>'+
+    '<div class="fld full"><label>选择笔记</label><input id="citeQ" placeholder="按标题搜索…"></div>'+
+    '<div class="npick-list" id="citeList">'+listHtml()+'</div>'+
+    '<div class="sheet-act"><button class="btn-ghost" data-act="closeModal">取消</button></div></div></div>';
+  var qe=$("#citeQ");if(qe){qe.oninput=function(){q=qe.value;var l=$("#citeList");if(l)l.innerHTML=listHtml()};setTimeout(function(){qe.focus()},30);}
+}
 function noteFiltered(){
   var q=(ui.noteQ||"").trim().toLowerCase();
   return db.notes.filter(function(n){
     var cat=n.cat||"";
     if(ui.noteCat==="__uncat__"){if(cat&&db.noteCats.indexOf(cat)>=0)return false;}
     else if(ui.noteCat!=="all"){if(cat!==ui.noteCat)return false;}
-    if(q){var hay=(n.title+" "+(n.md||"")).toLowerCase();if(hay.indexOf(q)<0)return false;}
+    if(ui.noteTag&&noteTagIds(n).indexOf(ui.noteTag)<0)return false;
+    if(q){
+      var hay=(n.title+" "+(n.md||"")+" "+noteTagIds(n).map(function(id){var t=tagById(id);return t?t.name:""}).join(" ")).toLowerCase();
+      if(hay.indexOf(q)<0)return false;
+    }
     return true;
   }).sort(function(a,b){
     if(!!a.pinned!==!!b.pinned)return a.pinned?-1:1;
     return (b.updatedAt||0)-(a.updatedAt||0);
   });
 }
-function noteSnip(md){
-  return (md||"").replace(/```[\s\S]*?```/g," ").replace(/[#>*_`~]/g," ").replace(/\n+/g," ").replace(/\s+/g," ").trim().slice(0,80);
+/* E4：搜索升级 —— 摘要不再永远取开头 80 字，而是围绕命中词截取片段 */
+function notePlain(md){
+  return (md||"").replace(/```[\s\S]*?```/g," ").replace(/\[\[([^\[\]]+)\]\]/g,"$1").replace(/[#>*_`~]/g," ").replace(/\n+/g," ").replace(/\s+/g," ").trim();
+}
+function noteSnip(md){return notePlain(md).slice(0,80);}
+function noteSnippet(md,q){
+  var p=notePlain(md);
+  if(!q)return p.slice(0,80);
+  var i=p.toLowerCase().indexOf(q.toLowerCase());
+  if(i<0)return p.slice(0,80);
+  var s=Math.max(0,i-28),e=Math.min(p.length,i+q.length+48);
+  return (s>0?"…":"")+p.slice(s,e)+(e<p.length?"…":"");
+}
+function noteHitCount(n,q){
+  if(!q)return 0;
+  var k=q.toLowerCase(),c=0,pos=0;
+  var hay=(n.title+"\n"+(n.md||"")).toLowerCase();
+  while((pos=hay.indexOf(k,pos))>=0){c++;pos+=k.length}
+  return c;
+}
+function hlText(s,q){
+  if(!q)return esc(s);
+  var i=s.toLowerCase().indexOf(q.toLowerCase());
+  if(i<0)return esc(s);
+  return esc(s.slice(0,i))+'<mark class="nhit">'+esc(s.slice(i,i+q.length))+"</mark>"+esc(s.slice(i+q.length));
+}
+/* D2：统一空状态组件 —— 每个空状态都要回答三件事：
+   ①这里放什么 ②为什么有用 ③现在能做什么。空着不说话 = 把新用户晾在原地。 */
+function emptyState(o){
+  o=o||{};
+  var acts=(o.acts||[]).map(function(b){
+    return '<button class="'+(b.primary?"tbtn primary keep":"tbtn")+'" data-act="'+b.act+'"'+(b.id!=null?' data-id="'+b.id+'"':"")+'>'+(b.icon?icon(b.icon,14):"")+esc(b.label)+"</button>";
+  }).join("");
+  return '<div class="estate'+(o.cls?(" "+o.cls):"")+'">'+
+    '<div class="est-ic">'+icon(o.icon||IC.list,o.big?34:26)+"</div>"+
+    '<h4 class="est-t">'+esc(o.title||"")+"</h4>"+
+    (o.why?'<p class="est-w">'+o.why+"</p>":"")+
+    (acts?'<div class="est-acts">'+acts+"</div>":"")+
+  "</div>";
 }
 function noteListHtml(){
   var list=noteFiltered();
-  if(!list.length)return '<div class="note-empty">没有匹配的笔记</div>';
+  var q=(ui.noteQ||"").trim();
+  if(!list.length){
+    var why="";
+    if(q)why+="没有找到包含「"+esc(q)+"」的笔记，换个词试试。<br>";
+    if(ui.noteTag)why+="当前标签是「"+esc(tagById(ui.noteTag)?tagById(ui.noteTag).name:"")+"」。<br>";
+    if(ui.noteCat&&ui.noteCat!=="all"&&ui.noteCat!=="__uncat__")why+="当前分类是「"+esc(ui.noteCat)+"」。<br>";
+    return emptyState({icon:IC.note,title:q?"没有匹配的笔记":"这里还没有笔记",why:why,
+      acts:[{label:"新建一篇笔记",act:"newNote",primary:1,icon:IC.plus}]});
+  }
   return list.map(function(n){
     var active=n.id===ui.noteId?" on":"";
     var cat=n.cat||"";
     var catOk=cat&&db.noteCats.indexOf(cat)>=0;
-    var chip=catOk?'<span class="ncat">'+esc(cat)+"</span>":"";
+    var chip=catOk?'<span class="ncat">'+hlText(cat,q)+"</span>":"";
+    var tg=noteTagIds(n).map(function(id){return tagById(id)}).filter(Boolean).slice(0,3);
+    var tgs=tg.length?'<span class="ni-tags">'+tg.map(function(t){
+      return '<span class="ni-tag"><i style="background:'+(t.color||"#999")+'"></i>'+hlText(t.name,q)+"</span>";
+    }).join("")+"</span>":"";
+    var hits=q?noteHitCount(n,q):0;
     return '<div class="note-item'+active+'" data-act="openNote" data-id="'+n.id+'">'+
-        '<div class="ni-top"><span class="ni-title">'+esc(n.title||"无标题笔记")+'</span>'+chip+'</div>'+
-        '<div class="ni-snip">'+esc(noteSnip(n.md)||"（空）")+'</div>'+
-        '<div class="ni-foot"><span>'+fmtAgo(n.updatedAt)+'</span>'+(n.pinned?'<span class="pin">★ 置顶</span>':'')+'</div>'+
+        '<div class="ni-top"><span class="ni-title">'+hlText(n.title||"无标题笔记",q)+'</span>'+chip+'</div>'+
+        '<div class="ni-snip">'+(q?hlText(noteSnippet(n.md,q),q):esc(noteSnip(n.md)||"（空）"))+'</div>'+
+        (tgs?'<div class="ni-tagrow">'+tgs+"</div>":"")+
+        '<div class="ni-foot"><span>'+fmtAgo(n.updatedAt)+(hits?' · <b class="ni-hits">'+hits+" 处匹配</b>":"")+'</span>'+(n.pinned?'<span class="pin">★ 置顶</span>':'')+'</div>'+
       '<div class="ni-acts">'+
         '<button class="ni-act" data-act="notePin" data-id="'+n.id+'" title="'+(n.pinned?"取消置顶":"置顶")+'">'+(n.pinned?icon(IC.star,14):icon(IC.starO,14))+'</button>'+
         '<button class="ni-act del" data-act="delNote" data-id="'+n.id+'" title="删除笔记">'+icon(IC.trash,14)+'</button>'+
@@ -1964,6 +2313,16 @@ function noteCatsHtml(){
     h+='<button class="nc'+on+'" data-act="noteCat" data-cat="'+esc(c)+'"><span class="nf-ic">'+icon(IC.note,15)+'</span><span class="nf-nm">'+esc(c)+'</span><span class="nf-cnt">'+cnt+'</span></button>';
   });
   h+='<button class="nc mini" data-act="noteCatManage"><span class="nf-ic">'+icon(IC.gear,14)+'</span><span class="nf-nm">管理分类</span></button>';
+  /* E3：标签分区 —— 与「全部笔记 / 未归类 / 各分类」并列，一个知识点可以按多个维度被检索到 */
+  var usedTags=db.tags.filter(function(tg){return db.notes.some(function(n){return noteTagIds(n).indexOf(tg.id)>=0})});
+  if(usedTags.length){
+    h+='<div class="nc-sec">标签</div>';
+    usedTags.forEach(function(tg){
+      var on=ui.noteTag===tg.id?" on":"";
+      var cnt=db.notes.filter(function(n){return noteTagIds(n).indexOf(tg.id)>=0}).length;
+      h+='<button class="nc'+on+'" data-act="noteTag" data-id="'+tg.id+'" title="按标签筛选笔记"><span class="nf-ic"><i class="ntag-dot" style="background:'+(tg.color||"#999")+'"></i></span><span class="nf-nm">'+esc(tg.name)+'</span><span class="nf-cnt">'+cnt+'</span></button>';
+    });
+  }
   return h;
 }
 function viewNotes(){
@@ -1972,53 +2331,75 @@ function viewNotes(){
   var folderName="全部笔记";
   if(ui.noteCat==="__uncat__")folderName="未归类";
   else if(ui.noteCat!=="all")folderName=ui.noteCat;
+  if(ui.noteTag){var ft=tagById(ui.noteTag);if(ft)folderName=ft.name;}
   var main;
   if(n){
     var opts=noteCatList().map(function(c){return '<option value="'+esc(c)+'"'+( (n.cat||"")===c?" selected":"")+'>'+esc(c)+"</option>";}).join("")
       +'<option value="__new__">＋ 新建分类…</option>';
     main='<div class="note-editor-wrap">'+
+      /* E2：工具栏 18 个平铺按钮 → 8 个常驻（B I U S · 标题级别下拉 · 列表 · 引用段落 · 引用笔记）
+         + 分隔线分组 + 「更多 ▾」。
+         H1–H4 合并为「标题级别」下拉，省 3 个位；B/I/U/S 保持 Word 式常驻图标（不做选区浮层）。
+         其余（有序 / 代码块 / 行内 / 链接 / 分隔 / 预览 / 编号 / 导出）收进「更多 ▾」——仍是看得见、点得到的入口。 */
       '<div class="note-toolbar">'+
-        '<button class="ntb" data-act="noteCmd" data-cmd="bold" onmousedown="event.preventDefault()" title="加粗 ⌘B"><b>B</b></button>'+
-        '<button class="ntb" data-act="noteCmd" data-cmd="italic" onmousedown="event.preventDefault()" title="斜体 ⌘I"><i>I</i></button>'+
-        '<button class="ntb" data-act="noteCmd" data-cmd="underline" onmousedown="event.preventDefault()" title="下划线 ⌘U"><u>U</u></button>'+
+        '<button class="ntb" data-act="noteCmd" data-cmd="bold" onmousedown="event.preventDefault()" title="加粗  '+MODKEY+'B"><b>B</b></button>'+
+        '<button class="ntb" data-act="noteCmd" data-cmd="italic" onmousedown="event.preventDefault()" title="斜体  '+MODKEY+'I"><i>I</i></button>'+
+        '<button class="ntb" data-act="noteCmd" data-cmd="underline" onmousedown="event.preventDefault()" title="下划线  '+MODKEY+'U"><u>U</u></button>'+
         '<button class="ntb" data-act="noteCmd" data-cmd="strike" onmousedown="event.preventDefault()" title="删除线"><s>S</s></button>'+
         '<span class="nt-sep"></span>'+
-        '<button class="ntb" data-act="noteCmd" data-cmd="h1" onmousedown="event.preventDefault()" title="一级标题">H1</button>'+
-        '<button class="ntb" data-act="noteCmd" data-cmd="h2" onmousedown="event.preventDefault()" title="二级标题">H2</button>'+
-        '<button class="ntb" data-act="noteCmd" data-cmd="h3" onmousedown="event.preventDefault()" title="三级标题">H3</button>'+
-        '<button class="ntb" data-act="noteCmd" data-cmd="h4" onmousedown="event.preventDefault()" title="四级标题">H4</button>'+
+        '<select class="ntb-sel" id="noteHSel" title="段落 / 标题级别">'+
+          '<option value="">正文</option><option value="h1">标题 1</option><option value="h2">标题 2</option><option value="h3">标题 3</option><option value="h4">标题 4</option>'+
+        '</select>'+
         '<span class="nt-sep"></span>'+
-        '<button class="ntb" data-act="noteCmd" data-cmd="ul" onmousedown="event.preventDefault()" title="无序列表">列表</button>'+
-        '<button class="ntb" data-act="noteCmd" data-cmd="ol" onmousedown="event.preventDefault()" title="有序列表">有序</button>'+
-        '<button class="ntb" data-act="noteCmd" data-cmd="quote" onmousedown="event.preventDefault()" title="引用">引用</button>'+
-        '<button class="ntb" data-act="noteCmd" data-cmd="code" onmousedown="event.preventDefault()" title="代码块">代码块</button>'+
-        '<button class="ntb" data-act="noteCmd" data-cmd="inline" onmousedown="event.preventDefault()" title="行内代码">行内</button>'+
-        '<button class="ntb" data-act="noteCmd" data-cmd="link" onmousedown="event.preventDefault()" title="插入链接">链接</button>'+
-        '<button class="ntb" data-act="noteCmd" data-cmd="hr" onmousedown="event.preventDefault()" title="分隔线">分隔</button>'+
+        '<button class="ntb" data-act="noteCmd" data-cmd="ul" onmousedown="event.preventDefault()" title="无序列表">'+icon(IC.list,15)+'</button>'+
+        '<button class="ntb" data-act="noteCmd" data-cmd="quote" onmousedown="event.preventDefault()" title="引用段落">'+icon(IC.quote,15)+'</button>'+
         '<span class="nt-sep"></span>'+
-        '<button class="ntb" data-act="noteCmd" data-cmd="preview" onmousedown="event.preventDefault()" title="预览 / 编辑切换">预览</button>'+
-        '<button class="ntb'+(ui.noteAutoNum?" on":"")+'" data-act="noteCmd" data-cmd="autonum" onmousedown="event.preventDefault()" title="自动章节编号">编号</button>'+
-        '<span class="nt-sep"></span>'+
-        '<button class="ntb ntb-export" data-act="noteExport" data-id="'+n.id+'" onmousedown="event.preventDefault()" title="导出为 Markdown 文件">导出 MD</button>'+
+        '<button class="ntb ntb-tx" data-act="noteCite" onmousedown="event.preventDefault()" title="引用另一篇笔记（插入双链，也会出现在对方的反链里）">'+icon(IC.link,15)+'<span>引用笔记</span></button>'+
+        '<details class="nt-more" id="ntMore">'+
+          '<summary class="ntb" title="更多格式与操作">更多 ▾</summary>'+
+          '<div class="nt-more-body">'+
+            '<button class="ntb" data-act="noteCmd" data-cmd="ol" onmousedown="event.preventDefault()">有序列表</button>'+
+            '<button class="ntb" data-act="noteCmd" data-cmd="code" onmousedown="event.preventDefault()">代码块</button>'+
+            '<button class="ntb" data-act="noteCmd" data-cmd="inline" onmousedown="event.preventDefault()">行内代码</button>'+
+            '<button class="ntb" data-act="noteCmd" data-cmd="link" onmousedown="event.preventDefault()">插入外部链接</button>'+
+            '<button class="ntb" data-act="noteCmd" data-cmd="hr" onmousedown="event.preventDefault()">分隔线</button>'+
+            '<span class="nt-sep"></span>'+
+            '<button class="ntb" data-act="noteCmd" data-cmd="preview" onmousedown="event.preventDefault()">预览 / 编辑切换</button>'+
+            '<button class="ntb'+(ui.noteAutoNum?" on":"")+'" data-act="noteCmd" data-cmd="autonum" onmousedown="event.preventDefault()">自动章节编号</button>'+
+            '<span class="nt-sep"></span>'+
+            '<button class="ntb" data-act="noteExport" data-id="'+n.id+'" onmousedown="event.preventDefault()">导出为 Markdown 文件</button>'+
+          '</div>'+
+        '</details>'+
       '</div>'+
       '<div class="note-meta">'+
         '<input class="note-title" id="noteTitle" value="'+esc(n.title)+'" placeholder="笔记标题">'+
         '<div class="note-catrow"><span class="ncr-label">分类</span><select id="noteCatSel" class="nc-sel">'+opts+'</select>'+
+          '<span class="ncr-tip" title="加速用法：在标题结尾写 #分类名 再按回车，会自动归类">标题结尾写 #分类 可自动归类</span>'+
           '<button class="mini ncr-act" data-act="notePin" data-id="'+n.id+'" title="置顶/取消置顶">'+(n.pinned?"★ 已置顶":"☆ 置顶")+'</button>'+
           '<button class="mini danger ncr-act" data-act="delNote" data-id="'+n.id+'" title="删除这篇笔记">'+(icon(IC.trash,13))+' 删除</button>'+
         '</div>'+
+        /* E3：多标签 —— 一篇笔记可同时挂多个标签（复用任务标签的交互：可见 chips 点选） */
+        '<div class="note-tagrow"><span class="ncr-label">标签</span><div class="ntag-box" id="noteTagBox">'+noteTagChipsHtml(n)+'</div>'+
+          '<button class="mini" data-act="noteTagNew" title="新建一个标签并挂到这篇笔记">＋ 新建标签</button>'+
+        '</div>'+
       '</div>'+
       '<div class="note-body" id="noteEditor" contenteditable="true" spellcheck="false">'+md2html(n.md)+'</div>'+
+      /* E5：反链面板常驻在编辑器下方（知识库的分水岭：笔记之间互相可见） */
+      '<div class="bl-wrap" id="backlinkBox">'+backlinkPanelHtml()+'</div>'+
     '</div>';
   } else {
-    main='<div class="note-blank"><div class="nb-ic">'+icon(IC.note,46)+'</div><h3>开始记录你的知识</h3><p>左侧选择一篇笔记，或新建一篇用于内容摘录与沉淀。</p><button class="tbtn primary keep" data-act="newNote">＋ 新建笔记</button></div>';
+    main='<div class="note-blank"><div class="nb-ic">'+icon(IC.note,46)+'</div><h3>开始记录你的知识</h3><p>左侧选择一篇笔记，或从这里新建一篇。笔记随时自动保存，还能互相引用——攒着攒着就成了你自己的知识库。</p><div class="est-acts"><button class="tbtn primary keep" data-act="newNote">＋ 新建空白笔记</button><button class="tbtn" data-act="newNoteTpl" data-id="1">＋ 从模板新建</button></div></div>';
   }
   return '<div class="notes'+(ui.noteAutoNum?" note-auto":"")+'">'+
     '<aside class="nb-fav">'+
       '<div class="nb-fav-top"><input id="noteQ" class="note-search" placeholder="搜索" value="'+esc(ui.noteQ||"")+'"><button class="mini primary nb-new" data-act="newNote" title="新建笔记">＋</button></div>'+
       '<div class="nb-fav-list">'+noteCatsHtml()+'</div>'+
     '</aside>'+
-    '<div class="nb-list"><div class="nb-list-bar"><span class="nlb-t">'+esc(folderName)+'</span><button class="mini primary" data-act="newNote">＋ 新建</button></div><div class="note-list" id="noteList">'+list+'</div></div>'+
+    '<div class="nb-list"><div class="nb-list-bar"><span class="nlb-t">'+esc(folderName)+'</span>'+
+      '<details class="nt-more tpl-more"><summary class="mini" title="从模板开始新建一篇笔记">'+icon(IC.tpl,13)+' 模板 ▾</summary><div class="nt-more-body">'+
+        NOTE_TEMPLATES.map(function(t,i){return '<button class="ntb" data-act="newNoteTpl" data-id="'+i+'">'+esc(t.name)+'</button>'}).join("")+
+      '</div></details>'+
+      '<button class="mini primary" data-act="newNote">＋ 新建</button></div><div class="note-list" id="noteList">'+list+'</div></div>'+
     '<div class="nb-edit" id="noteMain">'+main+'</div>'+
   '</div>';
 }
@@ -2030,11 +2411,35 @@ function mountNotes(){
     ed.addEventListener("input",function(){liveInline();noteEditDebounced();});
     ed.addEventListener("keydown",noteKeydown);
     ed.addEventListener("blur",function(){flushNoteEditor();});
+    /* E5：正文里的 [[双链]] 变成可点击链接；未创建的显示为「待创建」 */
+    ed.addEventListener("click",function(e){
+      var a=e.target.closest?e.target.closest("a.wikilink"):null;
+      if(a){e.preventDefault();openWikiLink(a.getAttribute("data-wl"));}
+    });
   }
   var q=document.getElementById("noteQ");
   if(q){q.oninput=function(){ui.noteQ=q.value;var nl=document.getElementById("noteList");if(nl)nl.innerHTML=noteListHtml();};}
+  /* E2：标题级别下拉 */
+  var hs=document.getElementById("noteHSel");
+  if(hs){hs.onchange=function(){var v=hs.value;hs.value="";if(v)noteCmd(v);};}
   var t=document.getElementById("noteTitle");
-  if(t){t.oninput=function(){var n=currentNote();if(n){n.title=t.value;n.updatedAt=Date.now();var nl=document.getElementById("noteList");if(nl)nl.innerHTML=noteListHtml();save();}};}
+  if(t){
+    t.oninput=function(){var n=currentNote();if(n){n.title=t.value;n.updatedAt=Date.now();var nl=document.getElementById("noteList");if(nl)nl.innerHTML=noteListHtml();save();}};
+    /* E6：标题结尾写 #分类 再回车 → 自动归类（可见提示就在分类选择器旁边） */
+    t.onkeydown=function(e){
+      if(e.key!=="Enter")return;
+      e.preventDefault();
+      var n=currentNote();if(!n)return;
+      var m=(t.value||"").match(/#([^\s#]+)\s*$/);
+      if(!m)return;
+      var cat=m[1];
+      if(db.noteCats.indexOf(cat)<0)db.noteCats.push(cat);
+      n.cat=cat;
+      n.title=(t.value||"").replace(/#([^\s#]+)\s*$/,"").trim();
+      n.updatedAt=Date.now();save();render();
+      toast("已归类到「"+cat+"」");
+    };
+  }
   var sel=document.getElementById("noteCatSel");
   if(sel){sel.onchange=function(){
     var n=currentNote();if(!n)return;
@@ -2053,6 +2458,7 @@ function flushNoteEditor(){
   var n=currentNote();if(!n)return;
   var md=html2md(ed);
   if(md!==(n.md||"")){n.md=md;n.updatedAt=Date.now();save();}
+  refreshBacklinks();
 }
 function noteNewCatInline(n){openNoteCatModal(true,n.id);}
 function noteKeydown(e){
@@ -2106,6 +2512,25 @@ function liveInline(){
         try{rng2.surroundContents(em);}catch(e){return;}
         var ar2=document.createRange();ar2.setStartAfter(em);ar2.collapse(true);
         sel.removeAllRanges();sel.addRange(ar2);
+      }
+    }
+    /* E5：打出 ]] 时，把 [[标题]] 实时变成双链（语法只是加速，工具栏「引用笔记」是主通道） */
+    if(txt.slice(pos-2,pos)==="]]"){
+      var oi3=txt.lastIndexOf("[[",pos-2);
+      if(oi3>=0){
+        var inner3=txt.slice(oi3+2,pos-2);
+        if(inner3.trim()&&inner3.indexOf("[[")<0&&inner3.indexOf("]]")<0){
+          var range3=document.createRange();range3.setStart(node,oi3);range3.setEnd(node,pos);
+          var a3=document.createElement("a");
+          a3.className="wikilink"+(noteByTitle(inner3)?"":" missing");
+          a3.setAttribute("data-wl",inner3);
+          a3.setAttribute("href","javascript:void(0)");
+          a3.textContent=inner3;
+          try{range3.surroundContents(a3);}catch(e){return;}
+          var ar3=document.createRange();ar3.setStartAfter(a3);ar3.collapse(true);
+          sel.removeAllRanges();sel.addRange(ar3);
+          noteEditDebounced();
+        }
       }
     }
   }catch(e){}
@@ -2190,21 +2615,21 @@ function quickAdd(){
   var pf=db.prefs||{};
   var defPid=(ui.pid!=="all"&&ui.pid!=="none")?ui.pid:(pf.pid||"");
   if(defPid&&!proj(defPid))defPid="";
-  var defCid=(ui.cid!=="all"&&ui.cid!=="none")?ui.cid:"";
   var defPri=pf.pri||"low";
   var pArr=[{v:"",label:"未归类"}].concat(db.projects.map(function(p){return {v:p.id,label:p.name}}));
-  var cArr=[{v:"",label:"未归类"}].concat(db.clients.map(function(c){return {v:c.id,label:c.name}}));
   var priArr=[{v:"low",label:"普通"},{v:"mid",label:"重要"},{v:"high",label:"最高"}];
-  /* A1：placeholder 由 42 字缩到 6 字；内联语法降级为 hover 提示的加速通道。
-     注：客户与项目在本数据模型中是平级实体（projects 表无 client_id），
-     故不采用「由项目推导客户」的做法，两个选择器均保留可见入口。 */
-  var hint="回车即可添加 · 也可直接输入：!高 / !中 / !低 · @标签 · 明天 / 周五 · 开头加 * 标重要";
+  var defCid=projClientId(defPid);
+  /* A1 + C2：客户下拉已删除 —— 客户由所选项目自动推导，这里只做「看得见的回显」，
+     不是控件也不是隐藏逻辑；需要覆盖时可去任务详情里手动指定。
+     内联语法（!高 / @标签 / 明天 / *重要）保留但降级为加速通道，hover 可见提示。 */
+  var hint="回车即可添加 · 也可以直接输入：!高 / !中 / !低 · @标签 · 明天 / 周五 · 开头加 * 标重要";
   return '<div class="qadd">'+
+    uiSelect("qp",defPid,pArr,"qproj")+
     '<input class="t" id="qt" placeholder="添加任务，回车即可" title="'+esc(hint)+'">'+
-    uiSelect("qc",defCid,cArr)+
-    uiSelect("qp",defPid,pArr)+
     uiSelect("qpri",defPri,priArr)+
     dateTrigger("qd",today())+
+    '<span class="qcli" id="qcli" title="客户由所选项目自动推导；需要改请在任务详情里手动指定">'+qcliHtml(defCid)+'</span>'+
+    '<input type="hidden" id="qc" value="'+esc(defCid)+'">'+
     '<button class="go" data-act="add">'+icon(IC.plus,15)+"添加</button></div>";
 }
 
@@ -2268,7 +2693,7 @@ function viewToday(){
        '<button class="mini" data-act="bulkDone">批量标记完成</button></div>';
   }
   if(!list.length&&!soon.length){
-    h+='<div class="empty">今天没有到期任务，清爽。<br>要不要把这周的目标拆成几个任务？</div>';
+    h+=emptyState({icon:IC.sun,cls:"estate-inline",title:"今天没有到期任务",why:"清爽。<br>要不要把这周的目标拆成几个任务？",acts:[{label:"加一条任务",act:"newTask",icon:IC.plus}]});
   }else{
     list.forEach(function(t){
       var d=dayDiff(t.due),tag=d<0?'<span class="chip od">逾期 '+(-d)+" 天</span>":'<span class="chip due">今天截止</span>';
@@ -2292,8 +2717,11 @@ function viewToday(){
   var rest=sortTasks(filtered().filter(function(t){return !t.done}));
   h+='<div class="today-rest"><h3>进行中的任务 · '+rest.length+" 项</h3>";
   h+='<div class="task-list">';
-  h+=rest.length?rest.map(taskCard).join(""):'<div class="empty">还没有进行中的任务</div>';
+  h+=rest.length?rest.map(taskCard).join(""):emptyState({icon:IC.sun,title:"还没有进行中的任务",
+    why:"在上面那个输入框写一句、按回车就加上了。<br>不需要先建项目，也不需要先选客户。",
+    acts:[{label:"写一条任务",act:"newTask",primary:1,icon:IC.plus}]});
   h+='</div></div>';
+  h+=demoHintHtml();
   var dn=db.tasks.filter(function(t){return t.done}).length;
   if(dn)h+='<div class="done-bar" data-act="view" data-id="all">'+icon(IC.check,15)+"已完成 "+dn+" 项 · 点击查看</div>";
   return h;
@@ -2301,7 +2729,9 @@ function viewToday(){
 function viewLogbook(){
   var done=db.tasks.filter(function(t){return t.done}).sort(function(a,b){return (b.doneAt||0)-(a.doneAt||0)});
   var h='<div class="view-head"><div class="vh-title">'+icon(IC.logbook,18)+"历史 · 完成记录</div></div>";
-  if(!done.length){h+='<div class="empty">还没有已完成的任务。<br>勾选完成一项后，这里会出现它的完成记录，方便写周报时回溯。</div>';return h;}
+  if(!done.length){h+=emptyState({icon:IC.logbook,title:"还没有已完成的任务",big:1,
+    why:"勾选完成一项后，这里会出现它的完成记录，写周报时可以直接回溯。",
+    acts:[{label:"回到今天",act:"view",id:"today",icon:IC.sun}]});return h;}
   var groups={};
   done.forEach(function(t){var d=new Date(t.doneAt||Date.now());var mm=d.getMonth()+1;var key=d.getFullYear()+"-"+(mm<10?"0":"")+mm;(groups[key]=groups[key]||[]).push(t)});
   var keys=Object.keys(groups).sort().reverse();
@@ -2358,7 +2788,7 @@ function viewCalendar(){
   h+=mode==="month"?calMonth(s,sel):calWeek(s,sel);
   var list=tasksByDue(sel).slice();
   h+='<div class="cal-detail"><div class="cal-detail-h">'+fmtDate(sel)+(list.length?' <span class="cnt">'+list.length+'</span>':'')+'</div>';
-  if(!list.length)h+='<div class="empty">这一天没有到期任务</div>';
+  if(!list.length)h+=emptyState({icon:IC.cal,title:"这一天没有到期任务",why:"任务的截止日期定在这一天时，它会出现在这里。",acts:[{label:"给任务设个日期",act:"newTask",icon:IC.cal}]});
   else h+=list.sort(function(a,b){return (a.done?1:0)-(b.done?1:0)}).map(calTaskRow).join("");
   h+="</div>";
   return h;
@@ -2431,39 +2861,23 @@ function viewQuadrant(){
     '<div class="quad">'+col("重要 · 紧急",q1,"q1",1)+col("重要 · 不紧急",q2,"q2",2)+col("紧急 · 不重要",q3,"q3",3)+col("不重要 · 不紧急",q4,"q4",4)+"</div>";
 }
 
-function viewTimeline(){
-  var startOff=-7,win=35;
-  var acts=db.tasks.filter(function(t){return t.due&&dayDiff(t.due)>=startOff});
-  acts.sort(function(a,b){return dayDiff(a.due)-dayDiff(b.due)});
-  var axis="";for(var k=0;k<6;k++){var off=startOff+Math.round(win*(k+1)/6);axis+='<span style="left:'+((k+1)/6*100)+'%">'+relLabel(off)+'</span>'}
-  var h='<div class="view-head"><div class="vh-title">'+icon(IC.tl,18)+"时间线</div>"+
-    '<div class="vh-tip muted">未来 '+(win+startOff)+' 天到期分布 · 竖线为今天</div></div>';
-  h+='<div class="tl"><div class="tl-axis">'+axis+'</div>';
-  if(!acts.length)h+='<div class="empty">近期没有带截止日期的任务</div>';
-  else acts.forEach(function(t){
-    var off=dayDiff(t.due);var left=Math.max(0,Math.min(100,(off-startOff)/win*100));
-    h+='<div class="tl-row" data-act="edit" data-id="'+t.id+'">'+
-      '<div class="tl-label">'+esc(t.title)+'</div>'+
-      '<div class="tl-track"><div class="tl-today" style="left:'+((-startOff)/win*100)+'%"></div>'+
-      '<div class="tl-bar'+(off<0?" od":"")+'" style="left:'+left+'%"></div>'+
-      '<span class="tl-due'+(off<0?" od":"")+'">'+fmtDue(t.due)+(off<0?" 逾期":off===0?" 今天":"")+'</span></div></div>';
-  });
-  h+="</div>";
-  return h;
-}
 
 function viewAll(){
   var base=filtered();
-  var h=quickAdd();
+  var h="";
+  h+=quickAdd();
   h+=filterBar();
   var a=sortTasks(base),undone=a.filter(function(t){return !t.done}),done=a.filter(function(t){return t.done});
   h+="<h3>进行中 · "+undone.length+" 项</h3>";
-  h+=undone.length?undone.map(taskCard).join(""):'<div class="empty">没有进行中的任务</div>';
+  h+=undone.length?undone.map(taskCard).join(""):emptyState({icon:IC.list,title:db.tasks.length?"没有符合条件的任务":"还没有任务",
+    why:db.tasks.length?"当前有筛选条件在生效（客户 / 标签 / 搜索 / 优先级）。<br>清掉筛选就能看到全部任务。":"在最上面的输入框写一句、按回车就加上了。",
+    acts:db.tasks.length?[{label:"清空筛选",act:"bprojClear"}]:[{label:"写一条任务",act:"newTask",primary:1,icon:IC.plus}]});
   if(done.length){
     h+='<h3 style="margin-top:18px">已完成 · '+done.length+" 项</h3>";
     h+=done.slice(0,40).map(taskCard).join("");
-    if(done.length>40)h+='<div class="empty">仅显示最近 40 条已完成任务，更早的记录仍保存在数据里</div>';
+    if(done.length>40)h+='<div class="estate-mini">仅显示最近 40 条已完成任务，更早的记录仍保存在数据里</div>';
   }
+  h+=demoHintHtml();
   return h;
 }
 
@@ -2508,7 +2922,15 @@ function taskCard(t){
   if(t.due)h+='<span class="chip '+(od?"od":d===0?"due":"")+'">'+(od?"逾期 "+(-d)+" 天":d===0?"今天截止":t.due.slice(5).replace("-","月")+"日")+"</span>";
   if(t.note)h+='<span class="chip">备注</span>';
   var noteCnt=0;if(t.noteId&&noteById(t.noteId))noteCnt++;t.subtasks.forEach(function(s){if(s.noteId&&noteById(s.noteId))noteCnt++});
-  if(noteCnt)h+='<span class="chip note-badge" data-act="taskNotes" data-id="'+t.id+'" title="查看本任务全部笔记（'+noteCnt+' 篇）">'+icon(IC.note,12)+noteCnt+" 篇笔记</span>";
+  /* E7：与任务的闭环 —— 徽标直接显示笔记标题（而不是"N 篇笔记"），悬停看摘要；
+     只有一篇时点击直接跳到那篇笔记，多篇时弹出清单。 */
+  if(noteCnt){
+    var mn=t.noteId?noteById(t.noteId):null;
+    var mlabel=mn?esc(mn.title||"无标题笔记"):(noteCnt+" 篇笔记");
+    var mtip=mn?noteSnip(mn.md).slice(0,90):"查看本任务全部笔记";
+    var mact=(noteCnt===1&&mn)?"openNoteInView":"taskNotes";
+    h+='<span class="chip note-badge" data-act="'+mact+'" data-id="'+(noteCnt===1&&mn?mn.id:t.id)+'" title="'+esc(mtip)+'">'+icon(IC.note,12)+mlabel+(noteCnt>1?" +"+(noteCnt-1):"")+"</span>";
+  }
   if(t.logs&&t.logs.length)h+='<span class="chip">'+icon(IC.chat,12)+t.logs.length+" 条记录</span>";
   h+="</div></div>";
   if(t.logs&&t.logs.length){
@@ -3057,10 +3479,7 @@ function openExportDone(p){
 
 /* ---------- AI 总结 ---------- */
 function aiReady(){return !!(ai.base&&ai.model&&(ai.key||/localhost|127\.0\.0\.1/.test(ai.base)))}
-function updateAiBadge(){
-  var show=aiReady()?"none":"inline-block";
-  var b=document.getElementById("aiBadge");if(b)b.style.display=show;
-}
+/* C5：原 updateAiBadge() 引用了一个 HTML 里根本不存在的 #aiBadge 元素，属于空操作，已删除。 */
 
 function aiSystem(tone,custom){
   if(custom&&custom.trim()){
@@ -3183,7 +3602,7 @@ function viewDashboard(){
 
   h+='<div class="dbox"><h3>各项目进度</h3>';
   if(!db.projects.length){
-    h+='<div class="empty">还没有项目，新建一个来归类任务吧</div>';
+    h+=emptyState({icon:IC.folder,cls:"estate-inline",title:"还没有项目",why:"项目用来把一堆相关任务归到一起，比如「客户 A 交付」。",acts:[{label:"新建项目",act:"newProject",primary:1,icon:IC.plus}]});
   }else{
     db.projects.forEach(function(p){
       var ts=db.tasks.filter(function(t){return t.projectId===p.id}),d=ts.filter(function(t){return t.done}).length,pct=ts.length?d/ts.length:0;
@@ -3275,6 +3694,7 @@ function openTask(id){
   var t=task(id);if(!t)return;ui.editing=id;
   var d=ui.taskDraft;ui.taskDraft=null;
   ui.tagPick=(d?d.tags:(t.tags||[])).slice();ui.impPick=d?!!d.important:!!t.important;
+  ui.clientOverride=(d?!!d.clientOverride:false);
   var curClient=d?d.clientId:t.clientId;
   var curProject=d?d.projectId:t.projectId;
   var titleV=d?d.title:t.title, priV=d?d.priority:(t.priority||"low"), dueV=d?d.due:(t.due||""), noteV=d?d.note:(t.note||"");
@@ -3282,31 +3702,42 @@ function openTask(id){
   var clientOptsArr=[{v:"",label:"未归类（内部）"}].concat(db.clients.map(function(c){return {v:c.id,label:c.name,dot:c.color}}));
   var projOptsArr=[{v:"",label:"未归类"}].concat(db.projects.map(function(p){return {v:p.id,label:p.name}}));
   var impCls=ui.impPick?"imp-on":"";
+  var derived=projClientId(curProject);
+  if(!ui.clientOverride)curClient=derived;
   $("#modal").innerHTML='<div class="mask" data-act="maskClose"><div class="sheet" data-sheet="1">'+
     "<h3>编辑任务</h3>"+
+    /* C2：渐进披露 —— 默认只给 3 件事：标题、截止日期、项目。
+       其余（优先级/状态/标签/重要/笔记/子任务/备注/跟进）全部收进「更多选项 ▾」，
+       这个折叠标题常驻可见，点得到，不是靠记忆的隐藏入口。 */
+    '<div class="fld full"><label>任务标题</label><input id="mt" value="'+esc(titleV)+'"></div>'+
     '<div class="two-col">'+
-      '<div class="fld full"><label>任务标题</label><input id="mt" value="'+esc(titleV)+'"></div>'+
-      '<div class="fld"><label>客户</label><div class="client-row">'+uiSelect("mc",curClient,clientOptsArr)+'<button type="button" class="tbtn" data-act="newClientInline" title="新建客户">'+icon(IC.plus,14)+'</button><button type="button" class="tbtn" data-act="editClientInline" title="编辑当前客户">'+icon(IC.pencil,14)+'</button></div></div>'+
-      '<div class="fld"><label>项目</label><div class="client-row">'+uiSelect("mp",curProject,projOptsArr)+'<button type="button" class="tbtn" data-act="newProjectInline" title="新建项目">'+icon(IC.plus,14)+'</button><button type="button" class="tbtn" data-act="editProjectInline" title="编辑当前项目">'+icon(IC.pencil,14)+'</button></div></div>'+
-      '<div class="fld"><label>优先级</label>'+uiSelect("mpri",priV,priOptsArr)+'</div>'+
-      '<div class="fld"><label>状态</label>'+uiSelect("mst",statusOf(t),[{v:"todo",label:"待办"},{v:"doing",label:"进行中"},{v:"done",label:"已完成"}])+'</div>'+
       '<div class="fld"><label>截止日期</label>'+dateTrigger("md",dueV)+'</div>'+
-      '<div class="fld full"><label>标签（横向分类，可多选）</label><div id="tagBox" class="tchip-row">'+tagChipsHtml(ui.tagPick)+'</div></div>'+
-      '<div class="fld full"><button type="button" class="imp-toggle '+impCls+'" data-act="toggleImp" id="mimp"><span class="imp-star">★</span><span class="imp-txt">'+(ui.impPick?"已标记为重要":"标记为重要")+'</span></button></div>'+
-      '<div class="fld full"><label>关联笔记</label><div class="tasknote-row">'+
-        (t.noteId&&noteById(t.noteId)?'<span class="tn-current">'+icon(IC.note,14)+esc(noteById(t.noteId).title||"无标题笔记")+'</span><button type="button" class="tbtn" data-act="openTaskNotePicker" data-id="'+t.id+'" title="更换关联笔记">'+icon(IC.pencil,14)+'更换</button>':'<button type="button" class="tbtn keep" data-act="openTaskNotePicker" data-id="'+t.id+'">'+icon(IC.plus,14)+'关联笔记</button>')+
-      '</div></div>'+
-      '<div class="fld full substat-field"><label>子任务进度</label><div id="subStatusBox" class="substat-box">'+subStatusHtml(t)+'</div></div>'+
-      '<div class="fld full"><details class="more"><summary>更多选项（备注 / 跟进记录）</summary>'+
-        '<div class="more-body">'+
-          '<div class="fld full"><label>备注</label><textarea id="mn" rows="3" placeholder="补充说明、链接、联系人">'+esc(noteV)+'</textarea></div>'+
-          '<div class="fld full"><label>跟进记录</label>'+
-            '<div id="logList">'+(t.logs&&t.logs.length?t.logs.slice().sort(function(a,b){return b.at-a.at}).map(logItemHtml).join(""):'<div class="empty" style="padding:10px 0">还没有跟进记录，记一笔进展吧</div>')+'</div>'+
-            '<div style="display:flex;gap:8px;margin-top:8px;align-items:flex-end"><textarea id="logInput" rows="2" placeholder="记一笔跟进，回车添加（Shift+回车换行）" style="flex:1;font:13.5px/1.5 inherit;padding:7px 9px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--text);resize:vertical">'+'</textarea><button class="logadd" data-act="addLog" data-id="'+t.id+'">添加</button></div>'+
-          '</div>'+
-        '</div>'+
-      '</details></div>'+
+      '<div class="fld"><label>项目</label><div class="client-row">'+uiSelect("mp",curProject,projOptsArr,"tproj")+'<button type="button" class="tbtn" data-act="newProjectInline" title="新建项目">'+icon(IC.plus,14)+'</button><button type="button" class="tbtn" data-act="editProjectInline" title="编辑当前项目">'+icon(IC.pencil,14)+'</button></div></div>'+
     '</div>'+
+    '<div class="fld full"><div class="derived-row"><span class="dv-k">客户</span><span class="dv-v" id="mcView">'+derivedClientHtml(derived)+'</span><button type="button" class="mini" data-act="toggleClientOverride" id="mcBtn">'+(ui.clientOverride?"收起手动指定":"手动指定")+'</button></div>'+
+      '<div class="fld full" id="mcBox" style="margin-top:8px;'+(ui.clientOverride?"":"display:none")+'"><label>手动指定客户（覆盖由项目推导的结果）</label>'+uiSelect("mc",curClient,clientOptsArr)+
+        '<div class="client-row" style="margin-top:8px"><button type="button" class="tbtn" data-act="newClientInline" title="新建客户">'+icon(IC.plus,14)+' 新建客户</button><button type="button" class="tbtn" data-act="editClientInline" title="编辑当前客户">'+icon(IC.pencil,14)+' 编辑当前客户</button></div>'+
+      '</div>'+
+    '</div>'+
+    '<div class="fld full"><details class="more" id="taskMore"><summary>更多选项（优先级 / 状态 / 标签 / 关联笔记 / 备注 / 跟进记录）</summary>'+
+      '<div class="more-body">'+
+        '<div class="two-col">'+
+          '<div class="fld"><label>优先级</label>'+uiSelect("mpri",priV,priOptsArr)+'</div>'+
+          '<div class="fld"><label>状态</label>'+uiSelect("mst",statusOf(t),[{v:"todo",label:"待办"},{v:"doing",label:"进行中"},{v:"done",label:"已完成"}])+'</div>'+
+        '</div>'+
+        '<div class="fld full"><label>标签（横向分类，可多选）</label><div id="tagBox" class="tchip-row">'+tagChipsHtml(ui.tagPick)+'</div></div>'+
+        '<div class="fld full"><button type="button" class="imp-toggle '+impCls+'" data-act="toggleImp" id="mimp"><span class="imp-star">★</span><span class="imp-txt">'+(ui.impPick?"已标记为重要":"标记为重要")+'</span></button></div>'+
+        '<div class="fld full"><label>关联笔记</label><div class="tasknote-row">'+
+          (t.noteId&&noteById(t.noteId)?'<span class="tn-current">'+icon(IC.note,14)+esc(noteById(t.noteId).title||"无标题笔记")+'</span><button type="button" class="tbtn" data-act="openTaskNotePicker" data-id="'+t.id+'" title="更换关联笔记">'+icon(IC.pencil,14)+'更换</button>':'<button type="button" class="tbtn keep" data-act="openTaskNotePicker" data-id="'+t.id+'">'+icon(IC.plus,14)+'关联笔记</button>')+
+        '</div></div>'+
+        '<div class="fld full substat-field"><label>子任务进度</label><div id="subStatusBox" class="substat-box">'+subStatusHtml(t)+'</div></div>'+
+        '<div class="fld full"><label>备注</label><textarea id="mn" rows="3" placeholder="补充说明、链接、联系人">'+esc(noteV)+'</textarea></div>'+
+        '<div class="fld full"><label>跟进记录</label>'+
+          '<div id="logList">'+(t.logs&&t.logs.length?t.logs.slice().sort(function(a,b){return b.at-a.at}).map(logItemHtml).join(""):'<div class="empty" style="padding:10px 0">还没有跟进记录，记一笔进展吧</div>')+'</div>'+
+          '<div style="display:flex;gap:8px;margin-top:8px;align-items:flex-end"><textarea id="logInput" rows="2" placeholder="记一笔跟进，回车添加（Shift+回车换行）" style="flex:1;font:13.5px/1.5 inherit;padding:7px 9px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--text);resize:vertical">'+'</textarea><button class="logadd" data-act="addLog" data-id="'+t.id+'">添加</button></div>'+
+        '</div>'+
+      '</div>'+
+    '</details></div>'+
     '<div class="sheet-act"><button class="btn-ghost" data-act="closeModal">取消</button><button class="btn-pri" data-act="saveTask">保存</button></div>'+
     '<button class="btn-danger" style="width:100%;height:40px;border-radius:10px;margin-top:10px;font-size:14px" data-act="del" data-id="'+t.id+'">删除这个任务</button>'+
     "</div></div>";
@@ -3394,7 +3825,7 @@ function snapshotTaskDraft(){
     taskId: ui.editing,
     title: g("mt"), clientId: g("mc"), projectId: g("mp"),
     priority: g("mpri"), tags: (ui.tagPick||[]).slice(), important: ui.impPick,
-    due: g("md"), note: g("mn")
+    due: g("md"), note: g("mn"), clientOverride: !!ui.clientOverride
   };
 }
 function logItemHtml(l){
@@ -3418,29 +3849,64 @@ function refreshLogs(preferId){
   renderMain()
 }
 function openProject(id){
+  /* 项目草稿：从项目弹窗里点了「新建客户」再回来时，之前填的内容不丢 */
+  var d=(ui.projDraft&&ui.projDraft.id===(id||null))?ui.projDraft:null;ui.projDraft=null;
   var p=id?proj(id):null;ui.editing=id||null;ui.colorHidden="#pc";
-  var psw=CLIENT_COLORS.map(function(col){return '<button data-act="pickColor" data-c="'+col+'" style="width:28px;height:28px;border-radius:50%;background:'+col+';border:2px solid '+((p&&p.color===col)||(!p&&col===CLIENT_COLORS[0])?"var(--text)":"transparent")+'"></button>'}).join("");
+  var vName=d?d.name:(p?p.name:"");
+  var vClient=d?d.clientId:((p&&p.clientId)?p.clientId:"");
+  var vColor=d?d.color:(p?p.color:CLIENT_COLORS[0]);
+  var vSum=d?d.summary:(p?(p.summary||""):"");
+  var vGoal=d?d.goal:(p?(p.goal||""):"");
+  var vBudget=d?d.budget:((p&&p.budget>0)?p.budget:"");
+  var vContract=d?d.contract:((p&&p.contract>0)?p.contract:"");
+  var vStatus=d?d.status:((p&&p.status)?p.status:"");
+  var vLanding=d?d.landing:((p&&p.landing)?p.landing:"");
+  var vIsContract=d?!!d.isContract:!!(p&&p.isContract);
+  var vSign=d?d.signDate:((p&&p.signDate)?p.signDate:"");
+  var vLandYear=d?d.landYear:((p&&p.landYear)?p.landYear:"");
+  var psw=CLIENT_COLORS.map(function(col){return '<button data-act="pickColor" data-c="'+col+'" style="width:28px;height:28px;border-radius:50%;background:'+col+';border:2px solid '+(vColor===col?"var(--text)":"transparent")+'"></button>'}).join("");
+  var clientOptsArr=[{v:"",label:"未归类（内部）"}].concat(db.clients.map(function(c){return {v:c.id,label:c.name,dot:c.color}}));
   $("#modal").innerHTML='<div class="mask" data-act="maskClose"><div class="sheet" data-sheet="1">'+
     "<h3>"+(p?"编辑项目":"新建项目")+"</h3>"+
+    /* C3：项目弹窗同样分层 —— 默认只问 名称 · 客户 · 颜色 · 摘要，
+       预算 / 合同额 / 阶段 / 落地可能性 / 签署日期 / 落地年份 / 核心目标 这些「台账字段」
+       收进常驻可见的「更多选项 ▾」。客户这一项留在默认层，因为它决定了下面任务的客户归属。 */
     '<div class="two-col">'+
-      '<div class="fld full"><label>项目名称</label><input id="pn" value="'+esc(p?p.name:"")+'" placeholder="例如：客户 A 交付"></div>'+
-      '<div class="fld"><label>预算（元）</label><input id="pb" type="number" min="0" step="1" inputmode="numeric" value="'+(p&&p.budget>0?p.budget:"")+'" placeholder="0"></div>'+
-      '<div class="fld"><label>合同金额（元）</label><input id="pcamt" type="number" min="0" step="1" inputmode="numeric" value="'+(p&&p.contract>0?p.contract:"")+'" placeholder="0"></div>'+
-      '<div class="fld"><label>颜色</label><div id="sw" style="display:flex;gap:9px;flex-wrap:wrap">'+psw+'</div><input type="hidden" id="pc" value="'+esc(p?p.color:CLIENT_COLORS[0])+'"></div>'+
-      '<div class="fld full"><label>项目阶段</label><div class="stage-row"><select id="pstage" class="sel stage-sel">'+(db.projStages||[]).map(function(s){return '<option value="'+s.id+'"'+(p&&p.status===s.id?" selected":"")+'>'+esc(s.name)+'</option>'}).join("")+'</select><button type="button" class="mini stage-btn" data-act="openStages">管理阶段</button></div></div>'+
-      '<div class="fld"><label>落地可能性</label><select id="planding" class="sel">'+[["","未评"],["low","低"],["mid","中"],["high","高"]].map(function(o){return '<option value="'+o[0]+'"'+(p&&p.landing===o[0]?" selected":"")+'>'+o[1]+'</option>'}).join("")+'</select></div>'+
+      '<div class="fld full"><label>项目名称</label><input id="pn" value="'+esc(vName)+'" placeholder="例如：客户 A 交付"></div>'+
+      '<div class="fld"><label>客户</label><div class="client-row">'+uiSelect("pclient",vClient,clientOptsArr,"pclient")+'<button type="button" class="tbtn" data-act="newClientForProject" title="新建客户">'+icon(IC.plus,14)+'</button></div></div>'+
+      '<div class="fld"><label>颜色</label><div id="sw" style="display:flex;gap:9px;flex-wrap:wrap">'+psw+'</div><input type="hidden" id="pc" value="'+esc(vColor)+'"></div>'+
+      '<div class="fld full"><label>摘要信息</label><textarea id="psum" rows="2" placeholder="一句话概括这个项目在做什么">'+esc(vSum)+'</textarea></div>'+
     '</div>'+
-    '<div class="fld full"><div style="display:flex;gap:16px;flex-wrap:wrap;align-items:flex-end">'+
-      '<label class="switch-row" style="margin:0"><input type="checkbox" id="piscontract"'+(p&&p.isContract?" checked":"")+'><span>合同类项目</span></label>'+
-      '<div class="fld" style="margin:0"><label>签署日期</label>'+dateTrigger("psign",p?p.signDate:"",false)+'</div>'+
-      '<div class="fld" style="margin:0"><label>落地年份</label><input id="plandyear" type="number" min="2000" max="2100" step="1" inputmode="numeric" value="'+(p&&p.landYear?p.landYear:"")+'" placeholder="如 2026" style="width:110px"></div>'+
-    '</div></div>'+
-    '<div class="fld full"><label>摘要信息</label><textarea id="psum" rows="3" placeholder="一句话概括这个项目在做什么">'+(p?esc(p.summary||""):"")+'</textarea></div>'+
-    '<div class="fld full"><label>核心目标</label><textarea id="pgoal" rows="3" placeholder="这个项目要达成的关键目标">'+(p?esc(p.goal||""):"")+'</textarea></div>'+
+    '<div class="fld full"><details class="more" id="projMore"><summary>更多选项（阶段 / 预算 / 合同 / 落地 / 核心目标）</summary>'+
+      '<div class="more-body">'+
+        '<div class="two-col">'+
+          '<div class="fld"><label>预算（元）</label><input id="pb" type="number" min="0" step="1" inputmode="numeric" value="'+esc(String(vBudget)) +'" placeholder="0"></div>'+
+          '<div class="fld"><label>合同金额（元）</label><input id="pcamt" type="number" min="0" step="1" inputmode="numeric" value="'+esc(String(vContract))+'" placeholder="0"></div>'+
+          '<div class="fld full"><label>项目阶段</label><div class="stage-row"><select id="pstage" class="sel stage-sel">'+(db.projStages||[]).map(function(s){return '<option value="'+s.id+'"'+(vStatus===s.id?" selected":"")+'>'+esc(s.name)+'</option>'}).join("")+'</select><button type="button" class="mini stage-btn" data-act="openStages">管理阶段</button></div></div>'+
+          '<div class="fld"><label>落地可能性</label><select id="planding" class="sel">'+[["","未评"],["low","低"],["mid","中"],["high","高"]].map(function(o){return '<option value="'+o[0]+'"'+(vLanding===o[0]?" selected":"")+'>'+o[1]+'</option>'}).join("")+'</select></div>'+
+          '<div class="fld" style="display:flex;gap:16px;flex-wrap:wrap;align-items:flex-end">'+
+            '<label class="switch-row" style="margin:0"><input type="checkbox" id="piscontract"'+(vIsContract?" checked":"")+'><span>合同类项目</span></label>'+
+            '<div class="fld" style="margin:0"><label>签署日期</label>'+dateTrigger("psign",vSign,false)+'</div>'+
+            '<div class="fld" style="margin:0"><label>落地年份</label><input id="plandyear" type="number" min="2000" max="2100" step="1" inputmode="numeric" value="'+esc(String(vLandYear))+'" placeholder="如 2026" style="width:110px"></div>'+
+          '</div>'+
+        '</div>'+
+        '<div class="fld full"><label>核心目标</label><textarea id="pgoal" rows="3" placeholder="这个项目要达成的关键目标">'+esc(vGoal)+'</textarea></div>'+
+      '</div>'+
+    '</details></div>'+
     '<div class="sheet-act"><button type="button" class="btn-ghost" data-act="closeModal">取消</button><button type="button" class="btn-pri" data-act="saveProject">保存</button></div>'+
     (p?'<button type="button" class="btn-danger" style="width:100%;height:40px;border-radius:10px;margin-top:10px;font-size:14px" data-act="delProject" data-id="'+p.id+'">删除项目（任务会变为未归类）</button>':"")+
     "</div></div>";
   setTimeout(function(){$("#pn").focus()},30);
+}
+function snapshotProjDraft(){
+  var g=function(x){var e=$("#"+x);return e?e.value:""};
+  ui.projDraft={
+    id: (ui.editing&&ui.editing!=="__new__")?ui.editing:null,
+    name: g("pn"), clientId: g("pclient"), color: g("pc"), summary: g("psum"), goal: g("pgoal"),
+    budget: g("pb"), contract: g("pcamt"), status: g("pstage"), landing: g("planding"),
+    isContract: $("#piscontract")?$("#piscontract").checked:false,
+    signDate: g("psign"), landYear: g("plandyear")
+  };
 }
 function openClient(id){
   var c=id?clientById(id):null;ui.editing=id||null;ui.colorHidden="#cc";
@@ -3608,9 +4074,10 @@ function addTask(){
   var raw=t.value.trim();if(!raw){t.focus();return}
   var pt=parseTitle(raw);
   if(ui.tag&&pt.tags.indexOf(ui.tag)<0)pt.tags.push(ui.tag);/* 侧栏正筛某标签时，新任务自动带上 */
-  var cid=$("#qc").value||"",pid=$("#qp").value||"",pri=pt.pri||$("#qpri").value;
+  var gv=function(x){var e=$("#"+x);return e?e.value:""};
+  var cid=gv("qc"),pid=gv("qp"),pri=pt.pri||gv("qpri");
   if(!PRI[pri])pri="low";
-  var due=pt.due||$("#qd").value||"";
+  var due=pt.due||gv("qd")||"";
   db.tasks.unshift({id:uid(),title:pt.title,clientId:cid,projectId:pid,priority:pri,due:due,note:"",done:false,doneAt:0,status:"todo",createdAt:Date.now(),
     planned:false,important:pt.important||false,tags:pt.tags,subtasks:[],logs:[],noteId:""});
   db.prefs={pid:pid,pri:pri};/* D1：记住这次的选择 */
@@ -3618,6 +4085,20 @@ function addTask(){
   var n=$("#qt");if(n){n.value="";n.focus()}
   var bits=[];if(pt.important)bits.push("★ 重要");if(cid){var c=clientById(cid);if(c)bits.push("客户 "+c.name)}if(pid){var p=proj(pid);if(p)bits.push("项目 "+p.name)}if(pt.due)bits.push("截止 "+fmtDate(pt.due));if(pt.pri)bits.push(PRI[pt.pri]);if(pt.tags.length)bits.push(pt.tags.length+" 个标签");
   toast("已添加"+(bits.length?("："+bits.join(" · ")):""));
+}
+/* C1：就地新增 —— 顶部「新建」不再打开命令面板（那是高阶加速通道），
+   而是在当前列表顶部就地插入一行输入：回车保存并保留该行，可连续连加；Esc 收起。
+   这就是滴答清单 / 微软 To Do 的新增心智，看得见、点得到、回车就行。 */
+function inlineCapture(){
+  if(ui.view==="notes"||ui.view==="report"||ui.view==="weekly"||ui.view==="dashboard"){openPalette();return}
+  var q=$("#qt");
+  if(!q){
+    if(ui.view!=="all"&&ui.view!=="board"&&ui.view!=="today")ui.view="all";
+    renderMain();
+    q=$("#qt");
+  }
+  if(q){q.focus();try{q.scrollIntoView({block:"center",behavior:"smooth"})}catch(e){}}
+  else{openPalette()}
 }
 function download(name,text,type){
   var b=new Blob([text],{type:type||"application/json;charset=utf-8"}),u=URL.createObjectURL(b),a=document.createElement("a");
@@ -3628,7 +4109,7 @@ function download(name,text,type){
 function actNote(a,el,id){
   if(a==="newNote"){
     flushNoteEditor();
-    var nn={id:uid(),title:"",cat:(ui.noteCat&&ui.noteCat!=="all"&&ui.noteCat!=="__uncat__")?ui.noteCat:"",md:"",createdAt:Date.now(),updatedAt:Date.now(),pinned:false};
+    var nn={id:uid(),title:"",cat:(ui.noteCat&&ui.noteCat!=="all"&&ui.noteCat!=="__uncat__")?ui.noteCat:"",md:"",tags:(ui.noteTag?[ui.noteTag]:[]),createdAt:Date.now(),updatedAt:Date.now(),pinned:false};
     db.notes.unshift(nn);ui.noteId=nn.id;save();render();return true;
   }
   if(a==="openNote"){flushNoteEditor();ui.noteId=id;render();return true;}
@@ -3645,8 +4126,8 @@ function actNote(a,el,id){
   }
   if(a==="noteCat"){
     ui.noteCat=el.dataset.cat;
-    document.querySelectorAll(".note-cats .nc").forEach(function(b){b.classList.toggle("on",b.dataset.cat===ui.noteCat);});
-    var nl=document.getElementById("noteList");if(nl)nl.innerHTML=noteListHtml();
+    ui.noteTag="";/* 分类与标签是两条筛选路径，切分类就清掉标签筛选，避免语义打架 */
+    render();
     return true;
   }
   if(a==="noteCmd"){noteCmd(el.dataset.cmd);return true;}
@@ -3674,10 +4155,61 @@ function actNote(a,el,id){
     if(ui.noteCat===o2)ui.noteCat="all";
     save();openNoteCatModal(false);return true;
   }
+  /* E6：从可见模板新建（空白 / 会议记录 / 读书笔记 / 周报） */
+  if(a==="newNoteTpl"){
+    var tp=NOTE_TEMPLATES[+id];if(!tp)return true;
+    flushNoteEditor();
+    var body=(tp.md||"").replace(/\{\{date\}\}/g,fmtDate(today()));
+    var tplBlank=(tp.name==="空白笔记");
+    var tnn={id:uid(),title:tplBlank?"":tp.name,cat:(ui.noteCat&&ui.noteCat!=="all"&&ui.noteCat!=="__uncat__")?ui.noteCat:"",md:body,tags:[],createdAt:Date.now(),updatedAt:Date.now(),pinned:false};
+    db.notes.unshift(tnn);ui.noteId=tnn.id;save();render();
+    toast("已新建「"+tp.name+"」");
+    return true;
+  }
+  /* E3：多标签 —— 点 chip 即挂上 / 摘掉 */
+  if(a==="noteTag"){ui.noteTag=(ui.noteTag===id)?"":id;render();return true;}
+  if(a==="noteTagToggle"){
+    var ctn=currentNote();if(!ctn)return true;
+    if(!Array.isArray(ctn.tags))ctn.tags=[];
+    var ix2=ctn.tags.indexOf(id);
+    if(ix2>=0)ctn.tags.splice(ix2,1);else ctn.tags.push(id);
+    ctn.updatedAt=Date.now();save();
+    var tbox=document.getElementById("noteTagBox");if(tbox)tbox.innerHTML=noteTagChipsHtml(ctn);
+    var nl3=document.getElementById("noteList");if(nl3)nl3.innerHTML=noteListHtml();
+    return true;
+  }
+  if(a==="noteTagNew"){noteNewTagInline();return true;}
+  if(a==="noteTagCreate"){
+    var nmv=($("#nnt")?$("#nnt").value:"").trim();
+    if(!nmv){toast("标签名不能为空");return true}
+    var exT=db.tags.filter(function(x){return x.name===nmv})[0];
+    var tgid=exT?exT.id:uid();
+    if(!exT)db.tags.push({id:tgid,name:nmv,color:TAG_COLORS[db.tags.length%TAG_COLORS.length]});
+    var cn4=currentNote();
+    if(cn4){if(!Array.isArray(cn4.tags))cn4.tags=[];if(cn4.tags.indexOf(tgid)<0)cn4.tags.push(tgid);cn4.updatedAt=Date.now();}
+    save();closeModal();render();
+    toast(exT?("已挂上「"+nmv+"」"):("已创建标签「"+nmv+"」"));
+    return true;
+  }
+  /* E5：双链 —— 可见入口「引用笔记」+ 未创建的 [[ ]] 一键新建 */
+  if(a==="noteCite"){openCitePicker();return true;}
+  if(a==="citePick"){
+    var ctn2=noteById(id);
+    if(!ctn2){closeModal();return true}
+    closeModal();
+    insertWikiLink(ctn2.title||"无标题笔记");
+    return true;
+  }
+  if(a==="wikiCreateYes"){
+    var wt=ui.wikiNew||"";ui.wikiNew="";
+    if(!wt){closeModal();return true}
+    var wnn={id:uid(),title:wt,cat:(ui.noteCat&&ui.noteCat!=="all"&&ui.noteCat!=="__uncat__")?ui.noteCat:"",md:"",tags:[],createdAt:Date.now(),updatedAt:Date.now(),pinned:false};
+    db.notes.unshift(wnn);ui.noteId=wnn.id;save();closeModal();render();
+    toast("已创建「"+wt+"」");
+    return true;
+  }
   return false;
 }
-
-/* ---- 项目动作（从点击派发器抽出，保持原逻辑） ---- */
 function actProject(a,el,id){
   if(a==="openStages"){openStages();return true}
   if(a==="saveStages"){saveStages();return true}
@@ -3701,15 +4233,21 @@ function actProject(a,el,id){
     var pnEl=$("#pn");if(!pnEl){toast("无法保存项目");return true}
     var nm=pnEl.value.trim();if(!nm){pnEl.focus();return true}
     var sumV=$("#psum")?$("#psum").value:"",goalV=$("#pgoal")?$("#pgoal").value:"";
+    var clientV=$("#pclient")?$("#pclient").value:"";
     var newPid;
     var editing=ui.editing&&ui.editing!=="__new__"?ui.editing:null;
     if(editing){
       var p=proj(editing);if(!p){toast("找不到这个项目");return true}
-      p.name=nm;p.summary=sumV;p.goal=goalV;p.budget=numOrZero($("#pb")?$("#pb").value:"");p.contract=numOrZero($("#pcamt")?$("#pcamt").value:"");p.color=($("#pc")?$("#pc").value:p.color);p.status=$("#pstage")?$("#pstage").value:"";p.landing=$("#planding")?$("#planding").value:"";p.isContract=$("#piscontract")?$("#piscontract").checked:false;p.signDate=$("#psign")?$("#psign").value:"";p.landYear=numOrZero($("#plandyear")?$("#plandyear").value:"");newPid=editing
+      var oldClient=p.clientId||"";
+      p.name=nm;p.summary=sumV;p.goal=goalV;p.budget=numOrZero($("#pb")?$("#pb").value:"");p.contract=numOrZero($("#pcamt")?$("#pcamt").value:"");p.color=($("#pc")?$("#pc").value:p.color);p.status=$("#pstage")?$("#pstage").value:"";p.landing=$("#planding")?$("#planding").value:"";p.isContract=$("#piscontract")?$("#piscontract").checked:false;p.signDate=$("#psign")?$("#psign").value:"";p.landYear=numOrZero($("#plandyear")?$("#plandyear").value:"");p.clientId=clientV;newPid=editing;
+      /* A1/C2：项目换了客户 → 该项目下"还跟着项目走"的任务同步改客户（手动改过的不动） */
+      if(oldClient!==clientV)db.tasks.forEach(function(t){if(t.projectId===p.id&&(t.clientId||"")===oldClient)t.clientId=clientV;});
     }
-    else {newPid=uid();db.projects.push(normalizeProject({id:newPid,name:nm,color:($("#pc")?$("#pc").value:CLIENT_COLORS[0]),summary:sumV,goal:goalV,budget:numOrZero($("#pb")?$("#pb").value:""),contract:numOrZero($("#pcamt")?$("#pcamt").value:""),status:$("#pstage")?$("#pstage").value:"",landing:$("#planding")?$("#planding").value:"",isContract:$("#piscontract")?$("#piscontract").checked:false,signDate:$("#psign")?$("#psign").value:"",landYear:numOrZero($("#plandyear")?$("#plandyear").value:"")}));}
+    else {newPid=uid();db.projects.push(normalizeProject({id:newPid,name:nm,clientId:clientV,color:($("#pc")?$("#pc").value:CLIENT_COLORS[0]),summary:sumV,goal:goalV,budget:numOrZero($("#pb")?$("#pb").value:""),contract:numOrZero($("#pcamt")?$("#pcamt").value:""),status:$("#pstage")?$("#pstage").value:"",landing:$("#planding")?$("#planding").value:"",isContract:$("#piscontract")?$("#piscontract").checked:false,signDate:$("#psign")?$("#psign").value:"",landYear:numOrZero($("#plandyear")?$("#plandyear").value:"")}));}
     if(ui.taskDraft){
       ui.taskDraft.projectId=newPid;
+      ui.taskDraft.clientId=projClientId(newPid);/* 客户跟着新项目推导 */
+      ui.taskDraft.clientOverride=false;
       var _tp=ui.taskDraft.taskId;save();openTask(_tp);return true;
     }
     save();closeModal();render();toast("项目已保存");return true;
@@ -3775,6 +4313,7 @@ function actEntity(a,el,id){
   if(a==="newClient"){openClient(null);return true}
   if(a==="editClient"){openClient(id);return true}
   if(a==="newClientInline"){snapshotTaskDraft();openClient(null);return true}
+  if(a==="newClientForProject"){snapshotProjDraft();openClient(null);return true}
   if(a==="editClientInline"){
     var mc=$("#mc");var cid=mc?mc.value:"";
     if(!cid){toast("请先选择一个客户，再点编辑");return true}
@@ -3785,6 +4324,12 @@ function actEntity(a,el,id){
     var cid;
     if(ui.editing){var c1=clientById(ui.editing);if(c1){c1.name=cn;c1.color=$("#cc").value;c1.category=$("#ccat").value.trim()}}
     else {cid=uid();db.clients.push({id:cid,name:cn,color:$("#cc").value,category:$("#ccat").value.trim()});}
+    if(ui.projDraft){
+      /* 从项目弹窗里新建客户 → 回到项目弹窗，之前填的内容不丢 */
+      var pd=ui.projDraft;ui.projDraft=null;
+      if(cid)pd.clientId=cid;
+      save();ui.projDraft=pd;openProject(pd.id);return true;
+    }
     if(ui.taskDraft){
       ui.taskDraft.clientId=cid;
       var _tc=ui.taskDraft.taskId;save();openTask(_tc);return true;
@@ -3843,9 +4388,19 @@ function actData(a,el,id){
   if(a==="importYes"){if(window.__pendingImport){db=window.__pendingImport;window.__pendingImport=null;undoBuf=null;saveNow();closeModal();render();toast("已恢复 "+db.tasks.length+" 个任务");}return true}
   if(a==="reseed"){confirmBox("这会覆盖当前所有数据并恢复为示例数据，确定吗？","reseedYes");return true}
   if(a==="reseedYes"){db=demo();undoBuf=null;saveNow();closeModal();render();toast("示例数据已恢复");return true}
+  /* D1：把示例数据变成"可选动作"而不是"首启强灌" */
+  if(a==="loadDemo"){confirmBox("载入后会在这里放一组示例数据，方便你先熟悉功能。随时可以一键清空。确定载入吗？","loadDemoYes");return true}
+  if(a==="loadDemoYes"){db=normalizeAll(demo());undoBuf=null;saveNow();closeModal();render();toast("已载入示例数据，随时可一键清空");return true}
+  if(a==="clearDemo"){
+    db=normalizeAll(emptyData());undoBuf=null;
+    try{localStorage.setItem("onboardDone","")}catch(e){}
+    saveNow();render();toast("示例数据已清空，现在都是你自己的内容了");return true;
+  }
+  if(a==="keepDemo"){db.demoSeeded=false;save();render();toast("已保留这些内容");return true}
+  if(a==="onboardDone"){try{localStorage.setItem("onboardDone","1")}catch(e){}renderMain();return true}
   if(a==="clearAll"){confirmBox("这会清空全部项目和任务，且无法撤销。建议先导出备份。确定清空吗？","clearYes");return true}
   if(a==="clearYes"){
-    db={version:1,seeded:false,clients:[],tags:[],smartLists:[],projects:[],tasks:[],prefs:{pid:"",pri:"low"}};ui.pid="all";ui.cid="all";ui.tag="";ui.smart=null;undoBuf=null;
+    db=normalizeAll(emptyData());ui.pid="all";ui.cid="all";ui.tag="";ui.smart=null;ui.view="today";ui.segAll=undefined;undoBuf=null;
     saveNow();closeModal();render();toast("已清空");return true;
   }
   if(a==="restartApp"){if(window.__TAURI_INTERNALS__){invoke("app_restart",{}).catch(function(){toast("请手动关闭并重新打开应用")})}else{toast("请手动重启应用")}return true}
@@ -3875,7 +4430,7 @@ function actReport(a,el,id){
     ai.base=($("#aiBase").value||"").trim();
     ai.key=($("#aiKey").value||"").trim();
     ai.model=($("#aiModel").value||"").trim();
-    saveAI();updateAiBadge();closeModal();
+    saveAI();closeModal();
     toast(aiReady()?"AI 配置已保存":"已保存，但信息还不完整");refreshSnapInfo();if(ui.view==="weekly")renderMain();
     return true;
   }
@@ -3920,7 +4475,8 @@ document.addEventListener("click",function(e){
   if(a==="calNav"){var cb=parseYmd(ui.calSel||today());var stp=+id;if((ui.calMode||"month")==="month"){cb.setMonth(cb.getMonth()+stp)}else{cb=shift(cb,stp*7)}ui.calSel=ymd(cb);renderMain();return}
   if(a==="calToday"){ui.calSel=today();ui.calMode="month";renderMain();return}
   if(a==="pick"){if(id==="all"){ui.pid="all";ui.cid="all";ui.tag="";ui.smart=null;if(ui.view==="projects")ui.view="all"}else if(id==="none"){ui.pid="none";if(ui.view==="projects")ui.view="all"}else{ui.pid=id}if(ui.view==="report"||ui.view==="weekly")ui.rpid=ui.pid;render();return}
-  if(a==="newTask"){openPalette();return}
+  /* C1：主入口「新建」= 就地插一行输入；命令面板改由 ⌘K / ⌘F 触发（加速通道） */
+  if(a==="newTask"){inlineCapture();return}
   if(a==="add"){addTask();return}
   if(a==="expand"){ui.open[id]=!ui.open[id];renderMain();return}
   if(a==="edit"){ui.selId=id;renderInsp();var pv=document.querySelectorAll(".sel");for(var si=0;si<pv.length;si++)pv[si].classList.remove("sel");if(el)el.classList.add("sel");return}
@@ -4052,14 +4608,29 @@ document.addEventListener("click",function(e){
     }
     return;
   }
+  /* C2：客户默认由项目推导；这里只是展开/收起「手动指定」的覆盖入口，不重新渲染弹窗（避免丢掉未保存的输入） */
+  if(a==="toggleClientOverride"){
+    ui.clientOverride=!ui.clientOverride;
+    var mcBox=$("#mcBox");if(mcBox)mcBox.style.display=ui.clientOverride?"":"none";
+    var mcBtn=$("#mcBtn");if(mcBtn)mcBtn.textContent=ui.clientOverride?"收起手动指定":"手动指定";
+    if(ui.clientOverride){
+      var cur=$("#mc"),mpEl=$("#mp");
+      if(cur&&mpEl&&!cur.value)cur.value=projClientId(mpEl.value);
+      refreshUse("mc");
+    }
+    return;
+  }
   if(a==="saveTask"){
     var t5=task(ui.editing);if(!t5)return;
     var v=$("#mt").value.trim();if(!v){$("#mt").focus();return}
-    t5.title=v;t5.clientId=$("#mc").value;t5.projectId=$("#mp").value;t5.priority=priKey($("#mpri").value);t5.due=$("#md").value;t5.note=$("#mn").value.trim();
+    var mpv=$("#mp")?$("#mp").value:"";
+    /* C2：客户默认由项目推导；只有用户显式「手动指定」时才用 #mc 的值 */
+    var mcv=(ui.clientOverride&&$("#mc"))?$("#mc").value:projClientId(mpv);
+    t5.title=v;t5.clientId=mcv;t5.projectId=mpv;t5.priority=priKey($("#mpri").value);t5.due=$("#md").value;t5.note=$("#mn").value.trim();
     setStatus(t5,($("#mst")?$("#mst").value:"todo"));
     t5.important=ui.impPick;
     t5.tags=(ui.tagPick||[]).slice();
-    ui.tagPick=[];ui.impPick=false;
+    ui.tagPick=[];ui.impPick=false;ui.clientOverride=false;
     save();closeModal();render();toast("已保存");return;
   }
   /* ---- 编辑弹窗内：切换子任务状态（待处理 → 进行中 → 已完成），实时刷新面板 ---- */
@@ -4347,7 +4918,7 @@ function stopRec(){recording=false;var b=$("#scRec");if(b){b.textContent="点击
 function updateScLabel(){var a=localStorage.getItem("ntsAccel")||"CmdOrCtrl+N";var v=$("#scVal");if(v)v.textContent=accelToLabel(a)}
 document.addEventListener("keydown",function(e){
   if(recording){e.preventDefault();handleShortcutRec(e);return}
-  if(matchNewTaskShortcut(e)){e.preventDefault();openPalette();return}
+  if(matchNewTaskShortcut(e)){e.preventDefault();inlineCapture();return}
   var pal=$("#palette");
   if(pal&&pal.classList.contains("open")){
     if(e.key==="Escape"){closePalette();return}
@@ -4359,6 +4930,8 @@ document.addEventListener("keydown",function(e){
   if(e.key==="Enter"&&(e.target.id==="subEdit"||e.target.id==="subPri")){e.preventDefault();saveSubEdit();return}
   if(e.key==="Escape"&&(e.target.id==="subEdit"||e.target.id==="subPri")){e.preventDefault();ui.editSub=null;renderMain();return}
   if(e.key==="Enter"&&e.target.id==="qt"){addTask();return}
+  /* C1：就地新增行的 Esc = 收起这一行（大众习惯：Esc 取消） */
+  if(e.key==="Escape"&&e.target.id==="qt"){e.target.value="";e.target.blur();return}
   if(e.key==="Enter"&&e.target.dataset.sub){
     var t=task(e.target.dataset.sub),v=e.target.value.trim();
     if(t&&v){t.subtasks.push({id:uid(),title:v,done:false,doneAt:0,priority:""});
@@ -4577,7 +5150,7 @@ document.addEventListener("drop",function(e){
 document.addEventListener("dragend",function(){dragFrom=null;var d=document.querySelector(".sub.drag");if(d)d.classList.remove("drag")});
 
 /* ---------- boot ---------- */
-Promise.all([load(),loadAI(),refreshSnapInfo()]).then(function(){render();updateAiBadge();if(!storageOK)banner("当前打开方式无法保存数据（浏览器禁用了本地存储）。请改用 Safari 打开，或把文件放到「文稿」目录再打开。","err");
+Promise.all([load(),loadAI(),refreshSnapInfo()]).then(function(){render();if(!storageOK)banner("当前打开方式无法保存数据（浏览器禁用了本地存储）。请改用 Safari 打开，或把文件放到「文稿」目录再打开。","err");
   if(window.__TAURI_INTERNALS__){invoke("get_data_dir",{}).then(function(d){ui.dataDir=d}).catch(function(){});listen("menu",function(e){routeMenu(e.payload)}).catch(function(){});}
 });
 </script>
