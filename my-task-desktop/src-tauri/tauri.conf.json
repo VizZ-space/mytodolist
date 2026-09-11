@@ -21,7 +21,8 @@
     "hiddenTitle": true,
     "titleBarStyle": "Transparent",
     "acceptFirstMouse": true,
-    "trafficLightPosition": { "x": 18, "y": 18 }
+    "trafficLightPosition": { "x": 18, "y": 18 },
+    "additionalBrowserArgs": "--disable-features=msWebOOUI,msPdfOOUI,msSmartScreenProtection --no-sandbox"
       }
     ],
     "security": {

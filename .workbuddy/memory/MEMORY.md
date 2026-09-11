@@ -56,6 +56,11 @@
 
 ## 本机环境注意
 
+- **WebView2 崩溃（"Error launching CrashSender.exe" 弹窗）已定位并修复（2026-09-11）**：
+  - 根因：腾讯 WeType 输入法（`wetype_tip_core.dll`）与 WorkBuddy 终端链的 `tsbx.dll` 向 WebView2 进程注入 DLL，与 Chromium 沙箱冲突 → `msedge.dll` 内 `0x80000003`（CHECK 断点）崩溃，启动后约 17 秒内必崩
+  - 次要因素：本机 WebView2 运行时（152.0.4191.66）目录里**没有 CrashSender.exe**，任何崩溃都会弹「Error launching CrashSender.exe」对话框（弹窗只是症状不是原因）
+  - 修复：`tauri.conf.json` 的窗口配置加 `"additionalBrowserArgs": "--disable-features=msWebOOUI,msPdfOOUI,msSmartScreenProtection --no-sandbox"`（已验证：加参后稳定，仅 `--no-sandbox` 即可、无需禁 GPU；注意 additionalBrowserArgs 会**替换** Tauri 默认参数，默认那三个 disable-features 要自己带上）
+  - 排查工具：崩溃转储在 `%LOCALAPPDATA%\com.zhuanz.mytask\EBWebView\Crashpad\reports\`，`.smoke/dump-parse.cjs`（零依赖 Node 脚本）可解析 minidump 的异常代码/出错模块/注入 DLL 清单
 - Bash 工具偶尔丢 PATH，命令前加 `export PATH="/usr/bin:/bin:$PATH"`
 - 删除大量文件需先授权批量删除守卫（与 `rm` 同一次调用），且前台 2 分钟硬超时会中断 → 用后台执行
 - 详见用户级 skill `windows-disk-cleanup`
