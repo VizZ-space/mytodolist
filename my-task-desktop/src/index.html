@@ -131,6 +131,9 @@ select{-webkit-appearance:none;appearance:none;background-image:url("data:image/
 .pitem{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:9px;width:100%;text-align:left;font-size:13.5px;min-height:36px;color:var(--text);transition:background .14s ease,color .14s ease}
 .pitem:hover{background:var(--hover)}
 .pitem.on{background:var(--pri-soft);color:var(--pri);font-weight:600}
+/* 「更多视图」降权：入口仍在、仍可点，只是视觉让位于「常用」 */
+.pitem.minor{font-size:12.5px;min-height:31px;padding:5px 10px;color:var(--muted)}
+.pitem.minor.on{color:var(--pri)}
 .pitem .pnm-hit{flex:1;min-width:0;display:flex;align-items:center;gap:9px;background:none;border:none;padding:0;margin:0;color:inherit;font:inherit;font-weight:inherit;cursor:pointer;text-align:left}
 .pdot{width:9px;height:9px;border-radius:50%;flex:none}
 .pitem .n{margin-left:auto;font-size:12px;color:var(--faint)}
@@ -238,9 +241,9 @@ h3{font-size:14px;font-weight:600;margin-bottom:8px}
 
 /* ---------- quick add ---------- */
 .qadd{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:11px;margin-bottom:16px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;box-shadow:var(--shadow-1)}
-.qadd .t{flex:1 1 240px;min-width:0}
+.qadd .t{flex:1 1 170px;min-width:0}
 .qadd select,.qadd input[type=date]{flex:0 0 auto;width:auto;font-size:14px;height:38px}
-.qadd .go{height:39px;padding:0 18px;border-radius:10px;background:var(--pri);color:#fff;font-size:14px;font-weight:600;display:inline-flex;align-items:center;gap:6px;box-shadow:0 1px 2px rgba(0,122,255,.3),0 2px 6px rgba(0,122,255,.2);transition:background .14s ease,transform .08s ease,box-shadow .14s ease}
+.qadd .go{height:38px;padding:0 14px;border-radius:10px;background:var(--pri);color:#fff;font-size:14px;font-weight:600;display:inline-flex;align-items:center;gap:6px;flex:0 0 auto;box-shadow:0 1px 2px rgba(0,122,255,.3),0 2px 6px rgba(0,122,255,.2);transition:background .14s ease,transform .08s ease,box-shadow .14s ease}
 .qadd .go:hover{background:var(--pri-press)}
 .qadd .go:active{transform:scale(.97)}
 
@@ -283,8 +286,7 @@ h3{font-size:14px;font-weight:600;margin-bottom:8px}
 .iact:active{transform:scale(.92)}
 .iact.danger:hover{background:var(--danger-soft);color:var(--danger)}
 .tbtn:focus-visible,.iact:focus-visible,.tab:focus-visible,.seg button:focus-visible,.fchip:focus-visible,.mini:focus-visible,.go:focus-visible,.btn-pri:focus-visible,.sbox:focus-visible,.check:focus-visible,.sub .sbox:focus-visible{outline:none;box-shadow:var(--ring)}
-.pcard .h .iact{opacity:0;transition:opacity .12s}
-.pcard:hover .h .iact{opacity:1}
+/* 项目卡操作改为常驻可见（原先 opacity:0 + :hover 才显，属于新用户发现不了的隐形入口） */
 .prow{display:flex;align-items:center;gap:9px;margin:9px 0 0 30px}
 .bar{flex:0 0 140px;max-width:40%;height:5px;border-radius:3px;background:var(--tabs-bg);overflow:hidden}
 .bar i{display:block;height:100%;background:var(--pri);border-radius:3px}
@@ -650,7 +652,7 @@ h3{font-size:14px;font-weight:600;margin-bottom:8px}
 .date-field .df-x:hover{background:var(--danger-soft);color:var(--danger)}
 .date-field:active{background:var(--pri-soft)}
 .fld .date-field{width:100%}
-.qadd .date-field{flex:0 0 auto;height:40px}
+.qadd .date-field{flex:0 0 auto;height:38px}
 #dp{position:fixed;inset:0;z-index:110;display:none;align-items:center;justify-content:center;pointer-events:none}
 #dp.open{pointer-events:auto}
 #dp.open{display:flex}
@@ -693,7 +695,8 @@ h3{font-size:14px;font-weight:600;margin-bottom:8px}
 .usel.on .usel-caret{transform:rotate(180deg);color:var(--pri)}
 .fld .usel{width:100%}
 .client-row .usel{flex:1}
-.qadd .usel{height:40px;flex:0 0 auto}
+.qadd .usel{height:38px;flex:0 0 auto;max-width:132px}
+.qadd .usel .usel-val{overflow:hidden;text-overflow:ellipsis}
 #uselpop{position:fixed;inset:0;z-index:108;display:none}
 #uselpop.open{display:block}
 .up-mask{position:absolute;inset:0;background:rgba(0,0,0,.18);opacity:0;transition:opacity .16s ease}
@@ -1173,8 +1176,13 @@ var IC={
   starO:'<path d="M12 3l2.7 5.7 6.3.7-4.7 4.3 1.3 6.2L12 17.8 6.4 20.2 7.7 14 3 9.7l6.3-.7L12 3z"/>',
   gear:'<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9L17 7M7 17l-2.1 2.1" stroke-linecap="round"/>',
   dot:'<circle cx="12" cy="12" r="4.2" fill="currentColor" stroke="none"/>',
-  rotate:'<path d="M3 12a9 9 0 1 0 2.6-6.4"/><path d="M3 4v5h5"/>'
+  rotate:'<path d="M3 12a9 9 0 1 0 2.6-6.4"/><path d="M3 4v5h5"/>',
+  more:'<circle cx="5" cy="12" r="1.7" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.7" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="1.7" fill="currentColor" stroke="none"/>'
 };
+/* 平台自适应的修饰键提示：Windows 显示 Ctrl+，macOS 显示 ⌘。
+   快捷键实现本身两者都接受（metaKey||ctrlKey），提示符号只是跟着平台走，避免 Windows 用户困惑。 */
+var IS_MAC=/Mac|iPhone|iPad|iPod/.test(navigator.platform||navigator.userAgent||"");
+var MODKEY=IS_MAC?"⌘":"Ctrl+";
 var DP=null;
 function ymdStr(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
 function fmtDate(v){if(!v)return"";var p=v.split("-"),d=new Date(+p[0],+p[1]-1,+p[2]);var w=["日","一","二","三","四","五","六"][d.getDay()];return (d.getMonth()+1)+"月"+d.getDate()+"日 · 周"+w}
@@ -1614,6 +1622,13 @@ function banner(msg,kind){$("#banner").innerHTML='<div class="banner '+(kind||""
 /* ---------- render ---------- */
 function render(){renderSide();renderTopbar();renderTabbar();renderMain();renderInsp()}
 
+/* 导航唯一数据源：常用 5 项（天天用）+ 更多视图 5 项（偶尔用，降权但仍可见） */
+var NAV_COMMON=[["today","今天",IC.sun],["calendar","日历",IC.cal],["notes","笔记",IC.note],["all","任务",IC.list],["projects","项目",IC.folder]];
+var NAV_MORE=[["board","看板",IC.board],["quadrant","四象限",IC.quad],["logbook","历史",IC.logbook],["dashboard","总览",IC.dashboard],["report","报告",IC.report]];
+var NAV_ALL=NAV_COMMON.concat(NAV_MORE);
+/* 快捷键 1–9 的视图顺序，与 NAV_ALL 保持一致 */
+var NAV_KEYS=NAV_ALL.map(function(t){return t[0]});
+
 function renderSide(){
   var counts={},odc={},all=0,allOd=0;
   db.tasks.forEach(function(t){
@@ -1624,7 +1639,6 @@ function renderSide(){
   function taskCount(pred){
     var n=0;db.tasks.forEach(function(t){if(!t.done&&pred(t))n++});return n;
   }
-  var tabs=[["today","今天",IC.sun],["calendar","日历",IC.cal],["all","任务",IC.list],["projects","项目",IC.folder],["board","看板",IC.board],["quadrant","四象限",IC.quad],["logbook","历史",IC.logbook],["dashboard","总览",IC.dashboard],["report","报告",IC.report],["notes","笔记",IC.note]];
   /* 今日/任务 统计：仅统计截止日期为今天（含逾期）且未完成的主任务下的子任务总数 */
   function todaySubCount(){
     var n=0;db.tasks.forEach(function(t){
@@ -1633,8 +1647,15 @@ function renderSide(){
     });return n;
   }
   var tsc=todaySubCount();
-  var h='<div class="side-h">视图</div>';
-  h+=tabs.map(function(t){var cnt=(t[0]==="today"||t[0]==="all")?tsc:0;return '<button class="pitem'+(ui.view===t[0]?" on":"")+'" data-act="view" data-id="'+t[0]+'">'+icon(t[2],16)+'<span class="pnm">'+t[1]+'</span>'+(cnt?'<span class="n">'+cnt+'</span>':'')+'</button>';}).join("");
+  /* 导航渲染：常用组正常权重，更多视图组降权（小字+灰），但两组都常驻可见 */
+  function navBtn(t,minor){
+    var cnt=(t[0]==="today"||t[0]==="all")?tsc:0;
+    return '<button class="pitem'+(minor?" minor":"")+(ui.view===t[0]?" on":"")+'" data-act="view" data-id="'+t[0]+'">'+icon(t[2],minor?15:16)+'<span class="pnm">'+t[1]+'</span>'+(cnt?'<span class="n">'+cnt+'</span>':'')+'</button>';
+  }
+  var h='<div class="side-h">常用</div>';
+  h+=NAV_COMMON.map(function(t){return navBtn(t,false)}).join("");
+  h+='<div class="side-h" style="margin-top:12px">更多视图</div>';
+  h+=NAV_MORE.map(function(t){return navBtn(t,true)}).join("");
   h+='<div class="side-h" style="margin-top:12px;display:flex;align-items:center;justify-content:space-between;gap:8px"><span>项目</span><button class="mini" data-act="newProject" style="font-size:11px;height:22px;padding:0 8px">+ 新建</button></div>';
   h+='<button class="pitem'+(ui.pid==="all"&&ui.cid==="all"&&!ui.tag&&!ui.smart?" on":"")+'" data-act="pick" data-id="all"><span class="pdot" style="background:var(--pri)"></span>全部任务<span class="n">'+all+"</span>"+badge(allOd)+"</button>";
   db.projects.forEach(function(p){
@@ -1684,9 +1705,9 @@ function renderSide(){
   $("#side").innerHTML=h;
 }
 
+/* 移动端底部导航：与侧栏共用 NAV_ALL 一份数据源（桌面端 .tabbar 为 display:none，不重复渲染） */
 function renderTabbar(){
-  var tabs=[["today","今天",IC.sun],["calendar","日历",IC.cal],["all","任务",IC.list],["projects","项目",IC.folder],["board","看板",IC.board],["quadrant","四象限",IC.quad],["logbook","历史",IC.logbook],["dashboard","总览",IC.dashboard],["report","报告",IC.report],["notes","笔记",IC.note]];
-  $("#tabbar").innerHTML=tabs.map(function(t){
+  $("#tabbar").innerHTML=NAV_ALL.map(function(t){
     return '<button class="'+(ui.view===t[0]?"on":"")+'" data-act="view" data-id="'+t[0]+'">'+icon(t[2],20)+"<span>"+t[1]+"</span></button>";
   }).join("");
 }
@@ -1699,18 +1720,17 @@ function renderTopbar(){
 function renderMain(){
   var h="";
   if(ui.view==="timeline")ui.view="today";
-  var vt=[["today","今天",IC.sun],["calendar","日历",IC.cal],["all","任务",IC.list],["board","看板",IC.board],["quadrant","四象限",IC.quad],["logbook","历史",IC.logbook],["dashboard","总览",IC.dashboard],["report","报告",IC.report],["notes","笔记",IC.note]];
-  var v=vt.filter(function(x){return x[0]===ui.view})[0]||vt[0];
+  var v=NAV_ALL.filter(function(x){return x[0]===ui.view})[0]||NAV_ALL[0];
   var collapsed=$("#insp")&&$("#insp").classList.contains("collapsed");
   var head='<div class="center-head"><div class="ch-title">'+icon(v[2],18)+esc(v[1])+'</div>'+
     '<div class="ch-sp"></div>'+
-    '<div class="search"><svg class="ic" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="q" type="search" placeholder="搜索任务  ⌘F"></div>'+
+    '<div class="search"><svg class="ic" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="q" type="search" placeholder="搜索任务  '+MODKEY+'F"></div>'+
     '<div class="ch-acts">'+
       '<button class="tbtn" data-act="export" title="导出 JSON 备份"><svg class="ic" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 11l5 5 5-5M4 20h16"/></svg><span>导出</span></button>'+
       '<button class="tbtn" data-act="import" title="导入恢复"><svg class="ic" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4M7 8l5-5 5 5M4 20h16"/></svg><span>导入</span></button>'+
       '<button class="tbtn" data-act="settings" title="设置"><svg class="ic" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9L17 7M7 17l-2.1 2.1"/></svg><span>设置</span></button>'+
-      '<button class="tbtn primary keep" data-act="newTask" title="新建任务  ⌘N">'+icon(IC.plus,15)+'<span>新建</span></button>'+
-      '<button class="tbtn" data-act="toggleInsp" title="显示 / 收起右侧面板  ⌘\\">'+(collapsed?"展开面板":"收起面板")+'</button>'+
+      '<button class="tbtn primary keep" data-act="newTask" title="新建任务  '+MODKEY+'N">'+icon(IC.plus,15)+'<span>新建</span></button>'+
+      '<button class="tbtn" data-act="toggleInsp" title="显示 / 收起右侧面板  '+MODKEY+'\\">'+(collapsed?"展开面板":"收起面板")+'</button>'+
     '</div></div>';
   if(ui.view==="dashboard")h+=viewDashboard();
   else if(ui.view==="today")h+=viewToday();
@@ -2174,9 +2194,13 @@ function quickAdd(){
   var defPri=pf.pri||"low";
   var pArr=[{v:"",label:"未归类"}].concat(db.projects.map(function(p){return {v:p.id,label:p.name}}));
   var cArr=[{v:"",label:"未归类"}].concat(db.clients.map(function(c){return {v:c.id,label:c.name}}));
-  var priArr=[{v:"low",label:"低 普通"},{v:"mid",label:"中 重要"},{v:"high",label:"高 最高"}];
+  var priArr=[{v:"low",label:"普通"},{v:"mid",label:"重要"},{v:"high",label:"最高"}];
+  /* A1：placeholder 由 42 字缩到 6 字；内联语法降级为 hover 提示的加速通道。
+     注：客户与项目在本数据模型中是平级实体（projects 表无 client_id），
+     故不采用「由项目推导客户」的做法，两个选择器均保留可见入口。 */
+  var hint="回车即可添加 · 也可直接输入：!高 / !中 / !低 · @标签 · 明天 / 周五 · 开头加 * 标重要";
   return '<div class="qadd">'+
-    '<input class="t" id="qt" placeholder="添加新任务，回车即可（支持 !高 !中 !低 @标签 明天，开头加 * 标重要）">'+
+    '<input class="t" id="qt" placeholder="添加任务，回车即可" title="'+esc(hint)+'">'+
     uiSelect("qc",defCid,cArr)+
     uiSelect("qp",defPid,pArr)+
     uiSelect("qpri",defPri,priArr)+
@@ -2443,25 +2467,20 @@ function viewAll(){
   return h;
 }
 
-/* 看板专用筛选：仅按 优先级 + 项目 + 顶部搜索 过滤，默认全部任务（不继承侧栏项目/客户/标签/智能列表筛选） */
+/* B4：看板不再自走一套筛选，改为以全局 filtered() 为基础，
+   于是「侧栏筛客户/标签/智能列表 + 顶部搜索 + 优先级」在看板里与其它视图语义完全一致。
+   看板自己的「项目」下拉只是在此基础上再收窄一层（bproj="all" 时等于不收窄）。 */
 function boardTasks(){
-  var q=(ui.q||"").trim().toLowerCase();
-  return db.tasks.filter(function(t){
-    if(ui.pf!=="all"&&t.priority!==ui.pf)return false;
-    if(ui.bproj==="none"){if(t.projectId)return false}
-    else if(ui.bproj!=="all"){if(t.projectId!==ui.bproj)return false}
-    if(!q)return true;
-    if(t.title.toLowerCase().indexOf(q)>=0)return true;
-    if((t.note||"").toLowerCase().indexOf(q)>=0)return true;
-    for(var i=0;i<(t.subtasks||[]).length;i++)if(t.subtasks[i].title.toLowerCase().indexOf(q)>=0)return true;
-    return false;
-  });
+  var base=filtered();
+  if(ui.bproj==="none")return base.filter(function(t){return !t.projectId});
+  if(ui.bproj&&ui.bproj!=="all")return base.filter(function(t){return t.projectId===ui.bproj});
+  return base;
 }
 /* 看板筛选条：项目下拉 + 优先级芯片，可组合、实时刷新 */
 function boardFilterBar(){
   var projOpts=[{v:"all",label:"全部项目"}].concat(db.projects.map(function(p){return {v:p.id,label:p.name}}),[{v:"none",label:"未归类"}]);
   var fs=[["all","全部"],["high","高"],["mid","中"],["low","低"]];
-  return '<div class="fbar board-fbar">'+
+  return '<div class="fbar board-fbar" title="本页筛选：只作用于看板视图，侧栏筛选同时生效">'+
     '<span class="bf-lbl">'+icon(IC.folder,13)+'项目</span>'+uiSelect("bproj",ui.bproj,projOpts,"bproj")+
     '<span class="bf-lbl">'+icon(IC.flag,13)+'优先级</span>'+fs.map(function(f){return '<button class="fchip'+(ui.pf===f[0]?" on":"")+'" data-act="pf" data-id="'+f[0]+'">'+icon(IC.flag,12)+f[1]+"</button>"}).join("")+
     (ui.pf!=="all"||ui.bproj!=="all"?'<button class="mini bf-clear" data-act="bprojClear" title="恢复默认：全部任务">清空筛选</button>':"")+
@@ -2504,7 +2523,10 @@ function taskCard(t){
       '</div>';
     }
   }
-  h+='<div class="acts"><button class="iact" data-act="quickLog" data-id="'+t.id+'" title="记一笔跟进">'+icon(IC.chat,15)+'</button><button class="iact" data-act="editModal" data-id="'+t.id+'" title="编辑">'+icon(IC.pencil,15)+'</button><button class="iact danger" data-act="del" data-id="'+t.id+'" title="删除">'+icon(IC.trash,15)+"</button></div></div>";
+  /* A2：三个常驻图标（记跟进/编辑/删除）收敛为一个常驻「⋯」溢出菜单。
+     菜单内容复用已有右键菜单（含编辑、跟进、顺延、标记完成、删除），
+     入口常驻可见、不依赖 hover，触屏同样可用。 */
+  h+='<div class="acts"><button class="iact" data-act="cardMenu" data-id="'+t.id+'" title="更多操作">'+icon(IC.more,16)+"</button></div></div>";
   var open=!!ui.open[t.id];
   if(t.logs&&t.logs.length){
     var last=t.logs.slice().sort(function(a,b){return b.at-a.at})[0];
@@ -2574,7 +2596,7 @@ function viewProjects(){
     var ts=db.tasks.filter(function(t){return t.projectId===p.id}),dn=ts.filter(function(t){return t.done}).length;
     var od=ts.filter(function(t){return !t.done&&t.due&&dayDiff(t.due)<0}).length;
     var st=stageById(p.status);
-    h+='<div class="pcard"><div class="h"><span class="nm" data-act="pick" data-id="'+p.id+'" style="cursor:pointer">'+esc(p.name)+'</span><div class="acts"><button class="iact" data-act="editProject" data-id="'+p.id+'" title="编辑">'+icon(IC.pencil,14)+'</button><button class="iact danger" data-act="delProject" data-id="'+p.id+'" title="删除项目">'+icon(IC.trash,14)+"</button></div></div>";
+    h+='<div class="pcard"><div class="h"><span class="nm" data-act="pick" data-id="'+p.id+'" style="cursor:pointer">'+esc(p.name)+'</span><div class="acts"><button class="iact" data-act="cardMenu" data-id="'+p.id+'" title="更多操作">'+icon(IC.more,16)+"</button></div></div>";
     h+='<div style="display:flex;align-items:center;gap:14px">'+ring(ts.length?dn/ts.length:0)+'<div class="st" style="flex-direction:column;gap:3px"><span>共 '+ts.length+" 项 · 完成 "+dn+" 项</span>"+(od?'<span style="color:var(--danger)">逾期 '+od+" 项</span>":'<span class="muted">没有逾期</span>')+"</div></div>";
     var pmeta=[];if(p.budget>0)pmeta.push("预算 "+fmtYuan(p.budget));if(p.contract>0)pmeta.push("合同金额 "+fmtYuan(p.contract));
     if(pmeta.length)h+='<div class="pmeta">'+pmeta.join(" · ")+"</div>";
@@ -3903,6 +3925,15 @@ document.addEventListener("click",function(e){
   if(a==="expand"){ui.open[id]=!ui.open[id];renderMain();return}
   if(a==="edit"){ui.selId=id;renderInsp();var pv=document.querySelectorAll(".sel");for(var si=0;si<pv.length;si++)pv[si].classList.remove("sel");if(el)el.classList.add("sel");return}
   if(a==="editModal"){openTask(id);return}
+  if(a==="cardMenu"){
+    /* 「⋯」= 常驻可见的右键菜单入口：合成一次 contextmenu 事件复用已有菜单实现。
+       用 setTimeout 是为了避开同一次 click 事件里"点空白即关闭菜单"的监听器。 */
+    var cmRoot=el.closest(".task")||el.closest(".pcard");
+    if(cmRoot){var cr=el.getBoundingClientRect();
+      setTimeout(function(){cmRoot.dispatchEvent(new MouseEvent("contextmenu",{bubbles:true,cancelable:true,clientX:cr.left,clientY:cr.bottom+4}))},0);
+    }
+    return;
+  }
   if(a==="toggleInsp"){var ins2=$("#insp");if(ins2){ins2.classList.toggle("collapsed");}renderMain();renderTopbar();return}
   if(a==="closeModal"){closeModal();return}
   if(a==="maskClose"){ if(ui.editing)return; closeModal();return }
@@ -4340,9 +4371,11 @@ document.addEventListener("keydown",function(e){
   if(e.key==="Enter"&&!e.shiftKey&&e.target.id==="logInput"){e.preventDefault();var lb=document.querySelector('[data-act="addLog"]');if(lb)lb.click();return}
   if(e.key==="Enter"&&!e.shiftKey&&e.target.id==="qlInput"){e.preventDefault();var qb=document.querySelector('[data-act="quickLogSave"][data-id="'+ui.quickLog+'"]');if(qb)qb.click();return}
   if(e.key==="Escape"){closeModal();closeCtx();return}
-  if(meta&&/^[1-8]$/.test(e.key)){var vord=["today","calendar","all","board","quadrant","logbook","dashboard","notes"];var vi=+e.key-1;if(vord[vi]){e.preventDefault();if(ui.view==="notes")flushNoteEditor();ui.view=vord[vi];render();return;}}
-  if(meta&&e.key==="\\"){e.preventDefault();var ins3=$("#insp");if(ins3){ins3.classList.toggle("collapsed");renderTopbar();}return}
+  /* 第 0 步修复：原先 var meta 写在下面几行，而上面两处已经在用 meta，
+     因变量提升此处恒为 undefined —— Ctrl/⌘+数字 切视图、Ctrl/⌘+\ 开关右栏其实一直不生效。 */
   var meta=e.metaKey||e.ctrlKey;
+  if(meta&&/^[1-9]$/.test(e.key)){var vord=NAV_KEYS;var vi=+e.key-1;if(vord[vi]){e.preventDefault();if(ui.view==="notes")flushNoteEditor();ui.view=vord[vi];render();return;}}
+  if(meta&&e.key==="\\"){e.preventDefault();var ins3=$("#insp");if(ins3){ins3.classList.toggle("collapsed");}renderMain();renderTopbar();return}
   if(meta&&e.key.toLowerCase()==="k"){e.preventDefault();openPalette();return}
   if(meta&&e.key.toLowerCase()==="f"){e.preventDefault();openPalette();return}
   if(meta&&e.key===","){e.preventDefault();openSettings();return}
@@ -4418,17 +4451,33 @@ document.addEventListener("contextmenu",function(e){
     items.push({label:"复制",act:"ctxCopy",icon:IC.copy});
   }
   var card=e.target.closest(".task");
+  var pcard=card?null:e.target.closest(".pcard");
+  var ctxRoot=card||pcard;
+  var ctxId="";
   if(card){
     var id=card.querySelector('[data-act="edit"]').dataset.id,t=task(id);if(!t)return;
+    ctxId=id;
     if(items.length)items.push({sep:1});
     items.push({label:t.done?"标记为未完成":"标记完成",act:"toggleTask",icon:IC.check});
+    items.push({label:"记一笔跟进",act:"quickLog",icon:IC.chat});
+    items.push({sep:1});
+    items.push({label:"在右侧面板查看",act:"edit",icon:IC.right});
+    items.push({label:"打开完整编辑…",act:"editModal",icon:IC.pencil});
     items.push({label:"复制任务标题",act:"ctxCopyTask",icon:IC.copy});
-    items.push({label:"编辑任务",act:"edit",icon:IC.pencil});
     items.push({sep:1});
     items.push({label:"顺延到今天",act:"pushToday",icon:IC.sun});
     items.push({label:"顺延到明天",act:"pushTom",icon:IC.sun});
     items.push({sep:1});
     items.push({label:"删除任务",act:"del",icon:IC.trash,danger:1});
+  }else if(pcard){
+    /* 项目卡的「⋯」菜单：与任务卡一致，动作全部落在侧栏同名按钮上，不重复实现逻辑 */
+    var pnm=pcard.querySelector('[data-act="pick"]');
+    ctxId=pnm?pnm.dataset.id:"";
+    if(items.length)items.push({sep:1});
+    items.push({label:"只看这个项目",act:"pick",icon:IC.folder});
+    items.push({label:"编辑项目",act:"editProject",icon:IC.pencil});
+    items.push({sep:1});
+    items.push({label:"删除项目",act:"delProject",icon:IC.trash,danger:1});
   }
   if(!items.length)return;
   var html='<div class="ctxmenu">'+items.map(function(it){return it.sep?'<div class="sep"></div>':'<button data-ctx="'+it.act+'"'+(it.danger?' class="danger"':'')+'>'+icon(it.icon,15)+it.label+'</button>'}).join("")+'</div>';
@@ -4441,10 +4490,24 @@ document.addEventListener("contextmenu",function(e){
       var act=b.dataset.ctx;closeCtx();
       if(act==="ctxCut"||act==="ctxCopy"||act==="ctxPaste"||act==="ctxAll"){ctxEdit(act);return;}
       if(act==="ctxCopyTask"){copyText(t.title).then(function(ok){toast(ok?"已复制任务标题":"复制失败")});return;}
-      var ctrl=card.querySelector('[data-act="'+act+'"]');if(ctrl)ctrl.click();
+      /* 直接以「动作 + 目标 id」走主派发器。原先靠"在卡里找同名按钮再点它"，
+         一旦卡片结构变化（比如把三个图标收敛成「⋯」）菜单就会变哑，现在不依赖卡内按钮。 */
+      runSyntheticAct(act,ctxId,ctxRoot||document.body);
     });
   });
 });
+/* 「⋯」菜单与右键菜单执行动作的统一入口：
+   造一个临时的隐藏 [data-act] 节点塞进容器并点击它，从而完整复用主派发器的既有逻辑。
+   这样菜单项是否可用只取决于"动作是否存在"，而不再取决于卡片里恰好有没有同名按钮。 */
+function runSyntheticAct(act,id,root){
+  if(!act||!id)return;
+  var tmp=document.createElement("button");
+  tmp.setAttribute("data-act",act);tmp.setAttribute("data-id",id);
+  tmp.style.display="none";
+  (root||document.body).appendChild(tmp);
+  tmp.click();
+  tmp.remove();
+}
 async function ctxEdit(act){
   if(act==="ctxCopy"||act==="ctxCut"){
     var ae=document.activeElement, sel=window.getSelection();

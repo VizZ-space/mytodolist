@@ -14,6 +14,10 @@
   - 本机**未安装 `gh` CLI**，凭据由 Git Credential Manager 管理
 - **前端是单文件**：全部 HTML/CSS/JS 都在 `my-task-desktop/src/index.html`（约 4400 行 / 318 KB），改 UI 只动这一个文件，不涉及 Rust。
 - **后端**：`src-tauri/src/main.rs`（约 1852 行），SQLite 建表在 `init_schema`，表有 projects / tasks / subtasks / clients / tags / smart_lists / logs / notes / note_cats / proj_stages。
+- **数据模型关键点：客户与项目是「平级实体」**。`projects` 表**没有 `client_id` 列**（`projects(id,name,color,summary,goal,sort_idx)`，main.rs L1381），`clients(id,name,color,category,sort_idx)` 独立存在；两者都通过 `tasks.client_id` / `tasks.project_id` 直接挂在任务上。
+  → 因此**不存在"由项目推导客户"的可能**。任何需要该能力的需求，都必须先给 `projects` 加 `client_id` 列（可走 `ensure_col` 兼容追加）。
+  → 前端 `renderSide` 里"客户分组（项目的上层归类）"那句注释**与真实数据模型不符**，不要被它误导。
+- **前端模块作用域**：`<script type="module">`，所有顶层 `var` **挂在模块作用域而非 window**。浏览器里无法用 `Runtime.evaluate` 直接读 `ui` / `IC` / `NAV_*`，做自动化验证时只能断言 DOM。
 - **构建**：`npm run build:front` 产出 `dist/`（`tauri.conf.json` 的 `beforeBuildCommand`），`npm run build` 走 Tauri 打包出 msi/nsis。
 - **交付物归档**：打包结果放在顶层 `windows-installer/`（当前 0.1.0，msi + exe）。
 - **文档与代码有代差**：`overview.md` 描述的是更早的「Mac 单文件 HTML + localStorage」版本，与当前 Tauri + SQLite 实现不符，读它时要注意时效。
