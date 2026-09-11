@@ -7,7 +7,11 @@
 
 ## 关键事实
 
-- **无版本控制**：顶层、`my-task-desktop/`、`src-tauri/` 均无 `.git`。删改源码前务必谨慎，无法通过 git 恢复。
+- **版本控制已于 2026-09-11 建立**：仓库根为顶层目录，远程 `https://github.com/VizZ-space/mytodolist`（public，`main` 分支）。
+  - 本地 git 身份为**仓库级**配置：`VizZ` / `221272360+VizZ-space@users.noreply.github.com`（全局 user.name/email 为空，未设置；**用户明确选择用 GitHub noreply 邮箱而非真实 Gmail**，出于隐私考虑，后续不要擅自改成真实邮箱）
+  - `.gitignore` 排除：`node_modules/`、`dist/`、`src-tauri/target/`、`src-tauri/gen/schemas/`、`windows-installer/*.exe|*.msi`
+  - 已提交 73 个文件（源码 / 配置 / 图标 / 4 份 md / `.workbuddy/memory`）；安装包刻意未入库，如需分发应走 GitHub Releases
+  - 本机**未安装 `gh` CLI**，凭据由 Git Credential Manager 管理
 - **前端是单文件**：全部 HTML/CSS/JS 都在 `my-task-desktop/src/index.html`（约 4400 行 / 318 KB），改 UI 只动这一个文件，不涉及 Rust。
 - **后端**：`src-tauri/src/main.rs`（约 1852 行），SQLite 建表在 `init_schema`，表有 projects / tasks / subtasks / clients / tags / smart_lists / logs / notes / note_cats / proj_stages。
 - **构建**：`npm run build:front` 产出 `dist/`（`tauri.conf.json` 的 `beforeBuildCommand`），`npm run build` 走 Tauri 打包出 msi/nsis。
@@ -33,3 +37,7 @@
 - Bash 工具偶尔丢 PATH，命令前加 `export PATH="/usr/bin:/bin:$PATH"`
 - 删除大量文件需先授权批量删除守卫（与 `rm` 同一次调用），且前台 2 分钟硬超时会中断 → 用后台执行
 - 详见用户级 skill `windows-disk-cleanup`
+- **Windows 版 git 不认 MSYS 路径**：`git -C /e/workspace/...` 会报 `cannot change to`。必须用原生路径 `git -C "E:/workspace/my-todolist"`，且**不要**设 `MSYS_NO_PATHCONV=1`（它会阻止路径自动转换）
+- **本机 git fetch/push 不会自动写 `refs/remotes/origin/*`**：`git fetch` 会打印 `[new branch] main -> origin/main` 但引用实际未落盘，`git status` 因此显示 `[gone]`、`origin/main` 无法解析。**绕过办法**：手动写入引用文件
+  `mkdir -p .git/refs/remotes/origin && echo <sha> > .git/refs/remotes/origin/main`
+  （推送本身是成功的，远程内容正确，仅本地引用记账有问题）
