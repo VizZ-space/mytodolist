@@ -127,6 +127,12 @@ select{-webkit-appearance:none;appearance:none;background-image:url("data:image/
 /* 移动端没有侧栏（.sidebar 被隐藏），设置入口改由顶栏的图标按钮承担 */
 .tbtn.mo-only{display:none}
 .side-h{font-size:11px;font-weight:700;color:var(--faint);padding:6px 10px 4px;letter-spacing:.06em}
+/* 分组标题 = 标题 + 该组唯一的「新建」入口。四组共用一套，别在各组里再写一遍。 */
+.side-hd{display:flex;align-items:center;justify-content:space-between;gap:6px}
+.side-add{flex:none;display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;padding:0;border-radius:6px;border:1px solid transparent;background:none;color:var(--faint);cursor:pointer;transition:border-color .12s,color .12s,background .12s,transform .08s}
+.side-hd:hover .side-add{border-color:var(--line2);background:var(--card);color:var(--text)}
+.side-add:hover{border-color:var(--pri);color:var(--pri);background:var(--pri-soft)}
+.side-add:active{transform:scale(.96)}
 .cat-h{font-size:11.5px;color:var(--muted);padding:8px 10px 3px;letter-spacing:.03em;border-top:1px solid var(--line);margin-top:6px}
 .side-sep{height:1px;background:var(--line2);margin:11px 8px 7px;opacity:.9}
 .pitem{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:9px;width:100%;text-align:left;font-size:13.5px;min-height:36px;color:var(--text);transition:background .14s ease,color .14s ease}
@@ -738,6 +744,15 @@ h3{font-size:14px;font-weight:600;margin-bottom:8px}
 .fchip:hover{border-color:var(--pri-soft);color:var(--text)}
 .fchip.on{background:var(--pri);border-color:var(--pri);color:#fff;font-weight:600}
 .fchip.on svg{stroke:currentColor}
+/* 侧栏维度筛选（项目 / 客户 / 标签 / 智能列表）：浅底 + 描边，不用实心。
+   它是"一个生效中的过滤条件"，跟优先级那组"四选一的选项"不是一回事，
+   两者都做成实心蓝会读不出差别。hover 转红 = "点它是移除"。 */
+.fchip.dim{background:var(--pri-soft);border-color:var(--pri);color:var(--pri);font-weight:600}
+.fchip.dim:hover{background:var(--danger-soft);border-color:var(--danger);color:var(--danger)}
+.fchip.dim svg{stroke:currentColor}
+/* 「清空筛选」：虚线边框 + 灰字，读作"这是一个动作"而不是"一个生效中的条件" */
+.fchip.clr{color:var(--muted);border-style:dashed}
+.fchip.clr:hover{border-color:var(--danger);border-style:solid;color:var(--danger)}
 /* 优先级筛选芯片配色：高=红 中=橙 低=蓝（未选中为浅色底+彩色字，选中为实底白字），与检查器徽章同色系 */
 .fchip.p-high{color:var(--danger);background:var(--danger-soft);border-color:rgba(255,59,48,.35)}
 .fchip.p-high:hover{border-color:var(--danger)}
@@ -751,7 +766,7 @@ h3{font-size:14px;font-weight:600;margin-bottom:8px}
 .board-fbar{align-items:center;gap:8px;flex-wrap:wrap}
 .board-fbar .bf-lbl{display:inline-flex;align-items:center;gap:4px;font-size:12.5px;color:var(--muted);margin-left:4px}
 .board-fbar .usel{height:32px;padding:0 10px;font-size:13px;border-radius:20px}
-.board-fbar .bf-clear{margin-left:auto}
+.board-fbar .fchip.clr{margin-left:auto}
 .chip.high{background:var(--danger-soft);border-color:transparent;color:var(--danger)}
 .chip.mid{background:var(--warn-soft);border-color:transparent;color:var(--warn)}
 .chip.low{background:var(--pri-soft);border-color:transparent;color:var(--pri)}
@@ -1760,10 +1775,11 @@ var NAV_ALL=NAV_COMMON.concat(NAV_MORE);
 var NAV_KEYS=NAV_ALL.map(function(t){return t[0]});
 
 function renderSide(){
-  var counts={},odc={},all=0,allOd=0;
+  var counts={},odc={};
   db.tasks.forEach(function(t){
-    if(t.done)return;all++;var k=t.projectId||"none";counts[k]=(counts[k]||0)+1;
-    if(t.due&&dayDiff(t.due)<0){allOd++;odc[k]=(odc[k]||0)+1}
+    if(t.done)return;
+    var k=t.projectId||"none";counts[k]=(counts[k]||0)+1;
+    if(t.due&&dayDiff(t.due)<0)odc[k]=(odc[k]||0)+1;
   });
   function badge(n){return n?'<span class="odn" title="逾期 '+n+' 项">'+n+"</span>":""}
   function taskCount(pred){
@@ -1782,21 +1798,34 @@ function renderSide(){
     var cnt=(t[0]==="today"||t[0]==="all")?tsc:0;
     return '<button class="pitem'+(minor?" minor":"")+(ui.view===t[0]?" on":"")+'" data-act="view" data-id="'+t[0]+'">'+icon(t[2],minor?15:16)+'<span class="pnm">'+t[1]+'</span>'+(cnt?'<span class="n">'+cnt+'</span>':'')+'</button>';
   }
+  /* 分组标题的统一形态：标题 + 该组唯一的「新建」入口。
+     四个分组共用一套，避免每组各写一份 inline style。 */
+  function sideHead(label,act,title){
+    return '<div class="side-hd"><span>'+label+'</span><button class="side-add" data-act="'+act+'" title="'+title+'" aria-label="'+title+'">'+icon(IC.plus,13)+'</button></div>';
+  }
   var h='<div class="side-scroll"><div class="side-h">常用</div>';
   h+=NAV_COMMON.map(function(t){return navBtn(t,false)}).join("");
   h+='<div class="side-h" style="margin-top:12px">更多视图</div>';
   h+=NAV_MORE.map(function(t){return navBtn(t,true)}).join("");
-  h+='<div class="side-h" style="margin-top:12px;display:flex;align-items:center;justify-content:space-between;gap:8px"><span>项目</span><button class="mini" data-act="newProject" style="font-size:11px;height:22px;padding:0 8px">+ 新建</button></div>';
-  h+='<button class="pitem'+(ui.pid==="all"&&ui.cid==="all"&&!ui.tag&&!ui.smart?" on":"")+'" data-act="pick" data-id="all"><span class="pdot" style="background:var(--pri)"></span>全部任务<span class="n">'+all+"</span>"+badge(allOd)+"</button>";
-  db.projects.forEach(function(p){
-    h+='<div class="pitem'+(ui.pid===p.id?" on":"")+'"><button type="button" class="pnm-hit" data-act="pick" data-id="'+p.id+'"><span class="pnm">'+esc(p.name)+'</span></button><button type="button" class="pedit" data-act="editProject" data-id="'+p.id+'" title="编辑">'+icon(IC.pencil,12)+'</button><button type="button" class="pedit pdel" data-act="delProject" data-id="'+p.id+'" title="删除项目">'+icon(IC.trash,12)+'</button><span class="n">'+(counts[p.id]||0)+"</span>"+badge(odc[p.id]||0)+"</div>";
-  });
-  h+='<button class="pitem'+(ui.pid==="none"?" on":"")+'" data-act="pick" data-id="none"><span class="pdot" style="background:var(--faint)"></span>未归类<span class="n">'+(counts.none||0)+"</span>"+badge(odc.none||0)+"</button>";
-  h+='<button class="pitem" data-act="newProject" style="color:var(--muted);margin-top:6px">'+icon(IC.plus,14)+"新建项目</button>";
+  /* 「项目」组只有一个新建入口（标题右侧）。以前列表末尾还有一条「+ 新建项目」，
+     同一个动作同屏出现两次；标题右侧那个位置恒定、不随列表长度移动，留它。 */
+  h+='<div class="side-h" style="margin-top:12px">'+sideHead("项目","newProject","新建项目")+'</div>';
+  if(db.projects.length){
+    db.projects.forEach(function(p){
+      h+='<div class="pitem'+(ui.pid===p.id?" on":"")+'"><button type="button" class="pnm-hit" data-act="pick" data-id="'+p.id+'"><span class="pnm">'+esc(p.name)+'</span></button><button type="button" class="pedit" data-act="editProject" data-id="'+p.id+'" title="编辑">'+icon(IC.pencil,12)+'</button><button type="button" class="pedit pdel" data-act="delProject" data-id="'+p.id+'" title="删除项目">'+icon(IC.trash,12)+'</button><span class="n">'+(counts[p.id]||0)+"</span>"+badge(odc[p.id]||0)+"</div>";
+    });
+  }else{
+    h+='<div class="empty" style="padding:8px;font-size:12.5px;color:var(--muted)">还没有项目，点标题右侧的 ＋ 新建</div>';
+  }
+  /* 这一组只放「项目本身」。
+     以前末尾还有一条「未归类」，那是「没有项目归属」这一档的**筛选条件**，不是项目；
+     它和「全部任务」一样属于筛选维度，不该混进实体列表里（用户 2026-09-15 指出）。
+     未归类任务并没有消失：任务页默认范围就是全部任务，看板 / 报告的项目下拉里
+     也都有「未归类」这一档，需要时仍可精确筛。 */
   h+='<div class="side-sep"></div>';
 
   /* ---- 客户分组（项目的上层归类） ---- */
-  h+='<div class="side-h" style="margin-top:10px;display:flex;align-items:center;justify-content:space-between;gap:8px"><span>客户</span><button class="mini" data-act="newClient" style="font-size:11px;height:22px;padding:0 8px">+ 新建</button></div>';
+  h+='<div class="side-h" style="margin-top:10px">'+sideHead("客户","newClient","新建客户")+'</div>';
   if(db.clients.length){
     groupByCat(db.clients).forEach(function(grp){
       if(grp.name!=="未归类")h+='<div class="cat-h">'+esc(grp.name)+"</div>";
@@ -1806,12 +1835,12 @@ function renderSide(){
       });
     });
   }else{
-    h+='<div class="empty" style="padding:8px;font-size:12.5px;color:var(--muted)">还没有客户，点击上方「+ 新建」创建</div>';
+    h+='<div class="empty" style="padding:8px;font-size:12.5px;color:var(--muted)">还没有客户，点标题右侧的 ＋ 新建</div>';
   }
 
   h+='<div class="side-sep"></div>';
   /* ---- 标签分组（横向跨项目分类） ---- */
-  h+='<div class="side-h" style="margin-top:10px;display:flex;align-items:center;justify-content:space-between;gap:8px"><span>标签管理</span><button class="mini" data-act="newTag" style="font-size:11px;height:22px;padding:0 8px">+ 新建</button></div>';
+  h+='<div class="side-h" style="margin-top:10px">'+sideHead("标签","newTag","新建标签")+'</div>';
   if(db.tags.length){
     groupByCat(db.tags).forEach(function(grp){
       if(grp.name!=="未归类")h+='<div class="cat-h">'+esc(grp.name)+"</div>";
@@ -1821,14 +1850,14 @@ function renderSide(){
       });
     });
   }else{
-    h+='<div class="empty" style="padding:8px;font-size:12.5px;color:var(--muted)">还没有标签，点击上方「+ 新建」创建</div>';
+    h+='<div class="empty" style="padding:8px;font-size:12.5px;color:var(--muted)">还没有标签，点标题右侧的 ＋ 新建</div>';
   }
 
   /* ---- 智能列表（持久条件视图） ----
      C5：以前只有"已存在智能列表"时才显示这一段，而新建入口根本不存在（openSmart 是死代码）。
      现在无论有没有，都给出常驻可见的「+ 新建」入口 —— 功能不该没有入口。 */
   h+='<div class="side-sep"></div>';
-  h+='<div class="side-h" style="margin-top:10px;display:flex;align-items:center;justify-content:space-between;gap:8px"><span>智能列表</span><button class="mini" data-act="newSmart" style="font-size:11px;height:22px;padding:0 8px">+ 新建</button></div>';
+  h+='<div class="side-h" style="margin-top:10px">'+sideHead("智能列表","newSmart","新建智能列表")+'</div>';
   if(db.smartLists.length){
     db.smartLists.forEach(function(s){
       h+='<button class="pitem'+(ui.smart===s.id?" on":"")+'" data-act="pickSmart" data-id="'+s.id+'" title="按预设条件筛选任务"><span class="pdot" style="background:var(--accent)"></span><span class="pnm">'+esc(s.name)+'</span><span class="pedit" data-act="editSmart" data-id="'+s.id+'" title="编辑这个智能列表">'+icon(IC.pencil,12)+'</span></button>';
@@ -1940,10 +1969,11 @@ function kpiFiltered(){
   if(ui.kf==="od")return a.filter(function(t){return !t.done&&t.due&&dayDiff(t.due)<0});
   return a;
 }
-/* 钻取提示芯片：和优先级芯片同排，点一下（或点 KPI 卡片本身）即取消 */
+/* 钻取提示芯片：和优先级芯片同排，点一下（或点 KPI 卡片本身）即取消。
+   × 一律放文字后面，与侧栏维度筛选芯片的写法保持一致。 */
 function kfChip(){
   if(ui.kf==="all"||!KF_LABEL[ui.kf])return "";
-  return '<button class="fchip on kf" data-act="kpi" data-id="all" title="取消「'+KF_LABEL[ui.kf]+'」筛选">'+icon(IC.x,12)+KF_LABEL[ui.kf]+"</button>";
+  return '<button class="fchip on kf" data-act="kpi" data-id="all" title="取消「'+KF_LABEL[ui.kf]+'」筛选">'+KF_LABEL[ui.kf]+icon(IC.x,12)+"</button>";
 }
 function inspTask(t){
   var subs=t.subtasks||[],sd=subs.filter(function(s){return s.done}).length,pct=subs.length?Math.round(sd/subs.length*100):(t.done?100:0);
@@ -2640,9 +2670,46 @@ function priChips(){
   var fs=[["all","全部",""],["high","高","p-high"],["mid","中","p-mid"],["low","低","p-low"]];
   return fs.map(function(f){return '<button class="fchip'+(f[2]?" "+f[2]:"")+(ui.pf===f[0]?" on":"")+'" data-act="pf" data-id="'+f[0]+'">'+icon(IC.flag,12)+f[1]+"</button>"}).join("");
 }
+/* 侧栏那四个筛选维度（项目 / 客户 / 标签 / 智能列表）也铺到列表页与看板页顶部。
+   以前它们只体现在侧栏的高亮上，进到列表页看不出"正在筛什么"，结果为空时更糟 ——
+   用户会以为数据丢了。每个芯片点一下只取消它自己那一个维度（clearDim），
+   × 放在文字后面，读作「客户 A ×」—— 这是可移除标签的通用写法。 */
+function sideFilterChips(){
+  var out="";
+  if(ui.pid!=="all"){
+    /* ui.pid 的取值只有「全部」和真实项目 id 两种（侧栏不再提供「未归类」那一档），
+       所以这里直接取项目名即可，不必再兜 "none"。 */
+    var pp=proj(ui.pid);
+    out+='<button class="fchip on dim" data-act="clearDim" data-id="pid" title="取消项目筛选">'+esc(pp?pp.name:"项目")+icon(IC.x,12)+"</button>";
+  }
+  if(ui.cid!=="all"){
+    var cc=clientById(ui.cid);
+    var cnm=ui.cid==="none"?"无客户":(cc?(cc.name||"未命名客户"):"客户");
+    out+='<button class="fchip on dim" data-act="clearDim" data-id="cid" title="取消客户筛选">'+esc(cnm)+icon(IC.x,12)+"</button>";
+  }
+  if(ui.tag){
+    var tg=db.tags.filter(function(g){return g.id===ui.tag})[0];
+    out+='<button class="fchip on dim" data-act="clearDim" data-id="tag" title="取消标签筛选">标签 '+(tg?esc(tg.name):"")+icon(IC.x,12)+"</button>";
+  }
+  if(ui.smart){
+    var sm=db.smartLists.filter(function(s){return s.id===ui.smart})[0];
+    out+='<button class="fchip on dim" data-act="clearDim" data-id="smart" title="取消智能列表筛选">'+(sm?esc(sm.name):"智能列表")+icon(IC.x,12)+"</button>";
+  }
+  return out;
+}
+/* 是否有任一筛选生效（含搜索词）—— 决定「清空筛选」出不出现。 */
+function anyFilterActive(){
+  return ui.pid!=="all"||ui.cid!=="all"||!!ui.tag||!!ui.smart||ui.pf!=="all"||ui.kf!=="all"||ui.bproj!=="all"||!!(ui.q||"").trim();
+}
+/* 只要有筛选生效就常驻一个「清空筛选」。以前它只在列表为空、或看板页才出现，
+   有结果时用户找不到把筛选退回去的地方（侧栏那个唯一能退的「全部任务」也已删）。 */
+function clearChip(){
+  if(!anyFilterActive())return "";
+  return '<button class="fchip clr" data-act="clearAllFilters" title="清除全部筛选条件，回到全部任务">清空筛选</button>';
+}
 function filterBar(){
   if(!db.tasks.length)return "";
-  return '<div class="fbar">'+priChips()+kfChip()+'</div>';
+  return '<div class="fbar">'+sideFilterChips()+priChips()+kfChip()+clearChip()+'</div>';
 }
 
 function matchesSmart(t,q){
@@ -2862,7 +2929,7 @@ function activeFilterNames(){
   var n=[];
   if(ui.kf!=="all"&&KF_LABEL[ui.kf])n.push(KF_LABEL[ui.kf]);
   if(ui.pf!=="all")n.push("优先级 "+({high:"高",mid:"中",low:"低"}[ui.pf]||ui.pf));
-  if(ui.pid!=="all")n.push(ui.pid==="none"?"未归类":"项目");
+  if(ui.pid!=="all")n.push("项目");
   if(ui.cid!=="all")n.push(ui.cid==="none"?"无客户":"客户");
   if(ui.tag){var tg=db.tags.filter(function(g){return g.id===ui.tag})[0];if(tg)n.push("标签 "+tg.name)}
   if(ui.smart)n.push("智能列表");
@@ -2871,10 +2938,10 @@ function activeFilterNames(){
 }
 function filteredEmpty(){
   /* 空库时不给「写一条任务」按钮 —— 右上角「新建」才是入口，空状态指过去即可。
-     「清空筛选」不一样：那个动作在页面上没有别的地方能做，必须留着。 */
+     「清空筛选」不一样：筛选条上虽然有芯片，但空结果时给一个明确的出口更省事。 */
   return emptyState({icon:IC.list,title:db.tasks.length?"没有符合条件的任务":"还没有任务",
     why:db.tasks.length?"当前生效的筛选："+activeFilterNames()+"。<br>清掉筛选就能看到全部任务。":"点右上角「新建」写下第一条就行。",
-    acts:db.tasks.length?[{label:"清空筛选",act:"bprojClear"}]:[]});
+    acts:db.tasks.length?[{label:"清空筛选",act:"clearAllFilters"}]:[]});
 }
 function viewAll(){
   var board=ui.taskMode==="board";
@@ -2911,13 +2978,14 @@ function boardTasks(){
   if(ui.bproj&&ui.bproj!=="all")return base.filter(function(t){return t.projectId===ui.bproj});
   return base;
 }
-/* 看板筛选条：项目下拉 + 优先级芯片，可组合、实时刷新 */
+/* 看板筛选条：与列表页共用「侧栏筛选芯片 + 清空筛选」，另有自己的项目下拉与优先级芯片 */
 function boardFilterBar(){
   var projOpts=[{v:"all",label:"全部项目"}].concat(db.projects.map(function(p){return {v:p.id,label:p.name}}),[{v:"none",label:"未归类"}]);
-  return '<div class="fbar board-fbar" title="本页筛选：只作用于看板，侧栏筛选同时生效">'+
+  return '<div class="fbar board-fbar" title="筛选条件在列表 / 看板两种呈现下是同一套">'+
+    sideFilterChips()+
     '<span class="bf-lbl">'+icon(IC.folder,13)+'项目</span>'+uiSelect("bproj",ui.bproj,projOpts,"bproj")+
     '<span class="bf-lbl">'+icon(IC.flag,13)+'优先级</span>'+priChips()+kfChip()+
-    (ui.pf!=="all"||ui.bproj!=="all"||ui.kf!=="all"?'<button class="mini bf-clear" data-act="bprojClear" title="恢复默认：全部任务">清空筛选</button>':"")+
+    clearChip()+
   '</div>';
 }
 
@@ -3708,7 +3776,7 @@ function subStatusHtml(t){
    （saveTask 里才真正 unshift）。默认项目 / 优先级沿用上次的选择。 */
 function draftTask(){
   var pf=db.prefs||{};
-  var pid=(ui.pid!=="all"&&ui.pid!=="none")?ui.pid:(pf.pid||"");
+  var pid=(ui.pid!=="all")?ui.pid:(pf.pid||"");
   if(pid&&!proj(pid))pid="";
   return {id:"",title:"",clientId:projClientId(pid),projectId:pid,priority:priKey(pf.pri||"low"),
     due:"",note:"",done:false,doneAt:0,status:"todo",createdAt:0,planned:false,
@@ -4332,9 +4400,25 @@ function purgeTagId(tid){
 
 /* ---- 客户 / 标签 / 智能列表动作（从点击派发器抽出，保持原逻辑） ---- */
 function actEntity(a,el,id){
-  if(a==="pickClient"){ui.cid=(id==="__none"?"none":id);ui.pid="all";ui.tag="";ui.smart=null;render();return true}
-  if(a==="pickTag"){ui.tag=(ui.tag===id?"":id);ui.smart=null;ui.cid="all";ui.pid="all";render();return true}
-  if(a==="pickSmart"){ui.smart=(ui.smart===id?null:id);ui.cid="all";ui.pid="all";ui.tag="";render();return true}
+  if(a==="pickClient"){if(ui.view==="projects")ui.view="all";ui.cid=(id==="__none"?"none":id);ui.pid="all";ui.tag="";ui.smart=null;render();return true}
+  if(a==="pickTag"){if(ui.view==="projects")ui.view="all";ui.tag=(ui.tag===id?"":id);ui.smart=null;ui.cid="all";ui.pid="all";render();return true}
+  if(a==="pickSmart"){if(ui.view==="projects")ui.view="all";ui.smart=(ui.smart===id?null:id);ui.cid="all";ui.pid="all";ui.tag="";render();return true}
+  /* 筛选芯片上的 ×：只取消它自己那一个维度，不动其它维度。
+     与上面「点侧栏条目 = 切换筛选主体」区分开 —— 否则取消「项目」会把客户筛选也一起清掉。 */
+  if(a==="clearDim"){
+    if(id==="pid")ui.pid="all";
+    else if(id==="cid")ui.cid="all";
+    else if(id==="tag")ui.tag="";
+    else if(id==="smart")ui.smart=null;
+    render();return true
+  }
+  /* 一键清空全部筛选（项目/客户/标签/智能列表/优先级/KPI 钻取/看板项目）。
+     以前这个动作叫 bprojClear，只清 pf/bproj/kf 三个维度，而侧栏那四个维度只有
+     「全部任务」条目能清 —— 现在两边合成一个。 */
+  if(a==="clearAllFilters"){
+    ui.pid="all";ui.cid="all";ui.tag="";ui.smart=null;ui.pf="all";ui.kf="all";ui.bproj="all";
+    render();return true
+  }
   if(a==="tagPick"){
     var tid=el.dataset.id;ui.tagPick=ui.tagPick||[];
     var ti=ui.tagPick.indexOf(tid);
@@ -4499,7 +4583,14 @@ document.addEventListener("click",function(e){
   var a=el.dataset.act,id=el.dataset.id;
   if(a==="maskClose"&&e.target!==el)return;
 
-  if(a==="view"){if(ui.view==="notes")flushNoteEditor();ui.view=id;render();window.scrollTo(0,0);$("#main").scrollTop=0;return}
+  /* 「任务」= 看全部任务。必须顺带清掉筛选：侧栏那四个筛选条目点过之后就没有"退回"的地方了
+     （原来靠「全部任务」条目承担，已删），不清的话点「任务」会停在"某客户的任务"上。
+     搜索词 ui.q 不动 —— 搜索框里看得见内容，用户知道它在起作用。 */
+  if(a==="view"){
+    if(ui.view==="notes")flushNoteEditor();
+    if(id==="all"){ui.pid="all";ui.cid="all";ui.tag="";ui.smart=null;ui.pf="all";ui.kf="all";ui.bproj="all"}
+    ui.view=id;render();window.scrollTo(0,0);$("#main").scrollTop=0;return
+  }
   if(a==="pf"){ui.pf=id;renderMain();return}
   /* 「任务」页顶部呈现切换：列表 / 看板（切回顶部，避免停在半截滚动位置） */
   if(a==="taskMode"){ui.taskMode=(id==="board")?"board":"list";renderMain();var tm=$("#main");if(tm)tm.scrollTop=0;return}
@@ -4510,13 +4601,21 @@ document.addEventListener("click",function(e){
     if(ui.kf!=="all"){ui.view="all";ui.taskMode="list"}
     render();var km=$("#main");if(km)km.scrollTop=0;return
   }
-  if(a==="bprojClear"){ui.pf="all";ui.bproj="all";ui.kf="all";renderMain();return}
   if(a==="toggleImportant"){var ti=task(id);if(ti){ti.important=!ti.important;save();render();toast(ti.important?"已标记为重要":"已取消重要");}return}
   if(a==="calPick"){ui.calSel=id;renderMain();return}
   if(a==="calMode"){ui.calMode=id;renderMain();return}
   if(a==="calNav"){var cb=parseYmd(ui.calSel||today());var stp=+id;if((ui.calMode||"month")==="month"){cb.setMonth(cb.getMonth()+stp)}else{cb=shift(cb,stp*7)}ui.calSel=ymd(cb);renderMain();return}
   if(a==="calToday"){ui.calSel=today();ui.calMode="month";renderMain();return}
-  if(a==="pick"){if(id==="all"){ui.pid="all";ui.cid="all";ui.tag="";ui.smart=null;if(ui.view==="projects")ui.view="all"}else if(id==="none"){ui.pid="none";if(ui.view==="projects")ui.view="all"}else{ui.pid=id}if(ui.view==="report"||ui.view==="weekly")ui.rpid=ui.pid;render();return}
+  /* 侧栏/项目卡片的「项目」筛选。四种筛选项互斥，切一个就清掉其它三个。
+     在「项目」页点项目名 = 要看它的任务 → 顺带切到「任务」页（卡片提示就是这么写的，
+     以前只有点「全部任务 / 未归类」才切视图，点具体项目名不切，看着像没反应）。
+     报告页有自己的项目口径（rpid），留在原页不跳。 */
+  if(a==="pick"){
+    ui.pid=id;ui.cid="all";ui.tag="";ui.smart=null;
+    if(ui.view==="projects")ui.view="all";
+    if(ui.view==="report"||ui.view==="weekly")ui.rpid=ui.pid;
+    render();return
+  }
   /* C1：主入口「新建」= 就地插一行输入；命令面板改由 ⌘K / ⌘F 触发（加速通道） */
   if(a==="newTask"){inlineCapture();return}
   if(a==="expand"){ui.open[id]=!ui.open[id];renderMain();return}
