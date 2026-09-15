@@ -1287,7 +1287,8 @@ function saveSubDue(sid,v){
     }}
 }
 document.addEventListener("click",function(e){var cx=e.target.closest("[data-dp-clear]");if(cx){e.preventDefault();var id=cx.getAttribute("data-dp-clear");$("#"+id).value="";refreshTrigger(id);return}var t=e.target.closest("[data-dp]");if(t){e.preventDefault();openDatePicker(t.getAttribute("data-dp"));return}if(!DP)return;var dy=e.target.closest("[data-dp-day]");if(dy){e.preventDefault();pickDate(dy.getAttribute("data-dp-day"));return}if(e.target.closest("[data-dp-prev]")){DP.m--;if(DP.m<0){DP.m=11;DP.y--}renderDatePicker();return}if(e.target.closest("[data-dp-next]")){DP.m++;if(DP.m>11){DP.m=0;DP.y++}renderDatePicker();return}if(e.target.closest("[data-dp-close]")){closeDatePicker();return}});
-document.addEventListener("keydown",function(e){if(DP&&e.key==="Escape")closeDatePicker()});
+/* 日期面板的 Esc 由全局快捷键处理器统一处理（见「浮层逐层退」），
+   这里不再单独挂 keydown —— 两个监听器会在全局那个之前先把 DP 清空，导致全局判断失效。 */
 
 /* ---------- 自定义下拉（替代原生 select，风格与日期控件统一） ---------- */
 var USOPTS={},USOPEN=null;
@@ -1357,7 +1358,7 @@ document.addEventListener("click",function(e){
   if(e.target.closest("[data-usel]"))return;
   if(e.target.closest("[data-up-close]")||!e.target.closest(".up-pop"))closeUse();
 });
-document.addEventListener("keydown",function(e){if(USOPEN&&e.key==="Escape")closeUse()});
+/* 自定义下拉的 Esc 同样由全局快捷键处理器统一处理（见「浮层逐层退」）。 */
 
 /* 通用防护：在弹层(#uselpop / #dp)内、以及点击下拉/日期触发按钮([data-usel]/[data-dp])时，
    阻止 mousedown 的默认失焦，避免 WebKit 等内核下输入框 blur 触发 focusout 误关编辑态。
@@ -4959,7 +4960,16 @@ document.addEventListener("keydown",function(e){
   }
   if(e.key==="Enter"&&!e.shiftKey&&e.target.id==="logInput"){e.preventDefault();var lb=document.querySelector('[data-act="addLog"]');if(lb)lb.click();return}
   if(e.key==="Enter"&&!e.shiftKey&&e.target.id==="qlInput"){e.preventDefault();var qb=document.querySelector('[data-act="quickLogSave"][data-id="'+ui.quickLog+'"]');if(qb)qb.click();return}
-  if(e.key==="Escape"){closeModal();closeCtx();return}
+  /* 浮层逐层退：一次 Esc 只关最上面那一层。
+     日期面板（#dp，z-index 110）与自定义下拉（#uselpop，108）都浮在弹窗之上，
+     所以开在弹窗里时，Esc 先收它们、弹窗留着；都收了以后 Esc 才关弹窗。
+     这两个浮层的「关自己」也收敛到这里 —— 它们原先各自挂了一个 document keydown，
+     会在本处理器之前先把 DP / USOPEN 清成 null，导致这里判断失效、Esc 一次关掉两层。 */
+  if(e.key==="Escape"){
+    if(DP){closeDatePicker();return}
+    if(USOPEN){closeUse();return}
+    closeModal();closeCtx();return;
+  }
   /* 第 0 步修复：原先 var meta 写在下面几行，而上面两处已经在用 meta，
      因变量提升此处恒为 undefined —— Ctrl/⌘+数字 切视图、Ctrl/⌘+\ 开关右栏其实一直不生效。 */
   var meta=e.metaKey||e.ctrlKey;

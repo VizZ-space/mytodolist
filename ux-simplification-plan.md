@@ -887,3 +887,51 @@ Tier 3  复盘层   →  日历 / 看板 / 四象限 / 报告 / 历史 / 笔记 
 | 人工核对截图 | ✅ `new-task-modal.png`（560px：标题/截止日期·项目两列/客户/更多选项/取消·保存）、`project-modal.png`（客户与色板同行、8 色一行排开）、`stages-modal.png`（4 行阶段名+计入已落地+删除，560px 富余）、`today-back.png`（关闭弹窗回到今天，无残留） |
 
 **量尺寸的方法**：`.smoke/shot.mjs` 用 `--window-size=1440,900`，产出 PNG 原生 **1418x802**。对话里显示的图会被缩放，**必须按 PNG 原生像素换算**（本轮弹窗实测 560px = 原生像素，占视口 39.5%）。
+
+---
+
+## §14 追加：弹窗内按 Esc 关日期面板，却把整个弹窗也关了（2026-09-15 第六轮反馈）
+
+**用户反馈**：「选择日期这里按 esc 直接关闭弹窗了，而不是返回打开日期之前」。
+
+**根因：两个 `document` 级 keydown 监听器抢同一次按键，谁也没给谁让路。**
+
+```
+document.addEventListener("keydown",function(e){if(DP&&e.key==="Escape")closeDatePicker()});      // 注册在前
+document.addEventListener("keydown",function(e){if(USOPEN&&e.key==="Escape")closeUse()});        // 注册在前
+document.addEventListener("keydown",function(e){ ... if(e.key==="Escape"){closeModal();...} });  // 主处理器，注册在后
+```
+
+- 同一元素上的多个监听器**互不阻塞**，`return` 只结束自己那一个 —— 所以一次 Esc 会同时命中「关面板」和「关弹窗」
+- 而且执行顺序是注册顺序：日期面板的监听器**先**把 `DP` 清成 `null`，等主处理器跑起来时「浮层还开着吗」的判断**恒为假**
+- 第一次尝试修就是在主处理器里加 `if(DP||USOPEN)return`，实测仍然 FAIL（`.smoke/smoke.mjs` UI2 报 `1次Esc后面板=false(弹窗在=false)`）—— 因为守卫读到的是被前一个监听器清空后的值
+
+**这是第五轮 §13 里 `Escape` 直觉的延伸：Esc 应当逐层退，一次只关一层。**
+
+### 改动清单（`src/index.html`）
+
+| 改动 | 说明 |
+|---|---|
+| **删除** `#dp` 的独立 keydown 监听器 | 它的 Esc 职责收回全局处理器 |
+| **删除** `#uselpop` 的独立 keydown 监听器 | 同上 |
+| 全局处理器新增「浮层逐层退」分支 | 按层级顺序：`DP` → `USOPEN` → `closeModal()`；放在子任务行内编辑、命令面板分支之后 |
+
+**为什么收敛而不是加守卫**：把「关自己」留在浮层里、再在主处理器里判断"别人关没关"是不可能可靠的 —— 状态已被清掉。**一个按键阶段只能有一个权威处理器**，层级顺序显式写在那一处，才看得懂也测得准。
+
+### 验证结果
+
+| 验证项 | 结果 |
+|---|---|
+| `vite build` | ✅ 通过 |
+| 无头 Chrome 冒烟（`.smoke/smoke.mjs`） | ✅ **37/37**，0 条 JS 运行时错误 |
+| UI2（新增） | ① 点开日期面板 → 1 次 Esc：面板 `open=false` 且**弹窗仍在**；② 点开项目下拉 → 1 次 Esc：下拉 `open=false` 且**弹窗仍在**；③ 浮层都收了以后再按 Esc → 弹窗才关闭；④ 重新打开弹窗成功（保证后续用例可继续） |
+| 静态审计（`.smoke/audit.mjs`） | ✅ 五类全 0（496 个 CSS 类） |
+| 人工核对截图 | ✅ `date-picker.png`（弹窗内日期面板正常）、`after-esc-date.png`（Esc 后面板消失、弹窗保留、标题框仍是焦点） |
+
+### 遗留（同类问题，未修）
+
+从任务弹窗里点「＋新建项目 / 新建客户 / 关联笔记」开的**嵌套弹窗**，Esc / 取消走 `closeModal()` → 清空整个 `#modal`，写到一半的任务一起丢。同样是"Esc 应该退回上一层"。
+
+机制其实已经有了：`snapshotTaskDraft()` 把表单存进 `ui.taskDraft`，`openTask(taskId)` 会把它读回来 —— **保存路径就是这么回到任务弹窗的**（`saveProject` 里的 `openTask(_tp)`）。
+
+但不能简单改 `closeModal()`：笔记选择器有自己的一套回退（`noteReturnTo` + `renderAfterNoteChange`，`noteReturnTo==="taskNotes"` 时要回「任务笔记」弹窗而不是任务弹窗），一刀切会带坏它。要做需要给嵌套弹窗单独加一层「返回栈」。**已征询用户是否要修。**

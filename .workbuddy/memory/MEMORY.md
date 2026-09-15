@@ -12,7 +12,10 @@
   - `.gitignore` 排除：`node_modules/`、`dist/`、`src-tauri/target/`、`src-tauri/gen/schemas/`、`windows-installer/*.exe|*.msi`
   - 已提交 73 个文件（源码 / 配置 / 图标 / 4 份 md / `.workbuddy/memory`）；安装包刻意未入库，如需分发应走 GitHub Releases
   - 本机**未安装 `gh` CLI**，凭据由 Git Credential Manager 管理
-- **前端是单文件**：全部 HTML/CSS/JS 都在 `my-task-desktop/src/index.html`（5175 行），改 UI 只动这一个文件。
+- **前端是单文件**：全部 HTML/CSS/JS 都在 `my-task-desktop/src/index.html`（5185 行），改 UI 只动这一个文件。
+- **Esc = 逐层退，且只有一个权威处理器**：所有 Esc 分支都写在 `document.addEventListener("keydown", ...)`（约 4948 行那个）里，**顺序 = 浮层层级**：`#dp` 日期面板（z-index 110）→ `#uselpop` 下拉（108）→ 命令面板 `#palette` → 子任务行内编辑 → `closeModal()`。
+  - ⚠️ **不要再给某个浮层单独挂 `document` keydown 监听器**。`#dp` 和 `#uselpop` 原先各自挂了一个，它们注册更早、会**先**把 `DP`/`USOPEN` 清成 null，于是全局处理器里的「浮层还开着吗」判断恒为假 → 一次 Esc 把日期面板**和**整个弹窗一起关掉（用户实测反馈）。同一元素上的多个监听器互不阻塞，`return` 只结束自己那一个。
+  - **已知遗留（同类问题，尚未修）**：从任务弹窗里点「＋新建项目 / 新建客户 / 关联笔记」开的**嵌套弹窗**，Esc/取消走的是 `closeModal()` → 直接把整个 `#modal` 清空，写到一半的任务一起丢。可用机制已存在：`snapshotTaskDraft()` 存草稿、`openTask(taskId)` 读回草稿（保存路径就是这么回到任务弹窗的）。不能简单改 `closeModal()` —— 笔记选择器有自己的 `noteReturnTo`/`renderAfterNoteChange` 回退语义，会被带坏，需要单独区分。
 - **弹窗（`.sheet`）默认宽度 = 560px**，按「两列表单」定：`.two-col` 是 `1fr 1fr`，若默认给到 880px，一栏就有 ~360px，日期选择器 / 下拉被拉得极瘦长，比例失调（用户 2026-09-15 反馈过）。
   - 需要更宽的弹窗**各自显式覆盖** `style="max-width:..."`：客户/标签 840、智能列表 920、设置 1170、确认框 720、导出 760、插入链接·管理分类·导入 560。
   - `.two-col.auto-right`（`1fr auto`）= 左栏自适应 + 右栏按内容宽度，用在左右需求不对称处（项目弹窗的「客户 | 色板」：8 色色板固定要 287px，均分半栏只有 245px 会折成两行）。
@@ -67,7 +70,8 @@
 
 - **冒烟测试**：`my-task-desktop/.smoke/smoke.mjs`，用法
   `cd my-task-desktop && node .smoke/smoke.mjs`
-  - 自带静态服务器（serve `dist/`）+ 拉起本机 Chrome `--headless=new` + 走 CDP 驱动；采集 `Runtime.exceptionThrown` + `Log.entryAdded` 断言 **0 条 JS 错误**。当前 **36/36 断言**。
+  - 自带静态服务器（serve `dist/`）+ 拉起本机 Chrome `--headless=new` + 走 CDP 驱动；采集 `Runtime.exceptionThrown` + `Log.entryAdded` 断言 **0 条 JS 错误**。当前 **37/37 断言**。
+  - **测键盘行为要用 `document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',...}))`**：`click(c, sel)` 只发点击；Esc 这类全局快捷键必须直接派发到 document（`e.target` 会是 document，与真实按键在焦点元素上略有差异，但覆盖本项目所有全局分支）。
   - **`shot.mjs`（出图核对）**：同套 CDP 驱动，窗口 `--window-size=1440,900`，产出 PNG 是 **1418x802**（真实像素，不是显示时的缩放值）。**量尺寸要按 PNG 原生像素算**，直接看对话里渲染出来的图会被缩放误导。
   - 涉及"首启空态"之类有状态前提的断言，**必须排在造数据步骤之前**。
   - **改了默认视图的内容，务必同步改冒烟测试**：任务卡片现在只在「任务」页渲染，任何断言 `.task` 的用例都要先 `goView(c,'all')`（新增 helper，点侧栏入口，走用户真实路径）。
