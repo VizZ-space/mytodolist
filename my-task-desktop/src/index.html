@@ -823,9 +823,13 @@ h3{font-size:14px;font-weight:600;margin-bottom:8px}
 .vh-nav .vh-label{font-size:13px;color:var(--muted);min-width:96px;text-align:center;font-variant-numeric:tabular-nums}
 .vh-nav .tbtn{padding:4px 9px}
 
-.today-rest{flex:1;min-height:0;display:flex;flex-direction:column;margin-top:6px}
-.today-rest h3{margin:0 0 10px;flex:none}
-.today-rest .task-list{flex:1;min-height:0}
+/* 「今天」页尾：只留一个通往「任务」页的引导，不再重复渲染全量任务列表 */
+.today-more{display:flex;margin-top:14px}
+.today-more .tbtn{gap:6px}
+
+/* 「任务」页顶部的呈现切换器（列表 / 看板）—— 页面最上方，看板的唯一入口 */
+.tmode-head{margin:0 0 12px}
+.tmode-seg button{display:inline-flex;align-items:center;gap:6px;padding:6px 14px}
 
 /* 日历网格 */
 .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
@@ -1380,6 +1384,10 @@ var storageOK=true;
 try{localStorage.setItem("__t","1");localStorage.removeItem("__t")}catch(e){storageOK=false}
 
 var db=null,bkTipShown=false,ui={view:"today",selId:null,pid:"all",cid:"all",tag:"",smart:null,pf:"all",bproj:"all",projYear:"all",q:"",open:{},editing:null,sheet:null,editLog:null,quickLog:null,editSub:null,noteId:"",noteCat:"all",noteQ:"",noteTag:"",noteAutoNum:true,noteDel:null,
+  /* taskMode：「任务」页的呈现方式（list 列表 / board 看板）。看板是同一份任务数据的另一种
+     呈现，不再占用侧栏一级导航 —— 于是「今天 / 任务 / 看板」三个重复入口收敛为
+     「今天（时间焦点）」+「任务（全库，顶部切换呈现）」。 */
+  taskMode:"list",
   rt:"week",roff:0,rpid:"all",tone:"boss",aiOut:"",aiBusy:false,aiPrompt:"",customStart:"",customEnd:"",calMode:"month",calSel:""},dragId=null,dragKind=null,undoBuf=null;
 
 /* AI 配置单独存一条记录，不混进 db —— 这样导出备份时不会把密钥带出去 */
@@ -1711,9 +1719,11 @@ function banner(msg,kind){$("#banner").innerHTML='<div class="banner '+(kind||""
 /* ---------- render ---------- */
 function render(){renderSide();renderTopbar();renderTabbar();renderMain();renderInsp()}
 
-/* 导航唯一数据源：常用 5 项（天天用）+ 更多视图 5 项（偶尔用，降权但仍可见） */
+/* 导航唯一数据源：常用 5 项（天天用）+ 更多视图 4 项（偶尔用，降权但仍可见）
+   「看板」已从导航移除：它是任务数据的"按状态分列"呈现，已并入「任务」页顶部的呈现切换器，
+   不再作为与「任务」并列的独立入口（两者本质是同一份待办列表）。 */
 var NAV_COMMON=[["today","今天",IC.sun],["calendar","日历",IC.cal],["notes","笔记",IC.note],["all","任务",IC.list],["projects","项目",IC.folder]];
-var NAV_MORE=[["board","看板",IC.board],["quadrant","四象限",IC.quad],["logbook","历史",IC.logbook],["dashboard","总览",IC.dashboard],["report","报告",IC.report]];
+var NAV_MORE=[["quadrant","四象限",IC.quad],["logbook","历史",IC.logbook],["dashboard","总览",IC.dashboard],["report","报告",IC.report]];
 var NAV_ALL=NAV_COMMON.concat(NAV_MORE);
 /* 快捷键 1–9 的视图顺序，与 NAV_ALL 保持一致 */
 var NAV_KEYS=NAV_ALL.map(function(t){return t[0]});
@@ -1828,7 +1838,6 @@ function renderMain(){
   if(ui.view==="dashboard")h+=viewDashboard();
   else if(ui.view==="today")h+=viewToday();
   else if(ui.view==="all")h+=viewAll();
-  else if(ui.view==="board")h+=viewBoard();
   else if(ui.view==="calendar")h+=viewCalendar();
   else if(ui.view==="quadrant")h+=viewQuadrant();
   else if(ui.view==="logbook")h+=viewLogbook();
@@ -2582,11 +2591,15 @@ function quickAdd(){
     '<button class="go" data-act="add">'+icon(IC.plus,15)+"添加</button></div>";
 }
 
+/* 优先级筛选芯片：列表与看板两条筛选条共用同一份实现，
+   保证「全部 / 高 / 中 / 低」的文案与 蓝 / 红 / 橙 / 蓝 配色在两处完全一致。 */
+function priChips(){
+  var fs=[["all","全部",""],["high","高","p-high"],["mid","中","p-mid"],["low","低","p-low"]];
+  return fs.map(function(f){return '<button class="fchip'+(f[2]?" "+f[2]:"")+(ui.pf===f[0]?" on":"")+'" data-act="pf" data-id="'+f[0]+'">'+icon(IC.flag,12)+f[1]+"</button>"}).join("");
+}
 function filterBar(){
   if(!db.tasks.length)return "";
-  /* 优先级筛选条：统一用 PRI 的「高/中/低」三分法，芯片按 红/橙/蓝 着色（与检查器徽章一致） */
-  var fs=[["all","全部"],["high","高"],["mid","中"],["low","低"]];
-  return '<div class="fbar">'+fs.map(function(f){return '<button class="fchip'+(f[0]!=="all"?" p-"+f[0]:"")+(ui.pf===f[0]?" on":"")+'" data-act="pf" data-id="'+f[0]+'">'+icon(IC.flag,12)+" "+f[1]+"</button>"}).join("")+"</div>";
+  return '<div class="fbar">'+priChips()+'</div>';
 }
 
 function matchesSmart(t,q){
@@ -2634,7 +2647,6 @@ function viewToday(){
       deep=deepOverdue(),
       stales=staleList();
   var h=quickAdd();
-  h+=filterBar();
   h+='<div class="today-box'+(od.length?" hot":"")+'"><div class="today-h">'+icon(IC.sun,17)+"今天要处理"+(list.length?'<span class="cnt">'+list.length+" 项</span>":"")+"</div>";
   /* C2：逾期超过 7 天的批量治理 */
   if(deep.length){
@@ -2664,13 +2676,12 @@ function viewToday(){
     if(stales.length>6)h+='<p class="sec-tip" style="margin:8px 0 0">还有 '+(stales.length-6)+' 项，去「全部」里逐个处理</p>';
     h+="</div>";
   }
-  var rest=sortTasks(filtered().filter(function(t){return !t.done}));
-  h+='<div class="today-rest"><h3>进行中的任务 · '+rest.length+" 项</h3>";
-  h+='<div class="task-list">';
-  h+=rest.length?rest.map(taskCard).join(""):emptyState({icon:IC.sun,title:"还没有进行中的任务",
-    why:"在上面那个输入框写一句、按回车就加上了。<br>不需要先建项目，也不需要先选客户。",
-    acts:[{label:"写一条任务",act:"newTask",primary:1,icon:IC.plus}]});
-  h+='</div></div>';
+  /* 去重：以前「今天」还渲染了优先级筛选条 + 「进行中的任务」全量列表 ——
+     那正是「任务」页的内容，等于把同一个待办列表渲染两遍，也是"两个入口都是待办"的根源。
+     现在「今天」只承担时间维度的焦点（今天到期 / 逾期 / 近 3 天 / 久未跟进），
+     全量任务统一去「任务」页看（页面最上方可切换 列表 / 看板）。 */
+  var activeN=0;db.tasks.forEach(function(t){if(!t.done)activeN++});
+  if(activeN)h+='<div class="today-more"><button class="tbtn" data-act="view" data-id="all">'+icon(IC.list,15)+"<span>去「任务」看全部 "+activeN+" 项进行中</span>"+icon(IC.right,14)+"</button></div>";
   h+=demoHintHtml();
   var dn=db.tasks.filter(function(t){return t.done}).length;
   if(dn)h+='<div class="done-bar" data-act="view" data-id="all">'+icon(IC.check,15)+"已完成 "+dn+" 项 · 点击查看</div>";
@@ -2792,11 +2803,23 @@ function viewQuadrant(){
 }
 
 
+/* 「任务」页顶部的呈现切换器 —— 位于页面最上方，是进入看板的唯一入口。
+   一个任务库、两种看法：列表看"接下来做什么"，看板看"各状态各有多少"。
+   这样「今天 / 任务 / 看板」三个同源入口收敛为「今天（时间焦点）+ 任务（全库 + 呈现切换）」。 */
+function taskModeSwitch(){
+  var m=ui.taskMode==="board"?"board":"list";
+  function seg(v,label,ic){return '<button class="seg-item'+(m===v?" on":"")+'" data-act="taskMode" data-id="'+v+'" title="'+(v==="list"?"按截止时间排序的清单":"按状态分列、可拖动换列")+'">'+icon(ic,14)+label+"</button>"}
+  return '<div class="view-head tmode-head"><div class="seg tmode-seg">'+
+    seg("list","列表",IC.list)+seg("board","看板",IC.board)+
+    '</div><div class="vh-tip muted">'+(m==="board"?"按住卡片拖动到其他列即可切换状态":"列表按截止时间排序，越近越靠前")+"</div></div>";
+}
 function viewAll(){
-  var base=filtered();
-  var h="";
+  var board=ui.taskMode==="board";
+  var h=taskModeSwitch();
   h+=quickAdd();
-  h+=filterBar();
+  h+=board?boardFilterBar():filterBar();
+  if(board)return h+kanban(boardTasks());
+  var base=filtered();
   var a=sortTasks(base),undone=a.filter(function(t){return !t.done}),done=a.filter(function(t){return t.done});
   h+="<h3>进行中 · "+undone.length+" 项</h3>";
   h+=undone.length?undone.map(taskCard).join(""):emptyState({icon:IC.list,title:db.tasks.length?"没有符合条件的任务":"还没有任务",
@@ -2823,18 +2846,11 @@ function boardTasks(){
 /* 看板筛选条：项目下拉 + 优先级芯片，可组合、实时刷新 */
 function boardFilterBar(){
   var projOpts=[{v:"all",label:"全部项目"}].concat(db.projects.map(function(p){return {v:p.id,label:p.name}}),[{v:"none",label:"未归类"}]);
-  var fs=[["all","全部"],["high","高"],["mid","中"],["low","低"]];
-  return '<div class="fbar board-fbar" title="本页筛选：只作用于看板视图，侧栏筛选同时生效">'+
+  return '<div class="fbar board-fbar" title="本页筛选：只作用于看板，侧栏筛选同时生效">'+
     '<span class="bf-lbl">'+icon(IC.folder,13)+'项目</span>'+uiSelect("bproj",ui.bproj,projOpts,"bproj")+
-    '<span class="bf-lbl">'+icon(IC.flag,13)+'优先级</span>'+fs.map(function(f){return '<button class="fchip'+(ui.pf===f[0]?" on":"")+'" data-act="pf" data-id="'+f[0]+'">'+icon(IC.flag,12)+f[1]+"</button>"}).join("")+
+    '<span class="bf-lbl">'+icon(IC.flag,13)+'优先级</span>'+priChips()+
     (ui.pf!=="all"||ui.bproj!=="all"?'<button class="mini bf-clear" data-act="bprojClear" title="恢复默认：全部任务">清空筛选</button>':"")+
   '</div>';
-}
-function viewBoard(){
-  var h=quickAdd();
-  h+=boardFilterBar();
-  h+=kanban(boardTasks());
-  return h;
 }
 
 function taskCard(t){
@@ -3567,7 +3583,8 @@ function kanban(arr){
     }).join(""):'<div class="kempty">暂无</div>';
     return '<div class="kcol '+cls+'" data-drop="'+st+'"><div class="khead"><span class="kdot '+cls+'"></span><span>'+title+'</span><span class="kc">'+arr.length+'</span></div>'+body+'</div>';
   }
-  return '<div class="dbox kbox"><h3>任务看板</h3><div class="vh-tip muted" style="margin:2px 0 10px">按住卡片拖动到其他列即可自动切换状态；卡片下方控件可直接调整状态与优先级</div><div class="kboard">'+col("待办",todo,"c1","todo")+col("进行中",doing,"c2","doing")+col("已完成",done,"c3","done")+'</div></div>';
+  /* 标题与说明已由页面顶部的呈现切换器承担，这里只渲染三列本体，避免重复标题 */
+  return '<div class="dbox kbox"><div class="kboard">'+col("待办",todo,"c1","todo")+col("进行中",doing,"c2","doing")+col("已完成",done,"c3","done")+'</div></div>';
 }
 
 /* ---------- modals ---------- */
@@ -4022,7 +4039,7 @@ function inlineCapture(){
   if(ui.view==="notes"||ui.view==="report"||ui.view==="weekly"||ui.view==="dashboard"){openPalette();return}
   var q=$("#qt");
   if(!q){
-    if(ui.view!=="all"&&ui.view!=="board"&&ui.view!=="today")ui.view="all";
+    if(ui.view!=="all"&&ui.view!=="today")ui.view="all";
     renderMain();
     q=$("#qt");
   }
@@ -4410,6 +4427,8 @@ document.addEventListener("click",function(e){
 
   if(a==="view"){if(ui.view==="notes")flushNoteEditor();ui.view=id;render();window.scrollTo(0,0);$("#main").scrollTop=0;return}
   if(a==="pf"){ui.pf=id;renderMain();return}
+  /* 「任务」页顶部呈现切换：列表 / 看板（切回顶部，避免停在半截滚动位置） */
+  if(a==="taskMode"){ui.taskMode=(id==="board")?"board":"list";renderMain();var tm=$("#main");if(tm)tm.scrollTop=0;return}
   if(a==="bprojClear"){ui.pf="all";ui.bproj="all";renderMain();return}
   if(a==="toggleImportant"){var ti=task(id);if(ti){ti.important=!ti.important;save();render();toast(ti.important?"已标记为重要":"已取消重要");}return}
   if(a==="calPick"){ui.calSel=id;renderMain();return}
@@ -4820,8 +4839,10 @@ function execPalette(i){
   }else if(it.type==="search"){
     ui.q=it.label;ui.view="all";render();
   }else if(it.type==="jump"){
-    if(it.act==="board"){ui.view="board";render();}
-    else{ui.view=it.act;render();}
+    /* 「任务」= 同页面的列表形态；「看板」= 同页面切到看板形态 */
+    if(it.act==="board"){ui.view="all";ui.taskMode="board";}
+    else{ui.view=it.act;if(it.act==="all")ui.taskMode="list";}
+    render();
   }else if(it.type==="open"){
     openTask(it.id);
   }
