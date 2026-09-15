@@ -113,7 +113,16 @@ select{-webkit-appearance:none;appearance:none;background-image:url("data:image/
 .body{flex:1;display:flex;min-height:0}
 
 /* ---------- sidebar ---------- */
-.sidebar{width:228px;flex:none;background:var(--sidebar);backdrop-filter:saturate(180%) blur(24px);-webkit-backdrop-filter:saturate(180%) blur(24px);border-right:1px solid var(--line);overflow:auto;padding:14px 12px 26px}
+/* 侧栏 = 纵向 flex：上半可滚动（内容导航：视图 / 项目 / 客户 / 标签 / 智能列表），
+   底部钉住「设置」这类应用级入口 —— 它跟内容导航不是一个维度，混进顶栏动作组会混淆。 */
+.sidebar{width:228px;flex:none;display:flex;flex-direction:column;background:var(--sidebar);backdrop-filter:saturate(180%) blur(24px);-webkit-backdrop-filter:saturate(180%) blur(24px);border-right:1px solid var(--line);overflow:hidden}
+.side-scroll{flex:1;min-height:0;overflow:auto;padding:14px 12px 10px}
+.side-foot{flex:none;border-top:1px solid var(--line);padding:7px 12px 11px}
+.side-foot .pitem{gap:8px;font-size:13px;min-height:34px;color:var(--muted)}
+.side-foot .pitem:hover{color:var(--text)}
+.side-foot .k{margin-left:auto;font-size:11px;font-weight:500;color:var(--faint)}
+/* 移动端没有侧栏（.sidebar 被隐藏），设置入口改由顶栏的图标按钮承担 */
+.tbtn.mo-only{display:none}
 .side-h{font-size:11px;font-weight:700;color:var(--faint);padding:6px 10px 4px;letter-spacing:.06em}
 .cat-h{font-size:11.5px;color:var(--muted);padding:8px 10px 3px;letter-spacing:.03em;border-top:1px solid var(--line);margin-top:6px}
 .side-sep{height:1px;background:var(--line2);margin:11px 8px 7px;opacity:.9}
@@ -603,6 +612,7 @@ h3{font-size:14px;font-weight:600;margin-bottom:8px}
   .logprev{display:flex}
   .logprev-wide{display:none}
   .tbtn{padding:0 10px;height:38px;min-width:38px;justify-content:center}
+  .tbtn.mo-only{display:inline-flex}
   .set-sheet{width:94vw}
   .set-grid{flex-direction:column;gap:0}
   .set-ai{margin-top:16px;padding-top:16px;border-top:1px solid var(--line)}
@@ -1169,6 +1179,8 @@ var IC={
   right:'<path d="M9 6l6 6-6 6"/>',
   left:'<path d="M15 6l-6 6 6 6"/>',
   spark:'<path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9L12 3z"/><path d="M18.5 15.5l.7 1.8 1.8.7-1.8.7-.7 1.8-.7-1.8-1.8-.7 1.8-.7.7-1.8z"/>',
+  /* 真正的齿轮（原顶栏用的是「太阳」形状，语义不准；设置入口统一用这个） */
+  gear:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>',
   copy:'<rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 012-2h8"/>',
   cut:'<circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" y1="4" x2="8.12" y2="15.88"/><line x1="14.47" y1="14.48" x2="20" y2="20"/><line x1="8.12" y1="8.12" x2="12" y2="12"/>',
   paste:'<rect x="8" y="3" width="8" height="4" rx="1"/><path d="M9 5h6M12 5v6M10 11h4v7a1 1 0 01-1 1h-2a1 1 0 01-1-1z"/>',
@@ -1747,7 +1759,7 @@ function renderSide(){
     var cnt=(t[0]==="today"||t[0]==="all")?tsc:0;
     return '<button class="pitem'+(minor?" minor":"")+(ui.view===t[0]?" on":"")+'" data-act="view" data-id="'+t[0]+'">'+icon(t[2],minor?15:16)+'<span class="pnm">'+t[1]+'</span>'+(cnt?'<span class="n">'+cnt+'</span>':'')+'</button>';
   }
-  var h='<div class="side-h">常用</div>';
+  var h='<div class="side-scroll"><div class="side-h">常用</div>';
   h+=NAV_COMMON.map(function(t){return navBtn(t,false)}).join("");
   h+='<div class="side-h" style="margin-top:12px">更多视图</div>';
   h+=NAV_MORE.map(function(t){return navBtn(t,true)}).join("");
@@ -1801,6 +1813,9 @@ function renderSide(){
   }else{
     h+='<div class="empty" style="padding:8px;font-size:12.5px;color:var(--muted)">还没有智能列表。它可以把「未完成 + 高优先级」这类常用的筛选条件存下来，一键复用。</div>';
   }
+  /* 应用级入口收在侧栏底部：设置管的是「整个应用」，不是「当前这一屏」，
+     跟顶栏的 导出 / 导入 / 新建 放同一排会显得不是一个维度。 */
+  h+='</div><div class="side-foot"><button class="pitem" data-act="settings" title="设置：AI 服务、开机启动、数据目录、新建快捷键">'+icon(IC.gear,16)+'<span class="pnm">设置</span><span class="k">'+MODKEY+',</span></button></div>';
   $("#side").innerHTML=h;
 }
 
@@ -1828,7 +1843,8 @@ function renderMain(){
     '<div class="ch-acts">'+
       '<button class="tbtn" data-act="export" title="导出 JSON 备份"><svg class="ic" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 11l5 5 5-5M4 20h16"/></svg><span>导出</span></button>'+
       '<button class="tbtn" data-act="import" title="导入恢复"><svg class="ic" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4M7 8l5-5 5 5M4 20h16"/></svg><span>导入</span></button>'+
-      '<button class="tbtn" data-act="settings" title="设置"><svg class="ic" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9L17 7M7 17l-2.1 2.1"/></svg><span>设置</span></button>'+
+      /* 设置是应用级入口，桌面端已收进侧栏底部；移动端没有侧栏，这里保留一个图标按钮兜底 */
+      '<button class="tbtn mo-only" data-act="settings" title="设置">'+icon(IC.gear,15)+'<span>设置</span></button>'+
       '<button class="tbtn primary keep" data-act="newTask" title="新建任务：打开编辑弹窗（'+MODKEY+'K 也可打开搜索面板）">'+icon(IC.plus,15)+'<span>新建</span></button>'+
       /* 面板只在选中任务 / 项目时出现，这个按钮跟着一起显隐（可见性由 inspHasContent() 决定） */
       '<button class="tbtn" data-act="toggleInsp" title="显示 / 收起右侧面板  '+MODKEY+'\\"'+(inspOn?'':' style="display:none"')+'>'+(collapsed?"展开面板":"收起面板")+'</button>'+

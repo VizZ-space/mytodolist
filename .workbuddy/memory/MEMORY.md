@@ -12,7 +12,7 @@
   - `.gitignore` 排除：`node_modules/`、`dist/`、`src-tauri/target/`、`src-tauri/gen/schemas/`、`windows-installer/*.exe|*.msi`
   - 已提交 73 个文件（源码 / 配置 / 图标 / 4 份 md / `.workbuddy/memory`）；安装包刻意未入库，如需分发应走 GitHub Releases
   - 本机**未安装 `gh` CLI**，凭据由 Git Credential Manager 管理
-- **前端是单文件**：全部 HTML/CSS/JS 都在 `my-task-desktop/src/index.html`（5185 行），改 UI 只动这一个文件。
+- **前端是单文件**：全部 HTML/CSS/JS 都在 `my-task-desktop/src/index.html`（5201 行），改 UI 只动这一个文件。
 - **Esc = 逐层退，且只有一个权威处理器**：所有 Esc 分支都写在 `document.addEventListener("keydown", ...)`（约 4948 行那个）里，**顺序 = 浮层层级**：`#dp` 日期面板（z-index 110）→ `#uselpop` 下拉（108）→ 命令面板 `#palette` → 子任务行内编辑 → `closeModal()`。
   - ⚠️ **不要再给某个浮层单独挂 `document` keydown 监听器**。`#dp` 和 `#uselpop` 原先各自挂了一个，它们注册更早、会**先**把 `DP`/`USOPEN` 清成 null，于是全局处理器里的「浮层还开着吗」判断恒为假 → 一次 Esc 把日期面板**和**整个弹窗一起关掉（用户实测反馈）。同一元素上的多个监听器互不阻塞，`return` 只结束自己那一个。
   - **已知遗留（同类问题，尚未修）**：从任务弹窗里点「＋新建项目 / 新建客户 / 关联笔记」开的**嵌套弹窗**，Esc/取消走的是 `closeModal()` → 直接把整个 `#modal` 清空，写到一半的任务一起丢。可用机制已存在：`snapshotTaskDraft()` 存草稿、`openTask(taskId)` 读回草稿（保存路径就是这么回到任务弹窗的）。不能简单改 `closeModal()` —— 笔记选择器有自己的 `noteReturnTo`/`renderAfterNoteChange` 回退语义，会被带坏，需要单独区分。
@@ -27,6 +27,12 @@
   - 右侧面板**按需出现**（`inspHasContent()`）：选中任务 → 任务详情；落在具体项目上 → 项目详情（摘要 / 核心目标 / 进行中 / 待办）。**没有内容时整块 `display:none`，主内容区拿到全宽** —— 原来的「今日概览」已改成主内容区**最顶部**的一行 4 张 KPI 卡片（`kpiStrip()`，`KPI_VIEWS` 白名单，**空库也显示**，计数 0 时置灰不可点且不带状态色）。
   - **KPI 卡片同时是任务入口**：点一下钻到「任务」页并按 `ui.kf`（`all`/`todo`/`od`/`doing`/`done`）过滤，再点一次取消；任务页筛选条里会多一枚可关闭的钻取芯片（`kfChip()`，`filterBar()` 与 `boardFilterBar()` 共用）。`ui.kf` **只作用于「任务」页**（`kpiFiltered()` 叠加在 `filtered()` 之上，列表与看板共用），不动其它视图 —— 避免"看不见的条件把页面筛空"。
   - 顶栏「收起 / 展开面板」按钮跟随面板显隐。注意：点任务卡片（`data-act="edit"`）**只调 `renderInsp()` 不调 `renderMain()`**（为了保住列表滚动位置），所以按钮可见性必须在那条路径上也同步。
+- **侧栏是两段式（2026-09-15 第七轮改造）**：`.sidebar` 为 `display:flex;flex-direction:column;overflow:hidden`，内含
+  - `.side-scroll`（`flex:1;min-height:0;overflow:auto`）= **内容导航**（常用 / 更多视图 / 项目 / 客户 / 标签 / 智能列表），`renderSide()` 的 `h` 全部装在这里面；
+  - `.side-foot`（`flex:none`，钉底）= **应用级入口**，目前只有「设置」（`data-act="settings"`，复用原派发，带 `⌘,` 快捷键提示）。
+  - **分层原则**：内容导航随视图/数据变化，应用级操作恒定。**不要把「设置 / 账号 / 帮助」这一类塞回顶栏 `.ch-acts`** —— 顶栏只留「导出 / 导入 / ＋新建」（数据操作 + 当前视图主操作）。
+  - ⚠️ **设置入口有桌面/移动两份，改一处必须同步另一处**：≤768px 时 `.sidebar{display:none}`，所以顶栏保留一个 `.tbtn.mo-only`（桌面 `display:none` / 移动 `inline-flex`）齿轮按钮兜底。两处都藏起来 = 功能彻底消失，`.smoke/responsive.mjs` 专门守这条。
+  - 图标用 `IC.gear`（Feather 齿轮）：原顶栏那个「设置」图标其实是**太阳形状**（`circle r=3` + 八条射线，语义像亮度调节），已换掉。
 - **后端**：`src-tauri/src/main.rs`（2092 行），SQLite 建表在 `init_schema`，表有 projects / tasks / subtasks / clients / tags / smart_lists / logs / notes / note_cats / proj_stages。
 - **Rust 已完成 import 规范化（2026-09-11 第二轮）**：文件顶部统一 `use` 导入（`serde_json::{json,Value}` / `rusqlite::params` / `std::fs` 等，共 181 处内联全路径改为 use）；macOS 专用的 `Menu/MenuItem/PredefinedMenuItem/TrayIconBuilder/TrayIconId/escape_osascript` 走 `#[cfg(target_os = "macos")]` 门控导入。**保持规范：新增依赖也走 use，别写内联全路径。**
   - **大坑：Windows 构建的「unused import/function」告警对 macOS 专用代码是误报** —— 只被 `#[cfg(target_os="macos")]` 分支使用的符号，在 Windows 上报 unused，正确处理是按平台门控导入/定义，**删了会破坏 macOS 构建**。
@@ -52,7 +58,7 @@
   - **给任务对象加字段时注意**：`draftTask()` 需要同步补齐该字段的默认值，否则新建弹窗渲染会读到 `undefined`。
 - **空状态原则（2026-09-15 修正）**：空状态回答「①这里放什么 ②为什么有用 ③现在能做什么」；但③**优先指向页面上已有的入口**（一句话说明"点右上角「新建」"），**只有当该动作在页面别处没有入口时才放按钮**。早前"每个空状态都必须有一个主行动按钮"的口径过粗，会造出空转按钮（`newTask` 只是把光标送回已有输入框）。
 - 现有笔记实现已经是三栏工作区且有正文搜索，**属于合理结构，改造时以增强为主，不要推翻重做**。
-- **信息架构现状（截至 2026-09-15）**：一级导航 = 今天 / 日历 / 笔记 / 任务 / 项目；「更多视图」= 四象限 / 历史 / 总览 / 报告（看板已并入任务页，不再是导航项）。「今天 / 任务 / 日历 / 四象限 / 历史 / 项目」六页顶部有 KPI 卡片（`KPI_VIEWS`）。
+- **信息架构现状（截至 2026-09-15）**：一级导航 = 今天 / 日历 / 笔记 / 任务 / 项目；「更多视图」= 四象限 / 历史 / 总览 / 报告（看板已并入任务页，不再是导航项）。「今天 / 任务 / 日历 / 四象限 / 历史 / 项目」六页顶部有 KPI 卡片（`KPI_VIEWS`）。**「设置」在侧栏底部常驻**（不在顶栏，见上文「侧栏是两段式」）。
 
 ## 写自动化断言的纪律（踩过坑）
 
@@ -70,7 +76,7 @@
 
 - **冒烟测试**：`my-task-desktop/.smoke/smoke.mjs`，用法
   `cd my-task-desktop && node .smoke/smoke.mjs`
-  - 自带静态服务器（serve `dist/`）+ 拉起本机 Chrome `--headless=new` + 走 CDP 驱动；采集 `Runtime.exceptionThrown` + `Log.entryAdded` 断言 **0 条 JS 错误**。当前 **37/37 断言**。
+  - 自带静态服务器（serve `dist/`）+ 拉起本机 Chrome `--headless=new` + 走 CDP 驱动；采集 `Runtime.exceptionThrown` + `Log.entryAdded` 断言 **0 条 JS 错误**。当前 **38/38 断言**。
   - **测键盘行为要用 `document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',...}))`**：`click(c, sel)` 只发点击；Esc 这类全局快捷键必须直接派发到 document（`e.target` 会是 document，与真实按键在焦点元素上略有差异，但覆盖本项目所有全局分支）。
   - **`shot.mjs`（出图核对）**：同套 CDP 驱动，窗口 `--window-size=1440,900`，产出 PNG 是 **1418x802**（真实像素，不是显示时的缩放值）。**量尺寸要按 PNG 原生像素算**，直接看对话里渲染出来的图会被缩放误导。
   - 涉及"首启空态"之类有状态前提的断言，**必须排在造数据步骤之前**。
@@ -79,7 +85,8 @@
   - 断言全部走**用户可见入口**（点按钮 / 敲回车），不读模块内部变量 —— 因为源码是 `type="module"`，`Runtime.evaluate` 拿不到 `db` / `ui`。这也顺带保证了"入口真的可用"。
   - 已 gitignore，不入库。
   - **写这类测试的坑**：① 每次断言前确认处于预期视图（切换视图会重建 DOM）；② 判断"默认可见字段数"要排除 `<details>` 内部、包着 `<details>` 的容器、以及 `offsetParent===null`（`display:none`）的隐藏块；③ 涉及状态的断言（如"首启空态"）必须放在最前面，否则会被前面步骤造出的数据污染。
-  - **静态审计工具**：`.smoke/audit.mjs`（死入口/零引用函数/未用变量/未用图标/未用 CSS 全项审计，当前全 0）；`xss-probe.mjs`（真实浏览器属性注入探针）。属性注入类断言必须用真实解析器验证，不能靠读码推理 —— HTML tokenizer 只在遇到**字面**引号时才结束属性值，实体编码的 `&quot;` 不会终止属性。
+  - **静态审计工具**：`.smoke/audit.mjs`（死入口/零引用函数/未用变量/未用图标/未用 CSS 全项审计，当前五类全 0）；`xss-probe.mjs`（真实浏览器属性注入探针）。属性注入类断言必须用真实解析器验证，不能靠读码推理 —— HTML tokenizer 只在遇到**字面**引号时才结束属性值，实体编码的 `&quot;` 不会终止属性。
+  - **断点回归探针 `.smoke/responsive.mjs`（2026-09-15 新增，7/7）**：`node .smoke/responsive.mjs`。smoke.mjs 固定跑桌面宽度，覆盖不到「同一功能两入口、靠断点切换」的写法 —— 两边都藏起来就等于功能消失，任一单宽度测试都发现不了。该探针用 `Emulation.setDeviceMetricsOverride` 在 1440 / 420 两端各查一次可见性，并在移动端点一次确认真的能打开。**以后凡是"某个入口只在某断点出现"的改动，都往这里加断言。**
     - 审计工具的坑：原先用 `\b` 做单词边界，而 `$`（`$("#side")` 那个选择器函数）不是单词字符，导致它**永远**被误报成零引用函数。已改用 `(^|[^\w$])…($|[^\w$])`。另：动态拼接的类名（如 `" p-"+f[0]`）审计扫不到，宁可写成字面量数组，既消误报又更清晰。
 - **Rust 测试**：`cargo test --no-default-features`（`src-tauri/` 下 `mod tests`，10/10：save/load 往返 + `note_tags`/`project_client_id` 回归 + 老表自动升级两则）。首次编译依赖约 5-10 分钟。
 - **评审纪律（receiving-code-review 实证教训）**：评审给的 Critical 必须先在代码里找到对应行验证再实施；本轮 1 条 XSS Critical 经 `.smoke/xss-probe.mjs` 实测为误报（`inlineMd` 首行已 `esc()`，转义发生在 `[[ ]]` 提取之前）。
