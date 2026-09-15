@@ -86,7 +86,12 @@
 - ⚠️ **PowerShell 工具在本机完全不可用**（任何命令只返回 exit 0、无 stdout，连 `Set-Content` 也不落盘），从 Bash 调 `powershell.exe` 也被安全策略拦截。进程信息一律走 `tasklist /fo csv | iconv -f GBK -t UTF-8`（中文终端是 GBK，直接 grep 会报 `Binary file matches`）。
 - Bash 工具偶尔丢 PATH，命令前加 `export PATH="/usr/bin:/bin:$PATH"`；node 用 `C:/Users/67470/.workbuddy/binaries/node/versions/22.22.2-3/node.exe`。
 - **Windows 版 git 不认 MSYS 路径**：用原生路径 `git -C "E:/workspace/my-todolist"`，且**不要**设 `MSYS_NO_PATHCONV=1`（会阻止路径自动转换）。
-- **本机 git 引用记账有毛病**：`fetch/push` 不写 `refs/remotes/origin/*`（`git status` 显示 `[gone]`）；还遇到过一次 `.git/refs/heads/*` 与 `.git/objects` 丢失（**工作区文件完好**）。恢复：`git fetch origin main` → 手写 `.git/refs/heads/main` 与 `.git/refs/remotes/origin/main`（先 `mkdir -p`）。**本仓库禁用 `git stash`**（改用手工 `cp` 备份）；任何 git 操作前先 `git rev-parse HEAD` 确认引用还在。
+- ⚠️ **`git push` 会静默挂死（曾卡 7 分钟无任何输出）**：系统级配置 `credential.helper = helper-selector`（TortoiseGit 的）排在全局的 Git Credential Manager **之前**，于是每次推送都弹「凭据助手选择」框等人点。**症状**：push 无输出、远程不更新、`tasklist | grep -i credential` 能看到 `git-credential-helper-selector.exe`。**绕开办法**（在命令行覆盖，不改配置）：
+  ```
+  git -c credential.helper= -c credential.helper='!"<PortableGit>/mingw64/bin/git-credential-manager.exe"' push origin main
+  ```
+  配合 `GIT_TERMINAL_PROMPT=0` + `timeout 120` 防再次挂死。清理卡住的进程：`taskkill /F /PID <git-remote-https 与 helper-selector 的 PID>`。
+- **本机 git 引用记账有毛病**：`fetch/push` 不写 `refs/remotes/origin/*`（`git status` 显示 `[gone]`）；还遇到过一次 `.git/refs/heads/*` 与 `.git/objects` 丢失（**工作区文件完好**）。恢复：`git fetch origin main` → 手写 `.git/refs/heads/main` 与 `.git/refs/remotes/origin/main`（先 `mkdir -p`）。**本仓库禁用 `git stash`**（改用手工 `cp` 备份）；任何 git 操作前先 `git rev-parse HEAD` 确认引用还在。**推送后必须用 `git ls-remote origin refs/heads/main` 核对真实远程 SHA**（本地 ref 是手写的，不可信）。
 - **启动/重启 dev 会话**：上一轮若未退出，`tauri dev` 全链（vite 占 1420 + cargo + app exe）还挂着；**直接再跑 `npm run dev` 会踩坑** —— vite 自动换到 1421 而 `devUrl` 写死 1420 → 前端连不上。正确顺序：`netstat -ano | grep ":1420"` → 找 app PID（`tasklist /v /fo csv | iconv`）→ `taskkill /F /T /PID <app_pid>` → 再 `npm run dev`（后台）。**别 kill 全部 node.exe**（WorkBuddy 自身跑在 node 上）。
   - 健康标志：日志出现 `Running target\debug\my-task-desktop.exe` + 1420 同时有 **LISTENING 与 ESTABLISHED**（只有 LISTENING = 窗口没起来）。窗口标题恒为「暂缺」是正常的（`hiddenTitle: true`，标题栏前端自绘）。`HotKey already registered (SUPER+N)` 警告无害。
 - 删除大量文件需先授权批量删除守卫（与 `rm` 同一次调用），前台 2 分钟硬超时会中断 → 用后台执行。详见用户级 skill `windows-disk-cleanup`。
