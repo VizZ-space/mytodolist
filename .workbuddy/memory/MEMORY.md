@@ -12,7 +12,11 @@
   - `.gitignore` 排除：`node_modules/`、`dist/`、`src-tauri/target/`、`src-tauri/gen/schemas/`、`windows-installer/*.exe|*.msi`
   - 已提交 73 个文件（源码 / 配置 / 图标 / 4 份 md / `.workbuddy/memory`）；安装包刻意未入库，如需分发应走 GitHub Releases
   - 本机**未安装 `gh` CLI**，凭据由 Git Credential Manager 管理
-- **前端是单文件**：全部 HTML/CSS/JS 都在 `my-task-desktop/src/index.html`（5166 行），改 UI 只动这一个文件。
+- **前端是单文件**：全部 HTML/CSS/JS 都在 `my-task-desktop/src/index.html`（5175 行），改 UI 只动这一个文件。
+- **弹窗（`.sheet`）默认宽度 = 560px**，按「两列表单」定：`.two-col` 是 `1fr 1fr`，若默认给到 880px，一栏就有 ~360px，日期选择器 / 下拉被拉得极瘦长，比例失调（用户 2026-09-15 反馈过）。
+  - 需要更宽的弹窗**各自显式覆盖** `style="max-width:..."`：客户/标签 840、智能列表 920、设置 1170、确认框 720、导出 760、插入链接·管理分类·导入 560。
+  - `.two-col.auto-right`（`1fr auto`）= 左栏自适应 + 右栏按内容宽度，用在左右需求不对称处（项目弹窗的「客户 | 色板」：8 色色板固定要 287px，均分半栏只有 245px 会折成两行）。
+  - **改弹窗宽度后必须检查子元素有没有因此换行**（色板、芯片行、并列按钮）。
 - **信息架构（2026-09-15 重构后）**：导航收敛为「常用 5 项（今天 / 日历 / 笔记 / 任务 / 项目）+ 更多视图 4 项（四象限 / 历史 / 总览 / 报告）」，快捷键 1–9 顺延对应。
   - **看板不再是独立视图**：它是任务数据的「按状态分列」呈现，现已并入「任务」页，由页面最上方的 `ui.taskMode`（`list`/`board`）切换器控制，入口由 `taskModeSwitch()` 渲染。`viewBoard()` 已删除。
   - **「今天」只负责时间焦点**：今天要处理 / 逾期批量治理 / 近 3 天 / 久未跟进 / 已完成入口；**不再**渲染优先级筛选条与「进行中的任务」全量列表（那是任务页的内容），只留一行 `.today-more` 引导去任务页。改动前「今天」和「任务」是同一份列表渲染两遍。
@@ -63,7 +67,9 @@
 
 - **冒烟测试**：`my-task-desktop/.smoke/smoke.mjs`，用法
   `cd my-task-desktop && node .smoke/smoke.mjs`
-  - 自带静态服务器（serve `dist/`）+ 拉起本机 Chrome `--headless=new` + 走 CDP 驱动；采集 `Runtime.exceptionThrown` + `Log.entryAdded` 断言 **0 条 JS 错误**。当前 **30/30 断言**（IA1/IA2/IA3 三条锁定「今天/任务/看板」新架构）。
+  - 自带静态服务器（serve `dist/`）+ 拉起本机 Chrome `--headless=new` + 走 CDP 驱动；采集 `Runtime.exceptionThrown` + `Log.entryAdded` 断言 **0 条 JS 错误**。当前 **36/36 断言**。
+  - **`shot.mjs`（出图核对）**：同套 CDP 驱动，窗口 `--window-size=1440,900`，产出 PNG 是 **1418x802**（真实像素，不是显示时的缩放值）。**量尺寸要按 PNG 原生像素算**，直接看对话里渲染出来的图会被缩放误导。
+  - 涉及"首启空态"之类有状态前提的断言，**必须排在造数据步骤之前**。
   - **改了默认视图的内容，务必同步改冒烟测试**：任务卡片现在只在「任务」页渲染，任何断言 `.task` 的用例都要先 `goView(c,'all')`（新增 helper，点侧栏入口，走用户真实路径）。
   - **改完 `src/index.html` 必须先 `vite build` 再跑**（它测的是 `dist/`，不是源码）。
   - 断言全部走**用户可见入口**（点按钮 / 敲回车），不读模块内部变量 —— 因为源码是 `type="module"`，`Runtime.evaluate` 拿不到 `db` / `ui`。这也顺带保证了"入口真的可用"。

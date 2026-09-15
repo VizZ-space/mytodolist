@@ -495,7 +495,9 @@ h3{font-size:14px;font-weight:600;margin-bottom:8px}
 
 /* ---------- modal ---------- */
 .mask{position:fixed;inset:0;background:var(--mask);backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);display:flex;align-items:flex-start;justify-content:center;padding:7vh 16px 16px;z-index:100;animation:maskIn .15s ease}
-.sheet{background:var(--sheet);backdrop-filter:blur(36px) saturate(190%);-webkit-backdrop-filter:blur(36px) saturate(190%);box-shadow:0 24px 70px rgba(0,0,0,.3);border:1px solid var(--line2);border-radius:17px;width:100%;max-width:880px;max-height:88dvh;overflow:auto;padding:22px 26px 24px;transform-origin:top center;animation:sheetIn .2s cubic-bezier(.2,.9,.3,1)}
+/* 默认宽度按「两列表单」定：880px 会把日期 / 下拉拉到 360px 宽，比例失调。
+   需要更宽的弹窗（客户 840 / 智能列表 920 / 设置 1170）各自显式覆盖 max-width。 */
+.sheet{background:var(--sheet);backdrop-filter:blur(36px) saturate(190%);-webkit-backdrop-filter:blur(36px) saturate(190%);box-shadow:0 24px 70px rgba(0,0,0,.3);border:1px solid var(--line2);border-radius:17px;width:100%;max-width:560px;max-height:88dvh;overflow:auto;padding:22px 26px 24px;transform-origin:top center;animation:sheetIn .2s cubic-bezier(.2,.9,.3,1)}
 @keyframes sheetIn{from{opacity:0;transform:translateY(-12px) scale(.985)}to{opacity:1;transform:none}}
 @keyframes maskIn{from{opacity:0}to{opacity:1}}
 .sheet h3{font-size:16px;margin-bottom:14px}
@@ -522,6 +524,11 @@ h3{font-size:14px;font-weight:600;margin-bottom:8px}
 .btn-danger:hover{background:rgba(255,59,48,.22)}
 .two-col{display:grid;grid-template-columns:1fr 1fr;gap:0 18px}
 .two-col>.full{grid-column:1 / -1}
+/* 左栏自适应 + 右栏按内容宽度。用在「客户 | 色板」这种左右需求不对称的场合：
+   8 色色板本身要 287px，若按 1fr 1fr 均分只有 245px 就会折成两行。 */
+.two-col.auto-right{grid-template-columns:1fr auto}
+.two-col.auto-right>.fld{min-width:0}
+@media (max-width:680px){.two-col.auto-right{grid-template-columns:1fr}}
 @media (max-width:680px){.two-col{grid-template-columns:1fr}}
 /* 编辑弹窗「项目阶段」行：下拉与「管理阶段」按钮同高、不换行 */
 .stage-row{display:flex;gap:8px;align-items:stretch}
@@ -3859,9 +3866,11 @@ function openProject(id){
     /* C3：项目弹窗同样分层 —— 默认只问 名称 · 客户 · 颜色 · 摘要，
        预算 / 合同额 / 阶段 / 落地可能性 / 签署日期 / 落地年份 / 核心目标 这些「台账字段」
        收进常驻可见的「更多选项 ▾」。客户这一项留在默认层，因为它决定了下面任务的客户归属。 */
-    '<div class="two-col">'+
+    '<div class="two-col auto-right">'+
       '<div class="fld full"><label>项目名称</label><input id="pn" value="'+esc(vName)+'" placeholder="例如：客户 A 交付"></div>'+
       '<div class="fld"><label>客户</label><div class="client-row">'+uiSelect("pclient",vClient,clientOptsArr,"pclient")+'<button type="button" class="tbtn" data-act="newClientForProject" title="新建客户">'+icon(IC.plus,14)+'</button></div></div>'+
+      /* 色板 8 色需 287px（28px 圆点 + 9px 间距），按 1fr 1fr 均分只有 245px 会折成两行，
+         故用 auto-right 让它按内容宽度、客户自适应剩余。 */
       '<div class="fld"><label>颜色</label><div id="sw" style="display:flex;gap:9px;flex-wrap:wrap">'+psw+'</div><input type="hidden" id="pc" value="'+esc(vColor)+'"></div>'+
       '<div class="fld full"><label>摘要信息</label><textarea id="psum" rows="2" placeholder="一句话概括这个项目在做什么">'+esc(vSum)+'</textarea></div>'+
     '</div>'+
