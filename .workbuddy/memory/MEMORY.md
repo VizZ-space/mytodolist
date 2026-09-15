@@ -17,7 +17,8 @@
   - **看板不再是独立视图**：它是任务数据的「按状态分列」呈现，现已并入「任务」页，由页面最上方的 `ui.taskMode`（`list`/`board`）切换器控制，入口由 `taskModeSwitch()` 渲染。`viewBoard()` 已删除。
   - **「今天」只负责时间焦点**：今天要处理 / 逾期批量治理 / 近 3 天 / 久未跟进 / 已完成入口；**不再**渲染优先级筛选条与「进行中的任务」全量列表（那是任务页的内容），只留一行 `.today-more` 引导去任务页。改动前「今天」和「任务」是同一份列表渲染两遍。
   - 优先级筛选芯片统一由 `priChips()` 产出，`filterBar()`（列表）与 `boardFilterBar()`（看板，多一个项目下拉）共用，保证配色一致。
-  - 右侧面板**按需出现**（`inspHasContent()`）：选中任务 → 任务详情；落在具体项目上 → 项目详情（摘要 / 核心目标 / 进行中 / 待办）。**没有内容时整块 `display:none`，主内容区拿到全宽** —— 原来的「今日概览」已改成主内容区**最顶部**的一行 4 张 KPI 卡片（`kpiStrip()`，视图白名单 `KPI_VIEWS`，空库时不出现）。
+  - 右侧面板**按需出现**（`inspHasContent()`）：选中任务 → 任务详情；落在具体项目上 → 项目详情（摘要 / 核心目标 / 进行中 / 待办）。**没有内容时整块 `display:none`，主内容区拿到全宽** —— 原来的「今日概览」已改成主内容区**最顶部**的一行 4 张 KPI 卡片（`kpiStrip()`，`KPI_VIEWS` 白名单，**空库也显示**，计数 0 时置灰不可点且不带状态色）。
+  - **KPI 卡片同时是任务入口**：点一下钻到「任务」页并按 `ui.kf`（`all`/`todo`/`od`/`doing`/`done`）过滤，再点一次取消；任务页筛选条里会多一枚可关闭的钻取芯片（`kfChip()`，`filterBar()` 与 `boardFilterBar()` 共用）。`ui.kf` **只作用于「任务」页**（`kpiFiltered()` 叠加在 `filtered()` 之上，列表与看板共用），不动其它视图 —— 避免"看不见的条件把页面筛空"。
   - 顶栏「收起 / 展开面板」按钮跟随面板显隐。注意：点任务卡片（`data-act="edit"`）**只调 `renderInsp()` 不调 `renderMain()`**（为了保住列表滚动位置），所以按钮可见性必须在那条路径上也同步。
 - **后端**：`src-tauri/src/main.rs`（2092 行），SQLite 建表在 `init_schema`，表有 projects / tasks / subtasks / clients / tags / smart_lists / logs / notes / note_cats / proj_stages。
 - **Rust 已完成 import 规范化（2026-09-11 第二轮）**：文件顶部统一 `use` 导入（`serde_json::{json,Value}` / `rusqlite::params` / `std::fs` 等，共 181 处内联全路径改为 use）；macOS 专用的 `Menu/MenuItem/PredefinedMenuItem/TrayIconBuilder/TrayIconId/escape_osascript` 走 `#[cfg(target_os = "macos")]` 门控导入。**保持规范：新增依赖也走 use，别写内联全路径。**
@@ -61,6 +62,7 @@
     - 审计工具的坑：原先用 `\b` 做单词边界，而 `$`（`$("#side")` 那个选择器函数）不是单词字符，导致它**永远**被误报成零引用函数。已改用 `(^|[^\w$])…($|[^\w$])`。另：动态拼接的类名（如 `" p-"+f[0]`）审计扫不到，宁可写成字面量数组，既消误报又更清晰。
 - **Rust 测试**：`cargo test --no-default-features`（`src-tauri/` 下 `mod tests`，10/10：save/load 往返 + `note_tags`/`project_client_id` 回归 + 老表自动升级两则）。首次编译依赖约 5-10 分钟。
 - **评审纪律（receiving-code-review 实证教训）**：评审给的 Critical 必须先在代码里找到对应行验证再实施；本轮 1 条 XSS Critical 经 `.smoke/xss-probe.mjs` 实测为误报（`inlineMd` 首行已 `esc()`，转义发生在 `[[ ]]` 提取之前）。
+- **改 UI 后再加一道「产物校验」**：`.smoke/shot.mjs` 用同一套 headless Chrome 出图（`.smoke/shots/*.png`），可人工核对版式。**重要教训（2026-09-15）**：同一条消息里对**同一个文件**并行发多个 Edit，后写会覆盖先写，前面的改动会**静默丢失**（工具仍报 success）—— `filterBar()` 的改动就这样被吞掉，直到 grep 构建产物才发现。所以：**同文件的多处修改必须串行发**；改完用 `grep -c '<新代码里的字面串>' dist/assets/*.js` 确认真的进包（注意 Vite 会把 JS 拆到 `dist/assets/index-*.js`，`dist/index.html` 里只有 CSS/HTML）。
 
 ## 本机环境注意
 

@@ -215,9 +215,12 @@ select{-webkit-appearance:none;appearance:none;background-image:url("data:image/
 /* 顶部 KPI 卡片 —— 原右侧面板「今日概览」的内容，改为一行铺在主内容区顶部，
    不再占用一整列宽度；数值配色与状态芯片（待办/进行中/已完成 + 逾期）保持一致。 */
 .kpi-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
-.kpi{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:12px 14px;box-shadow:var(--shadow-1)}
-.kpi-n{font-size:22px;font-weight:600;color:var(--text);line-height:1.25}
-.kpi-l{font-size:12px;color:var(--muted);margin-top:2px}
+.kpi{display:block;width:100%;text-align:left;font:inherit;background:var(--card);border:1px solid var(--line);border-radius:13px;padding:12px 14px;box-shadow:var(--shadow-1);cursor:pointer;transition:border-color .14s,box-shadow .14s,transform .14s}
+.kpi:hover:not(:disabled){border-color:var(--line2);box-shadow:var(--shadow-2);transform:translateY(-1px)}
+.kpi:disabled{cursor:default;opacity:.5}
+.kpi.on{border-color:var(--pri);box-shadow:var(--ring)}
+.kpi-n{display:block;font-size:22px;font-weight:600;color:var(--text);line-height:1.25}
+.kpi-l{display:block;font-size:12px;color:var(--muted);margin-top:2px}
 .kpi.warn .kpi-n{color:var(--danger)}
 .kpi.doing .kpi-n{color:var(--pri)}
 .kpi.done .kpi-n{color:var(--ok-text)}
@@ -1392,6 +1395,10 @@ var db=null,bkTipShown=false,ui={view:"today",selId:null,pid:"all",cid:"all",tag
      呈现，不再占用侧栏一级导航 —— 于是「今天 / 任务 / 看板」三个重复入口收敛为
      「今天（时间焦点）」+「任务（全库，顶部切换呈现）」。 */
   taskMode:"list",
+  /* kf：顶部 KPI 卡片的钻取口径（all 不筛 / todo 待办 / od 逾期 / doing 进行中 / done 已完成）。
+     只作用于「任务」页（列表与看板共用），页内有一枚可关闭的芯片提示，
+     避免用户点了卡片之后在别的视图里被一个看不见的条件筛空。 */
+  kf:"all",
   rt:"week",roff:0,rpid:"all",tone:"boss",aiOut:"",aiBusy:false,aiPrompt:"",customStart:"",customEnd:"",calMode:"month",calSel:""},dragId=null,dragKind=null,undoBuf=null;
 
 /* AI 配置单独存一条记录，不混进 db —— 这样导出备份时不会把密钥带出去 */
@@ -1882,10 +1889,11 @@ function qcliHtml(cid){
 /* 顶部 KPI 卡片 —— 取代原来右侧面板里的「今日概览」。
    内容一样（待办 / 逾期 / 进行中 / 已完成），但改成一行铺在主内容区顶部：
    不再永久占用一列宽度，也不用先去点「收起面板」。
-   只在真有任务时出现 —— 一条都没有时首页该是空状态，而不是四个 0。 */
+   始终显示（包括空库时的四个 0）—— 它是版式的一部分，也是任务量的第一眼读数；
+   卡片同时是入口：点一下钻到「任务」页并按该口径过滤，计数为 0 时置灰不可点。 */
 var KPI_VIEWS=["today","all","calendar","quadrant","logbook","projects"];
+var KF_LABEL={todo:"待办",od:"逾期",doing:"进行中",done:"已完成"};
 function kpiStrip(){
-  if(!db.tasks.length)return "";
   var todo=0,od=0,doing=0,done=0;
   db.tasks.forEach(function(t){
     if(t.done){done++;return}
@@ -1893,9 +1901,29 @@ function kpiStrip(){
     if(t.due&&dayDiff(t.due)<0)od++;
     if(t.status==="doing"||((t.subtasks||[]).some(function(s){return s.done})))doing++;
   });
-  function kpi(n,label,cls){return '<div class="kpi'+(cls?" "+cls:"")+'"><div class="kpi-n">'+n+'</div><div class="kpi-l">'+label+"</div></div>"}
+  function kpi(n,label,cls,kf){
+    /* 计数为 0 时不带状态色 —— 颜色只用来提示「这里有东西要看」，0 就该是安静的灰 */
+    var cl=(cls&&n)?" "+cls:"";
+    return '<button type="button" class="kpi'+cl+(ui.kf===kf?" on":"")+'" data-act="kpi" data-id="'+kf+'"'+
+      (n?"":" disabled")+' title="'+(n?"查看"+label+"任务":"暂无"+label+"任务")+'">'+
+      '<span class="kpi-n">'+n+'</span><span class="kpi-l">'+label+"</span></button>";
+  }
   return '<div class="kpi-strip" role="group" aria-label="任务概览">'+
-    kpi(todo,"待办")+kpi(od,"逾期",od?"warn":"")+kpi(doing,"进行中","doing")+kpi(done,"已完成","done")+"</div>";
+    kpi(todo,"待办","","todo")+kpi(od,"逾期",od?"warn":"","od")+kpi(doing,"进行中","doing","doing")+kpi(done,"已完成","done","done")+"</div>";
+}
+/* KPI 钻取口径 —— 叠加在全局 filtered() 之上，只在「任务」页生效 */
+function kpiFiltered(){
+  var a=filtered();
+  if(ui.kf==="todo")return a.filter(function(t){return !t.done});
+  if(ui.kf==="done")return a.filter(function(t){return t.done});
+  if(ui.kf==="doing")return a.filter(function(t){return !t.done&&(t.status==="doing"||(t.subtasks||[]).some(function(s){return s.done}))});
+  if(ui.kf==="od")return a.filter(function(t){return !t.done&&t.due&&dayDiff(t.due)<0});
+  return a;
+}
+/* 钻取提示芯片：和优先级芯片同排，点一下（或点 KPI 卡片本身）即取消 */
+function kfChip(){
+  if(ui.kf==="all"||!KF_LABEL[ui.kf])return "";
+  return '<button class="fchip on kf" data-act="kpi" data-id="all" title="取消「'+KF_LABEL[ui.kf]+'」筛选">'+icon(IC.x,12)+KF_LABEL[ui.kf]+"</button>";
 }
 function inspTask(t){
   var subs=t.subtasks||[],sd=subs.filter(function(s){return s.done}).length,pct=subs.length?Math.round(sd/subs.length*100):(t.done?100:0);
@@ -2616,7 +2644,7 @@ function priChips(){
 }
 function filterBar(){
   if(!db.tasks.length)return "";
-  return '<div class="fbar">'+priChips()+'</div>';
+  return '<div class="fbar">'+priChips()+kfChip()+'</div>';
 }
 
 function matchesSmart(t,q){
@@ -2830,19 +2858,42 @@ function taskModeSwitch(){
     seg("list","列表",IC.list)+seg("board","看板",IC.board)+
     '</div><div class="vh-tip muted">'+(m==="board"?"按住卡片拖动到其他列即可切换状态":"列表按截止时间排序，越近越靠前")+"</div></div>";
 }
+/* 空结果时把「到底哪些条件在生效」说清楚 —— 否则 KPI 钻取留下的口径会让人摸不着头脑 */
+function activeFilterNames(){
+  var n=[];
+  if(ui.kf!=="all"&&KF_LABEL[ui.kf])n.push(KF_LABEL[ui.kf]);
+  if(ui.pf!=="all")n.push("优先级 "+({high:"高",mid:"中",low:"低"}[ui.pf]||ui.pf));
+  if(ui.pid!=="all")n.push(ui.pid==="none"?"未归类":"项目");
+  if(ui.cid!=="all")n.push(ui.cid==="none"?"无客户":"客户");
+  if(ui.tag){var tg=db.tags.filter(function(g){return g.id===ui.tag})[0];if(tg)n.push("标签 "+tg.name)}
+  if(ui.smart)n.push("智能列表");
+  if(ui.q.trim())n.push("搜索「"+ui.q.trim()+"」");
+  return n.join("、")||"无";
+}
+function filteredEmpty(){
+  return emptyState({icon:IC.list,title:db.tasks.length?"没有符合条件的任务":"还没有任务",
+    why:db.tasks.length?"当前生效的筛选："+activeFilterNames()+"。<br>清掉筛选就能看到全部任务。":"在最上面的输入框写一句、按回车就加上了。",
+    acts:db.tasks.length?[{label:"清空筛选",act:"bprojClear"}]:[{label:"写一条任务",act:"newTask",primary:1,icon:IC.plus}]});
+}
 function viewAll(){
   var board=ui.taskMode==="board";
   var h=taskModeSwitch();
   h+=quickAdd();
   h+=board?boardFilterBar():filterBar();
   if(board)return h+kanban(boardTasks());
-  var base=filtered();
-  var a=sortTasks(base),undone=a.filter(function(t){return !t.done}),done=a.filter(function(t){return t.done});
-  h+="<h3>进行中 · "+undone.length+" 项</h3>";
-  h+=undone.length?undone.map(taskCard).join(""):emptyState({icon:IC.list,title:db.tasks.length?"没有符合条件的任务":"还没有任务",
-    why:db.tasks.length?"当前有筛选条件在生效（客户 / 标签 / 搜索 / 优先级）。<br>清掉筛选就能看到全部任务。":"在最上面的输入框写一句、按回车就加上了。",
-    acts:db.tasks.length?[{label:"清空筛选",act:"bprojClear"}]:[{label:"写一条任务",act:"newTask",primary:1,icon:IC.plus}]});
-  if(done.length){
+  var a=sortTasks(kpiFiltered());
+  var undone=a.filter(function(t){return !t.done}),done=a.filter(function(t){return t.done});
+  /* 从 KPI「已完成」钻进来时，已完成才是主角，「进行中」空块不再出现 */
+  if(ui.kf==="done"){
+    h+="<h3>已完成 · "+done.length+" 项</h3>";
+    h+=done.length?done.slice(0,40).map(taskCard).join(""):filteredEmpty();
+    if(done.length>40)h+='<div class="estate-mini">仅显示最近 40 条已完成任务，更早的记录仍保存在数据里</div>';
+    return h+demoHintHtml();
+  }
+  var opened=ui.kf==="todo"||ui.kf==="doing"||ui.kf==="od";
+  h+="<h3>"+(ui.kf==="all"?"进行中":KF_LABEL[ui.kf])+" · "+undone.length+" 项</h3>";
+  h+=undone.length?undone.map(taskCard).join(""):filteredEmpty();
+  if(!opened&&done.length){
     h+='<h3 style="margin-top:18px">已完成 · '+done.length+" 项</h3>";
     h+=done.slice(0,40).map(taskCard).join("");
     if(done.length>40)h+='<div class="estate-mini">仅显示最近 40 条已完成任务，更早的记录仍保存在数据里</div>';
@@ -2855,7 +2906,7 @@ function viewAll(){
    于是「侧栏筛客户/标签/智能列表 + 顶部搜索 + 优先级」在看板里与其它视图语义完全一致。
    看板自己的「项目」下拉只是在此基础上再收窄一层（bproj="all" 时等于不收窄）。 */
 function boardTasks(){
-  var base=filtered();
+  var base=kpiFiltered();
   if(ui.bproj==="none")return base.filter(function(t){return !t.projectId});
   if(ui.bproj&&ui.bproj!=="all")return base.filter(function(t){return t.projectId===ui.bproj});
   return base;
@@ -2865,8 +2916,8 @@ function boardFilterBar(){
   var projOpts=[{v:"all",label:"全部项目"}].concat(db.projects.map(function(p){return {v:p.id,label:p.name}}),[{v:"none",label:"未归类"}]);
   return '<div class="fbar board-fbar" title="本页筛选：只作用于看板，侧栏筛选同时生效">'+
     '<span class="bf-lbl">'+icon(IC.folder,13)+'项目</span>'+uiSelect("bproj",ui.bproj,projOpts,"bproj")+
-    '<span class="bf-lbl">'+icon(IC.flag,13)+'优先级</span>'+priChips()+
-    (ui.pf!=="all"||ui.bproj!=="all"?'<button class="mini bf-clear" data-act="bprojClear" title="恢复默认：全部任务">清空筛选</button>':"")+
+    '<span class="bf-lbl">'+icon(IC.flag,13)+'优先级</span>'+priChips()+kfChip()+
+    (ui.pf!=="all"||ui.bproj!=="all"||ui.kf!=="all"?'<button class="mini bf-clear" data-act="bprojClear" title="恢复默认：全部任务">清空筛选</button>':"")+
   '</div>';
 }
 
@@ -4446,7 +4497,14 @@ document.addEventListener("click",function(e){
   if(a==="pf"){ui.pf=id;renderMain();return}
   /* 「任务」页顶部呈现切换：列表 / 看板（切回顶部，避免停在半截滚动位置） */
   if(a==="taskMode"){ui.taskMode=(id==="board")?"board":"list";renderMain();var tm=$("#main");if(tm)tm.scrollTop=0;return}
-  if(a==="bprojClear"){ui.pf="all";ui.bproj="all";renderMain();return}
+  /* KPI 卡片 = 概览 + 入口：点一下就钻到「任务」页并按该口径过滤，再点一次取消 */
+  if(a==="kpi"){
+    if(id==="all"||!KF_LABEL[id]){ui.kf="all";renderMain();return}
+    ui.kf=(ui.kf===id)?"all":id;
+    if(ui.kf!=="all"){ui.view="all";ui.taskMode="list"}
+    render();var km=$("#main");if(km)km.scrollTop=0;return
+  }
+  if(a==="bprojClear"){ui.pf="all";ui.bproj="all";ui.kf="all";renderMain();return}
   if(a==="toggleImportant"){var ti=task(id);if(ti){ti.important=!ti.important;save();render();toast(ti.important?"已标记为重要":"已取消重要");}return}
   if(a==="calPick"){ui.calSel=id;renderMain();return}
   if(a==="calMode"){ui.calMode=id;renderMain();return}
