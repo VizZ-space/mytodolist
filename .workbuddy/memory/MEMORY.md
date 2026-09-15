@@ -98,7 +98,7 @@
 
 - **冒烟测试**：`my-task-desktop/.smoke/smoke.mjs`，用法
   `cd my-task-desktop && node .smoke/smoke.mjs`
-  - 自带静态服务器（serve `dist/`）+ 拉起本机 Chrome `--headless=new` + 走 CDP 驱动；采集 `Runtime.exceptionThrown` + `Log.entryAdded` 断言 **0 条 JS 错误**。当前 **39/39 断言**。
+  - 自带静态服务器（serve `dist/`）+ 拉起本机 Chrome `--headless=new` + 走 CDP 驱动；采集 `Runtime.exceptionThrown` + `Log.entryAdded` 断言 **0 条 JS 错误**。当前 **44/44 断言**（2026-09-15 新增：KPI 口径改为 `[data-act="kpi"]`、`Q1/Q2` 行内快速添加、`S1` 侧栏折叠、`S2` 卡片热区、`M1` 遮罩关闭两种行为）。
   - **测键盘行为要用 `document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',...}))`**：`click(c, sel)` 只发点击；Esc 这类全局快捷键必须直接派发到 document（`e.target` 会是 document，与真实按键在焦点元素上略有差异，但覆盖本项目所有全局分支）。
   - **`shot.mjs`（出图核对）**：同套 CDP 驱动，窗口 `--window-size=1440,900`，产出 PNG 是 **1418x802**（真实像素，不是显示时的缩放值）。**量尺寸要按 PNG 原生像素算**，直接看对话里渲染出来的图会被缩放误导。
   - 涉及"首启空态"之类有状态前提的断言，**必须排在造数据步骤之前**。
@@ -119,6 +119,18 @@
 - **评审纪律（receiving-code-review 实证教训）**：评审给的 Critical 必须先在代码里找到对应行验证再实施；本轮 1 条 XSS Critical 经 `.smoke/xss-probe.mjs` 实测为误报（`inlineMd` 首行已 `esc()`，转义发生在 `[[ ]]` 提取之前）。
 - **改 UI 后再加一道「产物校验」**：`.smoke/shot.mjs` 用同一套 headless Chrome 出图（`.smoke/shots/*.png`），可人工核对版式。**重要教训（2026-09-15）**：同一条消息里对**同一个文件**并行发多个 Edit，后写会覆盖先写，前面的改动会**静默丢失**（工具仍报 success）—— `filterBar()` 的改动就这样被吞掉，直到 grep 构建产物才发现。所以：**同文件的多处修改必须串行发**；改完用 `grep -c '<新代码里的字面串>' dist/assets/*.js` 确认真的进包（注意 Vite 会把 JS 拆到 `dist/assets/index-*.js`，`dist/index.html` 里只有 CSS/HTML）。
 
+## UI 约定（2026-09-15 定，动手前先读顶层 `ui-spec.md`）
+
+- **弹窗**：每个 `.sheet` 必须拼 `sheetX()`（右上角 ×，21 个已注入）；`.set-foot` 吸底；宽度只写档位类不写裸 `max-width`。
+- **删除按钮**：表单内联删除用 `.sheet-act .btn-del`（仍是 `btn-ghost` 变体 → 变体/等高/最右实心色三条规则照旧成立，只是不参与等宽）；`.btn-wide` 已下线；二次确认仍走红色确认框。
+- **点遮罩关不关**：统一规则 —— `#modal` 捕获阶段登记 `input`/`change` → `_maskDirty`，动过就不关并抖一下（复用 `.sheet.nudge`）。**必须用事件标记而不是值快照**，弹窗会因选标签/选笔记重渲染把快照冲掉。
+- **筛选条**：只有 `filterBar()` 一条，列表与看板共用；项目筛选统一 `ui.pid`（`ui.bproj` 已删）；项目维度只由下拉承担，`sideFilterChips()` 不再为它出芯片。**顺序：维度控件在前、可移除芯片在后**（芯片宽度会变，放行首会让整排抖动）。
+- **KPI**：父子版式（待办是总量，逾期/进行中是子集）；四个钻取按钮统一带 `data-act="kpi"` + `.kpi-n`，0 时置灰。**同屏计数必须自洽** —— 分组标题只算它下面那一段。
+- **侧栏**：`ui.sideFold={tag:true,smart:true}` 默认折叠标签/智能列表，收起时标题显 `.side-n` 计数；0 计数标签不列但当前筛选中的保留。`sideHead(label,act,title,fold,n)`。
+- **行内快速添加**：只在任务页列表形态（`#qi`），复用 `parseTitle`，继承 pid/cid/tag，回车后焦点留在输入框。旧 `.qadd`/`#qt` 已删，别混。
+- **任务卡热区**：根 `.task` 不带任何动作，只有标题 `.ttl-link` 打开编辑。
+- **存储通道**：`storeRead/storeWrite` —— 桌面走 Rust `save_store/load_store`，非 Tauri（双击 `dist/index.html`）退回 localStorage。**别在新代码里直接调 `invoke("save_store")`**，否则浏览器预览会弹红色「数据保存失败」横幅（这条横幅曾经出现在所有截图里，容易被误判成自己改坏了）。
+
 ## 本机环境注意
 
 - **WebView2 崩溃（"Error launching CrashSender.exe" 弹窗）已定位并修复（2026-09-11）**：
@@ -127,6 +139,12 @@
   - 修复：`tauri.conf.json` 的窗口配置加 `"additionalBrowserArgs": "--disable-features=msWebOOUI,msPdfOOUI,msSmartScreenProtection --no-sandbox"`（已验证：加参后稳定，仅 `--no-sandbox` 即可、无需禁 GPU；注意 additionalBrowserArgs 会**替换** Tauri 默认参数，默认那三个 disable-features 要自己带上）
   - 排查工具：崩溃转储在 `%LOCALAPPDATA%\com.zhuanz.mytask\EBWebView\Crashpad\reports\`，`.smoke/dump-parse.cjs`（零依赖 Node 脚本）可解析 minidump 的异常代码/出错模块/注入 DLL 清单
 - Bash 工具偶尔丢 PATH，命令前加 `export PATH="/usr/bin:/bin:$PATH"`
+- **启动/重启 dev 会话（用户说"启动项目/我看下结果"时）**：上一轮对话若未退出，`tauri dev` 整条链（vite 占 1420 + cargo + app exe）会一直挂后台；**直接再跑 `npm run dev` 会踩坑**——vite 自动换到 1421 而 `tauri.conf.json` 的 `devUrl` 写死 1420 → 前端连不上。正确顺序：`netstat -ano | grep ":1420"` 查占用 → `tasklist /v /fo csv | iconv -f GBK -t UTF-8 | grep -i my-task` 找到 app PID → `taskkill /F /T /PID <app_pid>`（级联收掉 WebView2 子进程，父进程 cargo/tauri-cli 会自行退出并释放 1420）→ 再 `npm run dev`（后台，cargo 有缓存时 4 秒编译完）。**别 kill 全部 node.exe**（WorkBuddy 自身跑在 node 上）。
+  - 健康标志：日志出现 `Running target\debug\my-task-desktop.exe` + `netstat` 里 1420 同时有 **LISTENING 和 ESTABLISHED**（只有 LISTENING = 窗口没起来）+ `tasklist /v` 状态 `Running`
+  - **窗口标题恒为「暂缺」是正常的**：`tauri.conf.json` 设了 `hiddenTitle: true`，标题栏由前端自绘
+  - 日志里 `全局快捷键注册失败：HotKey already registered (SUPER+N)` 是上一实例刚被 kill、系统未回收热键所致，无害
+  - 中文 Windows 终端输出是 GBK，`grep` 会报 `Binary file (standard input) matches`，必须 `iconv -f GBK -t UTF-8`
+  - ⚠️ **PowerShell 工具在本机完全不可用**（任何命令都只返回 `Command completed with exit code 0`、无 stdout，连 `Set-Content` 也不落盘）；从 Bash 调 `powershell.exe` 被安全策略拦截。进程信息一律走 `tasklist` + `iconv`
 - 删除大量文件需先授权批量删除守卫（与 `rm` 同一次调用），且前台 2 分钟硬超时会中断 → 用后台执行
 - 详见用户级 skill `windows-disk-cleanup`
 - **Windows 版 git 不认 MSYS 路径**：`git -C /e/workspace/...` 会报 `cannot change to`。必须用原生路径 `git -C "E:/workspace/my-todolist"`，且**不要**设 `MSYS_NO_PATHCONV=1`（它会阻止路径自动转换）

@@ -98,9 +98,14 @@ select{-webkit-appearance:none;appearance:none;background-image:url("data:image/
 .tauri .topbar{padding-left:84px}
 .app-title{font-size:14px;font-weight:600;color:var(--text);padding-left:4px}
 .search{position:relative;width:210px}
-.search input{padding-left:32px;font-size:14px;height:34px;background:rgba(118,118,128,.12);border-color:transparent;border-radius:9px;box-shadow:none;transition:background .16s,box-shadow .16s,border-color .16s}
+.search input{padding-left:32px;padding-right:54px;font-size:14px;height:34px;background:rgba(118,118,128,.12);border-color:transparent;border-radius:9px;box-shadow:none;transition:background .16s,box-shadow .16s,border-color .16s}
 .search input:focus{box-shadow:0 0 0 3.5px rgba(0,122,255,.2);background:rgba(118,118,128,.16);border-color:transparent}
 .search .ic{position:absolute;left:9px;top:9px;color:var(--muted)}
+/* 搜索框里挂一个可见的 ⌘K 入口：命令面板（自然语言录入 + 直达任意视图）
+   是全应用效率最高的功能，之前只能靠记快捷键，界面上完全没有入口。 */
+.search .kbd-btn{position:absolute;right:5px;top:50%;transform:translateY(-50%);height:24px;padding:0 8px;border-radius:6px;border:1px solid var(--line2);background:var(--card);color:var(--muted);font:inherit;font-size:11px;font-weight:600;line-height:1;cursor:pointer;display:inline-flex;align-items:center;gap:3px;white-space:nowrap;box-shadow:var(--shadow-1);transition:color .14s ease,border-color .14s ease,background .14s ease}
+.search .kbd-btn:hover{color:var(--pri);border-color:var(--pri)}
+.search .kbd-btn:active{transform:translateY(-50%) scale(.95)}
 .tbtn{display:inline-flex;align-items:center;gap:6px;height:34px;padding:0 12px;border-radius:9px;border:1px solid var(--line2);font-size:13px;font-weight:500;white-space:nowrap;position:relative;background:var(--card);color:var(--text);box-shadow:var(--shadow-1);transition:background .14s ease,transform .08s ease,border-color .14s ease,box-shadow .14s ease,color .14s ease}
 .badge{position:absolute;top:-3px;right:-3px;width:8px;height:8px;border-radius:50%;background:var(--danger);box-shadow:0 0 0 2px var(--bg);display:inline-block}
 .tbtn:hover{background:var(--hover);border-color:var(--line2);box-shadow:var(--shadow-2)}
@@ -128,7 +133,12 @@ select{-webkit-appearance:none;appearance:none;background-image:url("data:image/
 .tbtn.mo-only{display:none}
 .side-h{font-size:11px;font-weight:700;color:var(--faint);padding:6px 10px 4px;letter-spacing:.06em}
 /* 分组标题 = 标题 + 该组唯一的「新建」入口。四组共用一套，别在各组里再写一遍。 */
-.side-hd{display:flex;align-items:center;justify-content:space-between;gap:6px}
+.side-hd{display:flex;align-items:center;gap:6px}
+.side-hd-t{flex:1;min-width:0}
+/* P2-15：可折叠分组的箭头（标签 / 智能列表默认收起，让侧栏保持「导航」的体量） */
+.side-fold{flex:none;display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;margin-left:-4px;padding:0;border-radius:5px;border:1px solid transparent;background:none;color:var(--faint);cursor:pointer;transition:color .12s,border-color .12s,background .12s}
+.side-fold:hover{color:var(--text);border-color:var(--line2);background:var(--card)}
+.side-n{flex:none;font-size:10.5px;font-weight:700;color:var(--muted);padding:1px 6px;border-radius:20px;background:var(--hover)}
 .side-add{flex:none;display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;padding:0;border-radius:6px;border:1px solid transparent;background:none;color:var(--faint);cursor:pointer;transition:border-color .12s,color .12s,background .12s,transform .08s}
 .side-hd:hover .side-add{border-color:var(--line2);background:var(--card);color:var(--text)}
 .side-add:hover{border-color:var(--pri);color:var(--pri);background:var(--pri-soft)}
@@ -157,20 +167,36 @@ select{-webkit-appearance:none;appearance:none;background-image:url("data:image/
 .main-scroll{flex:1;min-height:0;overflow:auto;padding:16px 24px 44px}
 .main-scroll.notes-scroll{flex:1;min-height:0;overflow:hidden;padding:0;display:flex;position:relative}
 .main-scroll.notes-scroll>.notes{width:100%}
-/* 顶部 KPI 卡片 —— 原右侧面板里的「今日概览」，改为一行铺在主内容区顶部。
+/* 顶部 KPI 概览 —— 原右侧面板里的「今日概览」，改为一行铺在主内容区顶部。
    （右侧面板整体已于 2026-09-15 移除，任务详情改由点卡片打开编辑弹窗。）
+   「待办」是总量，「逾期 / 进行中」是它的两个子集（一个任务可以同时属于两者），
+   所以做成父子版式而不是四个并列格子 —— 并列会让人以为 4+2+1+2 该等于某个总数。
    数值配色与状态芯片（待办/进行中/已完成 + 逾期）保持一致。 */
-.kpi-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+.kpi-strip{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:12px;margin-bottom:16px}
 .kpi{display:block;width:100%;text-align:left;font:inherit;background:var(--card);border:1px solid var(--line);border-radius:13px;padding:12px 14px;box-shadow:var(--shadow-1);cursor:pointer;transition:border-color .14s,box-shadow .14s,transform .14s}
 .kpi:hover:not(:disabled){border-color:var(--line2);box-shadow:var(--shadow-2);transform:translateY(-1px)}
 .kpi:disabled{cursor:default;opacity:.5}
 .kpi.on{border-color:var(--pri);box-shadow:var(--ring)}
 .kpi-n{display:block;font-size:22px;font-weight:600;color:var(--text);line-height:1.25}
 .kpi-l{display:block;font-size:12px;color:var(--muted);margin-top:2px}
-.kpi.warn .kpi-n{color:var(--danger)}
-.kpi.doing .kpi-n{color:var(--pri)}
 .kpi.done .kpi-n{color:var(--ok-text)}
-@media (max-width:620px){.kpi-strip{grid-template-columns:repeat(2,1fr)}}
+.kpi-done{display:flex;flex-direction:column;justify-content:center}
+/* 待办（父卡）：左边是总量数字，右边挂两个子集钻取入口 */
+.kpi-hero{display:flex;align-items:center;gap:16px;background:var(--card);border:1px solid var(--line);border-radius:13px;padding:12px 14px;box-shadow:var(--shadow-1);transition:border-color .14s,box-shadow .14s}
+.kpi-hero.on{border-color:var(--pri);box-shadow:var(--ring)}
+.kpi-hero-n{flex:none;text-align:left;font:inherit;background:transparent;border:none;padding:0;cursor:pointer}
+.kpi-hero-n:disabled{cursor:default;opacity:.5}
+.kpi-subs{display:flex;align-items:center;gap:8px;flex-wrap:wrap;min-width:0}
+.kpi-sublead{font-size:12px;color:var(--faint);flex:none}
+.kpi-sub{display:inline-flex;align-items:center;gap:6px;font:inherit;font-size:12.5px;line-height:1;color:var(--muted);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:6px 10px;cursor:pointer;white-space:nowrap;transition:border-color .14s,color .14s}
+.kpi-sub:hover:not(:disabled){border-color:var(--line2);color:var(--text)}
+.kpi-sub:disabled{cursor:default;opacity:.45}
+.kpi-sub.on{border-color:var(--pri);color:var(--pri)}
+.kpi-sub b{font-weight:600;color:var(--text);font-size:13px}
+.kpi-sub .dot{width:6px;height:6px;border-radius:50%;background:var(--faint);flex:none}
+.kpi-sub .dot.warn{background:var(--danger)}
+.kpi-sub .dot.pri{background:var(--pri)}
+@media (max-width:760px){.kpi-strip{grid-template-columns:1fr}}
 .tabs{display:flex;gap:4px;background:var(--tabs-bg);padding:3px;border-radius:9px;width:fit-content;flex:none}
 .tab{padding:6px 16px;border-radius:8px;font-size:13.5px;color:var(--muted)}
 .tab.on{background:var(--card);color:var(--text);font-weight:500;box-shadow:0 1px 2px rgba(0,0,0,.07)}
@@ -182,6 +208,9 @@ h3{font-size:14px;font-weight:600;margin-bottom:8px}
 .today-box.hot{border-color:var(--hot-border);background:var(--danger-soft)}
 .today-h{display:flex;align-items:center;gap:8px;font-weight:600;font-size:14.5px;margin-bottom:10px}
 .today-h .cnt{font-size:12px;font-weight:500;padding:1px 8px;border-radius:20px;background:var(--danger);color:#fff}
+/* 「接下来 N 天」分组：不再用刺眼的红色徽标（那不是紧急项），只用中性计数 */
+.today-sub{display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:600;color:var(--muted);margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
+.today-sub .cnt{font-size:11.5px;font-weight:500;padding:1px 8px;border-radius:20px;background:var(--faint);color:#fff}
 .trow{display:flex;align-items:center;gap:10px;padding:9px 0}
 .trow+.trow{border-top:1px solid var(--line)}
 .trow .txt{flex:1;min-width:0;word-break:break-word}
@@ -194,15 +223,19 @@ h3{font-size:14px;font-weight:600;margin-bottom:8px}
 .empty::before{content:"";width:38px;height:38px;background:var(--muted);opacity:.28;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 13l3-8h12l3 8M5 13v6h14v-6M3 13h4l2 3h6l2-3h4'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 13l3-8h12l3 8M5 13v6h14v-6M3 13h4l2 3h6l2-3h4'/%3E%3C/svg%3E") center/contain no-repeat}
 
 /* ---------- task card ---------- */
-.task{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:13px 15px;margin-bottom:11px;transition:border-color .16s ease,box-shadow .16s ease,transform .12s ease;position:relative;box-shadow:var(--shadow-1);cursor:pointer}
-.task:hover{border-color:var(--line2);box-shadow:var(--shadow-2);transform:translateY(-1px)}
-.task:active{transform:translateY(0)}
+/* P2-16：卡片本身不再是「打开编辑」的热区（整卡可点误触率太高），只有标题是入口。
+   所以卡片不带 pointer 光标、也没有「点得动」的上浮反馈；标题单独给可点样式。 */
+.task{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:13px 15px;margin-bottom:11px;transition:border-color .16s ease,box-shadow .16s ease;position:relative;box-shadow:var(--shadow-1)}
+.task:hover{border-color:var(--line2);box-shadow:var(--shadow-2)}
 .task.od{border-left:3px solid var(--danger)}
 .task-top{display:flex;align-items:flex-start;gap:10px}
 .check{width:21px;height:21px;flex:none;border:1.8px solid var(--line2);border-radius:50%;margin-top:1px;display:flex;align-items:center;justify-content:center;color:transparent;transition:.16s;background:var(--card);cursor:pointer}
 .check:hover{border-color:var(--pri);background:var(--pri-soft)}
 .check.on{background:var(--pri);border-color:var(--pri);color:#fff}
 .ttl{flex:1;min-width:0;font-size:14.5px;line-height:1.5;word-break:break-word;color:var(--text)}
+/* 标题是卡片上唯一「点开编辑」的入口（P2-16：整卡热区收窄） */
+.ttl .ttl-link{cursor:pointer;border-radius:4px;transition:color .14s ease}
+.ttl .ttl-link:hover{color:var(--pri);text-decoration:underline;text-underline-offset:2px}
 .ttl.done{color:var(--faint);text-decoration:line-through}
 .chips{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:7px}
 .chip{font-size:11.5px;padding:3px 9px;border-radius:20px;border:1px solid var(--line);color:var(--muted);display:inline-flex;align-items:center;gap:5px;white-space:nowrap;font-weight:500}
@@ -429,7 +462,10 @@ h3{font-size:14px;font-weight:600;margin-bottom:8px}
 .set-col{flex:1;min-width:0;display:flex;flex-direction:column}
 .set-col .setsec{margin-top:0;padding-top:0;border-top:none}
 .set-col .setsec + .setsec{margin-top:16px;padding-top:16px;border-top:1px solid var(--line)}
-.set-foot{display:flex;align-items:center;gap:14px;margin-top:18px;padding-top:16px;border-top:1px solid var(--line)}
+/* 页脚吸底：设置面板比一屏高，不吸底的话「关闭 / 恢复示例数据 / 清空全部数据」
+   要一路滚到底才看得见。margin-bottom 抵消 .sheet 的 24px 下内边距，
+   这样吸底与滚到底时位置一致，不会跳一下。 */
+.set-foot{display:flex;align-items:center;gap:14px;margin-top:18px;padding-top:16px;padding-bottom:24px;margin-bottom:-24px;border-top:1px solid var(--line);position:sticky;bottom:0;background:var(--sheet);z-index:2}
 .set-data{display:flex;gap:8px}
 .set-meta{margin-left:auto;margin-right:14px}
 .set-act{margin-left:0}
@@ -441,7 +477,17 @@ h3{font-size:14px;font-weight:600;margin-bottom:8px}
    ② 标题一律 <h3>，页脚一律 .sheet-act（取消在左、主操作在右、等宽）；
    ③ 按钮只有 3 个变体，几何写在变体上，任何位置直接套用都尺寸一致。 */
 .mask{position:fixed;inset:0;background:var(--mask);backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);display:flex;align-items:flex-start;justify-content:center;padding:7vh 16px 16px;z-index:100;animation:maskIn .15s ease}
-.sheet{background:var(--sheet);backdrop-filter:blur(36px) saturate(190%);-webkit-backdrop-filter:blur(36px) saturate(190%);box-shadow:0 24px 70px rgba(0,0,0,.3);border:1px solid var(--line2);border-radius:17px;width:100%;max-width:var(--sheet-md);max-height:88dvh;overflow:auto;padding:22px 26px 24px;transform-origin:top center;animation:sheetIn .2s cubic-bezier(.2,.9,.3,1)}
+.sheet{background:var(--sheet);backdrop-filter:blur(36px) saturate(190%);-webkit-backdrop-filter:blur(36px) saturate(190%);box-shadow:0 24px 70px rgba(0,0,0,.3);border:1px solid var(--line2);border-radius:17px;width:100%;max-width:var(--sheet-md);max-height:88dvh;overflow:auto;padding:22px 26px 24px;transform-origin:top center;animation:sheetIn .2s cubic-bezier(.2,.9,.3,1);position:relative}
+/* 右上角统一关闭入口：每个弹窗都由 sheetX() 注入一个，语义等同「取消」。
+   历史问题：关闭只能靠页脚的按钮，而 .sheet 是整体滚动容器，内容长的弹窗
+   （尤其是设置面板）打开后顶部根本看不到任何关闭方式。 */
+.sheet-x{position:absolute;top:12px;right:12px;width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--faint);background:transparent;transition:background .14s ease,color .14s ease,transform .08s ease;z-index:3}
+.sheet-x:hover{background:var(--hover);color:var(--text)}
+.sheet-x:active{transform:scale(.92)}
+.sheet>h3{padding-right:38px}
+.set-head{padding-right:38px}
+.sheet.nudge{animation:nudge .3s ease}
+@keyframes nudge{0%,100%{transform:translateX(0)}20%{transform:translateX(-7px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(2px)}}
 /* 尺寸阶梯：sm 480 → 1 列（一句话确认 / 单字段）；md 560 → 2 列（默认，表单主力）；
    lg 720 → 2 列放宽 / 带列表预览；xl 880 → 3 列（多列配置）；xxl 1160 → 双栏大面板。 */
 .sheet.sm{max-width:var(--sheet-sm)}
@@ -484,8 +530,23 @@ h3{font-size:14px;font-weight:600;margin-bottom:8px}
    别拿它当「确认」的默认样式 —— 否则连「载入示例数据」都会是红按钮。 */
 .btn-danger{background:var(--danger-soft);color:var(--danger)}
 .btn-danger:hover{background:rgba(255,59,48,.22)}
-/* 弹窗正文里的整行操作按钮（删除任务 / 删除客户…）：与页脚同尺寸，视觉上连成一套 */
-.btn-wide{width:100%;height:43px;font-size:14.5px;margin-top:10px}
+/* P2-11 行内快速添加：任务页列表顶部的一行输入框，回车即建。
+   最高频的动作（记一条）从「新建 → 弹窗 → 填 → 保存」4 步压到 1 步。
+   虚线边框是「这里可以写」，聚焦后变成实线主色。 */
+.qi-row{display:flex;align-items:center;gap:9px;padding:0 13px;height:42px;margin-bottom:12px;background:var(--card);border:1px dashed var(--line2);border-radius:var(--r);transition:border-color .16s ease,box-shadow .16s ease}
+.qi-row:focus-within{border-style:solid;border-color:var(--pri);box-shadow:var(--ring)}
+.qi-row svg{flex:none;color:var(--faint)}
+.qi-row:focus-within svg{color:var(--pri)}
+.qi-row input{flex:1;min-width:0;height:100%;padding:0;border:none;background:transparent;box-shadow:none;font:inherit;font-size:14px;color:var(--text)}
+.qi-row input:focus{border:none;background:transparent;box-shadow:none}
+.qi-hint{flex:none;font-size:11.5px;color:var(--faint)}
+@media (max-width:760px){.qi-hint{display:none}}
+
+/* 破坏性操作降权：不再在正文里占一整行大红按钮（它就贴在「保存」正下方，极易误点），
+   而是缩成页脚最左侧的红色文字链。它仍在 .sheet-act 里，所以按钮变体、页脚等高、
+   「最右必须是实心色」这些规范照旧成立；真正的二次确认仍走红色确认框。 */
+.sheet-act .btn-del{flex:none;padding:0 6px;background:transparent;border-color:transparent;box-shadow:none;color:var(--danger)}
+.sheet-act .btn-del:hover{background:var(--danger-soft)}
 .two-col{display:grid;grid-template-columns:1fr 1fr;gap:0 18px}
 .two-col>.full{grid-column:1 / -1}
 /* 左栏自适应 + 右栏按内容宽度。用在「客户 | 色板」这种左右需求不对称的场合：
@@ -688,10 +749,11 @@ h3{font-size:14px;font-weight:600;margin-bottom:8px}
 .fchip.p-low{color:var(--pri);background:var(--pri-soft);border-color:rgba(10,132,255,.35)}
 .fchip.p-low:hover{border-color:var(--pri)}
 .fchip.p-low.on{background:var(--pri);border-color:var(--pri);color:#fff}
-.board-fbar{align-items:center;gap:8px;flex-wrap:wrap}
-.board-fbar .bf-lbl{display:inline-flex;align-items:center;gap:4px;font-size:12.5px;color:var(--muted);margin-left:4px}
-.board-fbar .usel{height:32px;padding:0 10px;font-size:13px;border-radius:20px}
-.board-fbar .fchip.clr{margin-left:auto}
+/* 「任务」页顶部筛选条 —— 列表与看板共用同一条，所以标注 / 下拉的样式直接挂在 .fbar 上 */
+.fbar{align-items:center;gap:8px}
+.fbar .bf-lbl{display:inline-flex;align-items:center;gap:4px;font-size:12.5px;color:var(--muted);margin-left:4px}
+.fbar .usel{height:32px;padding:0 10px;font-size:13px;border-radius:20px}
+.fbar .fchip.clr{margin-left:auto}
 .chip.high{background:var(--danger-soft);border-color:transparent;color:var(--danger)}
 .chip.mid{background:var(--warn-soft);border-color:transparent;color:var(--warn)}
 .chip.low{background:var(--pri-soft);border-color:transparent;color:var(--pri)}
@@ -728,6 +790,10 @@ h3{font-size:14px;font-weight:600;margin-bottom:8px}
 .bkinfo svg{flex:none;margin-top:1px}
 .bkinfo div{display:flex;flex-direction:column;gap:2px}
 .bkinfo span{font-size:12px;opacity:.85}
+/* 备份提醒条里的行动按钮：文案在劝「现在导出一份」，就必须把导出放在伸手可及处 */
+.bkinfo-act{margin-left:auto;flex:none;align-self:center;height:30px;padding:0 13px;border-radius:8px;border:1px solid currentColor;background:transparent;color:inherit;font:inherit;font-size:12.5px;font-weight:600;cursor:pointer;white-space:nowrap;transition:background .14s ease,color .14s ease,transform .08s ease}
+.bkinfo-act:hover{background:currentColor;color:var(--card)}
+.bkinfo-act:active{transform:scale(.97)}
 /* ---- 分段卡片（久未跟进等）---- */
 .sec-box{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:12px 16px;margin-bottom:14px}
 .sec-h{display:flex;align-items:center;gap:8px;font-weight:600;font-size:13.5px;margin-bottom:6px}
@@ -1301,7 +1367,7 @@ function refreshUse(id){var v=($("#"+id)||{}).value||"";var btn=document.querySe
 }
 function handleChg(chg,val){
   if(chg==="rpid"){ui.rpid=val;ui.aiOut="";renderMain();return}
-  if(chg==="bproj"){ui.bproj=val;renderMain();return}
+  if(chg==="fbarProject"){ui.pid=val;render();return}
   if(chg==="tone"){ui.tone=val;return}
   /* C2：任务弹窗里换了项目 → 同步推导客户（除非用户已手动指定）。
      推导不出客户时沿用任务原值，别把它显示成"未归类"然后一保存就真没了。 */
@@ -1347,7 +1413,7 @@ document.addEventListener("click",function(e){
 var storageOK=true;
 try{localStorage.setItem("__t","1");localStorage.removeItem("__t")}catch(e){storageOK=false}
 
-var db=null,bkTipShown=false,ui={view:"today",pid:"all",cid:"all",tag:"",smart:null,pf:"all",bproj:"all",projYear:"all",q:"",open:{},editing:null,sheet:null,editLog:null,quickLog:null,editSub:null,noteId:"",noteCat:"all",noteQ:"",noteTag:"",noteAutoNum:true,noteDel:null,
+var db=null,bkTipShown=false,ui={view:"today",pid:"all",cid:"all",tag:"",smart:null,pf:"all",projYear:"all",q:"",open:{},editing:null,sheet:null,editLog:null,quickLog:null,editSub:null,noteId:"",noteCat:"all",noteQ:"",noteTag:"",noteAutoNum:true,noteDel:null,sideFold:{tag:true,smart:true},
   /* taskMode：「任务」页的呈现方式（list 列表 / board 看板）。看板是同一份任务数据的另一种
      呈现，不再占用侧栏一级导航 —— 于是「今天 / 任务 / 看板」三个重复入口收敛为
      「今天（时间焦点）」+「任务（全库，顶部切换呈现）」。 */
@@ -1372,10 +1438,10 @@ var AI_PRESETS=[
 ];
 var ai={base:"https://api.deepseek.com/v1",key:"",model:"deepseek-chat"};
 async function loadAI(){
-  try{var raw=await invoke("load_store",{key:AIKEY});if(raw){var o=JSON.parse(raw);ai.base=o.base||ai.base;ai.key=o.key||"";ai.model=o.model||ai.model}}catch(e){}
+  try{var raw=await storeRead(AIKEY);if(raw){var o=JSON.parse(raw);ai.base=o.base||ai.base;ai.key=o.key||"";ai.model=o.model||ai.model}}catch(e){}
 }
 async function saveAI(){
-  try{await invoke("save_store",{key:AIKEY,value:JSON.stringify(ai)})}catch(e){banner("AI 配置保存失败："+(e&&e.message?e.message:e),"err")}
+  try{await storeWrite(AIKEY,JSON.stringify(ai))}catch(e){banner("AI 配置保存失败："+(e&&e.message?e.message:e),"err")}
 }
 
 function demo(){
@@ -1562,7 +1628,7 @@ function normalizeAll(d){
 }
 async function load(){
   try{
-    var raw=await invoke("load_store",{key:KEY});
+    var raw=await storeRead(KEY);
     if(!raw){db=normalizeAll(emptyData());await saveNow();return}
     var d=JSON.parse(raw);
     if(!d||!Array.isArray(d.tasks)||!Array.isArray(d.projects))throw 0;
@@ -1571,7 +1637,7 @@ async function load(){
   try{await initNoti()}catch(_){}
 }
 async function initNoti(){
-  try{var nr=await invoke("load_store",{key:NOTIKEY});if(nr){var no=JSON.parse(nr);noti.on=!!no.on;noti.lead=no.lead||60}}catch(e){}
+  try{var nr=await storeRead(NOTIKEY);if(nr){var no=JSON.parse(nr);noti.on=!!no.on;noti.lead=no.lead||60}}catch(e){}
   notiFired={};checkNoti();setInterval(checkNoti,60000);
 }
 function checkNoti(){
@@ -1586,9 +1652,21 @@ function checkNoti(){
     }
   });
 }
-async function saveNoti(){try{await invoke("save_store",{key:NOTIKEY,value:JSON.stringify({on:noti.on,lead:noti.lead})})}catch(e){}}
+async function saveNoti(){try{await storeWrite(NOTIKEY,JSON.stringify({on:noti.on,lead:noti.lead}))}catch(e){}}
 /* ---------- E1 写盘：150ms 防抖合并 + 失败自动重试 ---------- */
 var saveTimer=null,saveBusy=false,saveDirty=false,saveTries=0;
+/* 存储通道：桌面版走 Rust 侧的 save_store / load_store（数据落在本机 SQLite）；
+   直接双击打开 dist/index.html 预览时没有 Tauri 命令可用，退回 localStorage ——
+   否则每次保存都会失败、并在顶部弹出「数据保存失败」的红色横幅，看着像应用坏了。 */
+function storeAvailable(){return !!(typeof window!=="undefined"&&window.__TAURI_INTERNALS__)}
+async function storeRead(key){
+  if(storeAvailable())return await invoke("load_store",{key:key});
+  try{return localStorage.getItem("mtd:"+key)}catch(e){return null}
+}
+async function storeWrite(key,val){
+  if(storeAvailable())return await invoke("save_store",{key:key,value:val});
+  try{localStorage.setItem("mtd:"+key,val)}catch(e){throw new Error("浏览器本地存储不可用")}
+}
 function save(){saveDirty=true;clearTimeout(saveTimer);saveTimer=setTimeout(flushSave,150)}
 function saveNow(){clearTimeout(saveTimer);saveDirty=true;return flushSave()}
 async function flushSave(){
@@ -1597,7 +1675,7 @@ async function flushSave(){
   var snap;
   try{snap=JSON.stringify(db)}catch(e){saveBusy=false;banner("数据序列化失败，无法保存："+(e&&e.message?e.message:e),"err");return}
   try{
-    await invoke("save_store",{key:KEY,value:snap});
+    await storeWrite(KEY,snap);
     if(saveTries){saveTries=0;var bn=$("#banner");if(bn)bn.innerHTML=""}
     saveBusy=false;
     if(saveDirty){clearTimeout(saveTimer);saveTimer=setTimeout(flushSave,60)}
@@ -1659,7 +1737,10 @@ function groupByCat(arr){
 }
 
 /* ---------- C1 等待中 / C2 逾期治理 / E6 久未跟进 ---------- */
-var STALE_DAYS=7,DEEP_OD=7;
+/* SOON_DAYS：「今天要处理」下面再往下看的窗口。
+   这组必须单独带小标题 —— 否则标题的「N 项」只算今天到期+逾期，
+   列表里却多出几行「N 天后到期」，数一遍会以为算错了。 */
+var STALE_DAYS=7,DEEP_OD=7,SOON_DAYS=3;
 function lastTouch(t){
   var m=t.createdAt||0;
   (t.logs||[]).forEach(function(l){if(l.at>m)m=l.at});
@@ -1722,10 +1803,14 @@ function renderSide(){
     var cnt=(t[0]==="today"||t[0]==="all")?tsc:0;
     return '<button class="pitem'+(minor?" minor":"")+(ui.view===t[0]?" on":"")+'" data-act="view" data-id="'+t[0]+'">'+icon(t[2],minor?15:16)+'<span class="pnm">'+t[1]+'</span>'+(cnt?'<span class="n">'+cnt+'</span>':'')+'</button>';
   }
-  /* 分组标题的统一形态：标题 + 该组唯一的「新建」入口。
-     四个分组共用一套，避免每组各写一份 inline style。 */
-  function sideHead(label,act,title){
-    return '<div class="side-hd"><span>'+label+'</span><button class="side-add" data-act="'+act+'" title="'+title+'" aria-label="'+title+'">'+icon(IC.plus,13)+'</button></div>';
+  /* 分组标题的统一形态：折叠箭头（可选）+ 标题 + 该组唯一的「新建」入口。
+     四个分组共用一套，避免每组各写一份 inline style。
+     fold 传入分组 key 时，标题变成可折叠的（状态在 ui.sideFold，收起时右侧显示条数）。 */
+  function sideHead(label,act,title,fold,n){
+    var folded=fold&&ui.sideFold[fold];
+    var chev=fold?'<button type="button" class="side-fold" data-act="foldSide" data-id="'+fold+'" title="'+(folded?"展开":"收起")+'" aria-label="'+(folded?"展开":"收起")+label+'">'+icon(folded?IC.right:IC.down,13)+"</button>":"";
+    var cnt=(folded&&n)?'<span class="side-n" title="'+label+' '+n+' 项">'+n+"</span>":"";
+    return '<div class="side-hd">'+chev+'<span class="side-hd-t">'+label+"</span>"+cnt+'<button class="side-add" data-act="'+act+'" title="'+title+'" aria-label="'+title+'">'+icon(IC.plus,13)+'</button></div>';
   }
   var h='<div class="side-scroll"><div class="side-h">常用</div>';
   h+=NAV_COMMON.map(function(t){return navBtn(t,false)}).join("");
@@ -1763,31 +1848,40 @@ function renderSide(){
   }
 
   h+='<div class="side-sep"></div>';
-  /* ---- 标签分组（横向跨项目分类） ---- */
-  h+='<div class="side-h" style="margin-top:10px">'+sideHead("标签","newTag","新建标签")+'</div>';
-  if(db.tags.length){
-    groupByCat(db.tags).forEach(function(grp){
-      if(grp.name!=="未归类")h+='<div class="cat-h">'+esc(grp.name)+"</div>";
-      grp.items.forEach(function(tg){
-        var n=taskCount(function(t){return (t.tags||[]).indexOf(tg.id)>=0});
-        h+='<button class="pitem'+(ui.tag===tg.id?" on":"")+'" data-act="pickTag" data-id="'+tg.id+'"><span class="pdot" style="background:'+esc(tg.color)+'"></span><span class="pnm">'+esc(tg.name||"未命名标签")+'</span><span class="pedit" data-act="editTag" data-id="'+tg.id+'" title="重命名 / 改颜色 / 删除">'+icon(IC.pencil,12)+'</span><span class="n">'+n+"</span></button>";
+  /* ---- 标签分组（横向跨项目分类） ----
+     P2-15：默认收起，且不列「一条任务都没挂」的标签 —— 侧栏是导航，不是全部标签的清单。
+     但当前正在筛的那个始终保留，否则一进筛选就找不到它在哪，也没法取消。 */
+  function tagN(tg){return taskCount(function(t){return (t.tags||[]).indexOf(tg.id)>=0})}
+  var tagList=db.tags.filter(function(tg){return tagN(tg)>0||ui.tag===tg.id});
+  h+='<div class="side-h" style="margin-top:10px">'+sideHead("标签","newTag","新建标签","tag",tagList.length)+'</div>';
+  if(!ui.sideFold.tag){
+    if(tagList.length){
+      groupByCat(tagList).forEach(function(grp){
+        if(grp.name!=="未归类")h+='<div class="cat-h">'+esc(grp.name)+"</div>";
+        grp.items.forEach(function(tg){
+          var n=tagN(tg);
+          h+='<button class="pitem'+(ui.tag===tg.id?" on":"")+'" data-act="pickTag" data-id="'+tg.id+'"><span class="pdot" style="background:'+esc(tg.color)+'"></span><span class="pnm">'+esc(tg.name||"未命名标签")+'</span><span class="pedit" data-act="editTag" data-id="'+tg.id+'" title="重命名 / 改颜色 / 删除">'+icon(IC.pencil,12)+'</span><span class="n">'+n+"</span></button>";
+        });
       });
-    });
-  }else{
-    h+='<div class="empty" style="padding:8px;font-size:12.5px;color:var(--muted)">还没有标签，点标题右侧的 ＋ 新建</div>';
+    }else{
+      h+='<div class="empty" style="padding:8px;font-size:12.5px;color:var(--muted)">'+(db.tags.length?"标签还没挂到任何任务上":"还没有标签，点标题右侧的 ＋ 新建")+"</div>";
+    }
   }
 
   /* ---- 智能列表（持久条件视图） ----
      C5：以前只有"已存在智能列表"时才显示这一段，而新建入口根本不存在（openSmart 是死代码）。
-     现在无论有没有，都给出常驻可见的「+ 新建」入口 —— 功能不该没有入口。 */
+     现在无论有没有，都给出常驻可见的「+ 新建」入口 —— 功能不该没有入口。
+     P2-15：与标签一样默认收起。 */
   h+='<div class="side-sep"></div>';
-  h+='<div class="side-h" style="margin-top:10px">'+sideHead("智能列表","newSmart","新建智能列表")+'</div>';
-  if(db.smartLists.length){
-    db.smartLists.forEach(function(s){
-      h+='<button class="pitem'+(ui.smart===s.id?" on":"")+'" data-act="pickSmart" data-id="'+s.id+'" title="按预设条件筛选任务"><span class="pdot" style="background:var(--accent)"></span><span class="pnm">'+esc(s.name)+'</span><span class="pedit" data-act="editSmart" data-id="'+s.id+'" title="编辑这个智能列表">'+icon(IC.pencil,12)+'</span></button>';
-    });
-  }else{
-    h+='<div class="empty" style="padding:8px;font-size:12.5px;color:var(--muted)">还没有智能列表。它可以把「未完成 + 高优先级」这类常用的筛选条件存下来，一键复用。</div>';
+  h+='<div class="side-h" style="margin-top:10px">'+sideHead("智能列表","newSmart","新建智能列表","smart",db.smartLists.length)+'</div>';
+  if(!ui.sideFold.smart){
+    if(db.smartLists.length){
+      db.smartLists.forEach(function(s){
+        h+='<button class="pitem'+(ui.smart===s.id?" on":"")+'" data-act="pickSmart" data-id="'+s.id+'" title="按预设条件筛选任务"><span class="pdot" style="background:var(--accent)"></span><span class="pnm">'+esc(s.name)+'</span><span class="pedit" data-act="editSmart" data-id="'+s.id+'" title="编辑这个智能列表">'+icon(IC.pencil,12)+'</span></button>';
+      });
+    }else{
+      h+='<div class="empty" style="padding:8px;font-size:12.5px;color:var(--muted)">还没有智能列表。它可以把「未完成 + 高优先级」这类常用的筛选条件存下来，一键复用。</div>';
+    }
   }
   /* 应用级入口收在侧栏底部：设置管的是「整个应用」，不是「当前这一屏」，
      跟顶栏的 导出 / 导入 / 新建 放同一排会显得不是一个维度。 */
@@ -1813,7 +1907,7 @@ function renderMain(){
   var v=NAV_ALL.filter(function(x){return x[0]===ui.view})[0]||NAV_ALL[0];
   var head='<div class="center-head"><div class="ch-title">'+icon(v[2],18)+esc(v[1])+'</div>'+
     '<div class="ch-sp"></div>'+
-    '<div class="search"><svg class="ic" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="q" type="search" placeholder="搜索任务  '+MODKEY+'F"></div>'+
+    '<div class="search"><svg class="ic" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="q" type="search" placeholder="搜索任务" aria-label="搜索任务"><button type="button" class="kbd-btn" data-act="palette" title="快速录入 / 命令面板（'+MODKEY+'K）：一句话记任务，或直接跳到任意视图">'+MODKEY+'K</button></div>'+
     '<div class="ch-acts">'+
       '<button class="tbtn" data-act="export" title="导出 JSON 备份"><svg class="ic" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 11l5 5 5-5M4 20h16"/></svg><span>导出</span></button>'+
       '<button class="tbtn" data-act="import" title="导入恢复"><svg class="ic" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4M7 8l5-5 5 5M4 20h16"/></svg><span>导入</span></button>'+
@@ -1872,15 +1966,26 @@ function kpiStrip(){
     if(t.due&&dayDiff(t.due)<0)od++;
     if(t.status==="doing"||((t.subtasks||[]).some(function(s){return s.done})))doing++;
   });
-  function kpi(n,label,cls,kf){
-    /* 计数为 0 时不带状态色 —— 颜色只用来提示「这里有东西要看」，0 就该是安静的灰 */
-    var cl=(cls&&n)?" "+cls:"";
-    return '<button type="button" class="kpi'+cl+(ui.kf===kf?" on":"")+'" data-act="kpi" data-id="'+kf+'"'+
-      (n?"":" disabled")+' title="'+(n?"查看"+label+"任务":"暂无"+label+"任务")+'">'+
-      '<span class="kpi-n">'+n+'</span><span class="kpi-l">'+label+"</span></button>";
+  /* 计数为 0 时不带状态色、也不可点 —— 颜色只用来提示「这里有东西要看」，0 就该是安静的灰。
+     每个钻取按钮都带 data-act="kpi" 与 .kpi-n，四维一体，冒烟按这个口径断言。 */
+  function sub(kf,label,n,dot){
+    return '<button type="button" class="kpi-sub'+(ui.kf===kf?" on":"")+'" data-act="kpi" data-id="'+kf+'"'+
+      (n?"":" disabled")+' title="'+(n?"只看"+label+"的任务":"暂无"+label+"任务")+'">'+
+      '<i class="dot'+(dot?" "+dot:"")+'"></i>'+label+' <b class="kpi-n">'+n+"</b></button>";
   }
   return '<div class="kpi-strip" role="group" aria-label="任务概览">'+
-    kpi(todo,"待办","","todo")+kpi(od,"逾期",od?"warn":"","od")+kpi(doing,"进行中","doing","doing")+kpi(done,"已完成","done","done")+"</div>";
+    '<div class="kpi-hero'+(ui.kf==="todo"?" on":"")+'">'+
+      '<button type="button" class="kpi-hero-n" data-act="kpi" data-id="todo"'+(todo?"":" disabled")+
+        ' title="'+(todo?"查看全部待办任务":"暂无待办任务")+'">'+
+        '<span class="kpi-n">'+todo+'</span><span class="kpi-l">待办</span></button>'+
+      '<div class="kpi-subs"><span class="kpi-sublead">其中</span>'+
+        sub("od","逾期",od,"warn")+sub("doing","进行中",doing,"pri")+
+      "</div>"+
+    "</div>"+
+    '<button type="button" class="kpi kpi-done'+(ui.kf==="done"?" on":"")+'" data-act="kpi" data-id="done"'+
+      (done?"":" disabled")+' title="'+(done?"查看已完成任务":"暂无已完成任务")+'">'+
+      '<span class="kpi-n">'+done+'</span><span class="kpi-l">已完成</span></button>'+
+  "</div>";
 }
 /* KPI 钻取口径 —— 叠加在全局 filtered() 之上，只在「任务」页生效 */
 function kpiFiltered(){
@@ -2025,7 +2130,7 @@ function noteTagChipsHtml(n){
   }).join("");
 }
 function noteNewTagInline(){
-  $("#modal").innerHTML='<div class="mask" data-act="maskClose"><div class="sheet sm" data-sheet="1"><h3>新建标签</h3>'+
+  $("#modal").innerHTML='<div class="mask" data-act="maskClose"><div class="sheet sm" data-sheet="1">'+sheetX()+'<h3>新建标签</h3>'+
     '<div class="fld"><label>标签名称</label><input id="nnt" placeholder="例如：客户 A / 会议记录 / 灵感"></div>'+
     '<p class="muted" style="font-size:12px;margin:8px 0 0">标签与任务标签是同一套，创建后任务和笔记都能用。</p>'+
     '<div class="sheet-act"><button class="btn-ghost" data-act="closeModal">取消</button><button class="btn-pri" data-act="noteTagCreate">创建并挂上</button></div></div></div>';
@@ -2123,7 +2228,7 @@ function openCitePicker(){
       return '<button type="button" class="npick" data-act="citePick" data-id="'+n.id+'"><span class="npick-dot"></span><span class="npick-title">'+esc(n.title||"无标题笔记")+'</span>'+(n.cat?'<span class="npick-cat">'+esc(n.cat)+'</span>':'')+'</button>';
     }).join("");
   }
-  $("#modal").innerHTML='<div class="mask" data-act="maskClose"><div class="sheet lg" data-sheet="1"><h3>引用另一篇笔记</h3>'+
+  $("#modal").innerHTML='<div class="mask" data-act="maskClose"><div class="sheet lg" data-sheet="1">'+sheetX()+'<h3>引用另一篇笔记</h3>'+
     '<p class="muted" style="font-size:12.5px;line-height:1.6;margin:-8px 0 10px">插入后建立双向链接：这篇底部能看到它，它那边也会出现在「被引用」里。也可以直接在正文写 <code>[[笔记标题]]</code>。</p>'+
     '<div class="fld full"><label>选择笔记</label><input id="citeQ" placeholder="按标题搜索…"></div>'+
     '<div class="npick-list" id="citeList">'+listHtml()+'</div>'+
@@ -2513,7 +2618,7 @@ function toggleNotePreview(){
 }
 function openLinkModal(){
   var sel=window.getSelection();var text=sel&&sel.toString?sel.toString():"";
-  $("#modal").innerHTML='<div class="mask" data-act="maskClose"><div class="sheet" data-sheet="1"><h3>插入链接</h3>'+
+  $("#modal").innerHTML='<div class="mask" data-act="maskClose"><div class="sheet" data-sheet="1">'+sheetX()+'<h3>插入链接</h3>'+
     '<div class="fld"><label>显示文字</label><input id="lkText" value="'+esc(text)+'"></div>'+
     '<div class="fld"><label>链接地址</label><input id="lkUrl" placeholder="https:// 或 mailto: 或相对路径"></div>'+
     '<div class="sheet-act"><button class="btn-ghost" data-act="closeModal">取消</button><button class="btn-danger" data-act="noteLinkOk">插入</button></div>'+
@@ -2527,7 +2632,7 @@ function openNoteCatModal(focusNew,nid){
   }).join("");
   var pre=focusNew&&nid?'<div class="ncat-row"><input id="ncatNew" placeholder="新分类名称"><button class="mini primary" data-act="noteCatAddNew" data-nid="'+nid+'">添加并归入</button></div>':"";
   if(!pre)pre='<div class="ncat-row"><input id="ncatNew" placeholder="新分类名称"><button class="mini primary" data-act="noteCatAdd">添加</button></div>';
-  $("#modal").innerHTML='<div class="mask" data-act="maskClose"><div class="sheet" data-sheet="1"><h3>管理分类</h3>'+rows+pre+
+  $("#modal").innerHTML='<div class="mask" data-act="maskClose"><div class="sheet" data-sheet="1">'+sheetX()+'<h3>管理分类</h3>'+rows+pre+
     '<div class="sheet-act"><button class="btn-pri" data-act="closeModal">完成</button></div></div></div>';
 }
 
@@ -2535,8 +2640,10 @@ function openNoteCatModal(focusNew,nid){
 /* 优先级筛选芯片：列表与看板两条筛选条共用同一份实现，
    保证「全部 / 高 / 中 / 低」的文案与 蓝 / 红 / 橙 / 蓝 配色在两处完全一致。 */
 function priChips(){
+  /* 不再给每个芯片加旗子图标 —— 前面已经有「优先级」这个维度标签，
+     再加一个会被读成「P 全部 / P 高」（用户反馈过的重复标注）。 */
   var fs=[["all","全部",""],["high","高","p-high"],["mid","中","p-mid"],["low","低","p-low"]];
-  return fs.map(function(f){return '<button class="fchip'+(f[2]?" "+f[2]:"")+(ui.pf===f[0]?" on":"")+'" data-act="pf" data-id="'+f[0]+'">'+icon(IC.flag,12)+f[1]+"</button>"}).join("");
+  return fs.map(function(f){return '<button class="fchip'+(f[2]?" "+f[2]:"")+(ui.pf===f[0]?" on":"")+'" data-act="pf" data-id="'+f[0]+'">'+f[1]+"</button>"}).join("");
 }
 /* 侧栏那四个筛选维度（项目 / 客户 / 标签 / 智能列表）也铺到列表页与看板页顶部。
    以前它们只体现在侧栏的高亮上，进到列表页看不出"正在筛什么"，结果为空时更糟 ——
@@ -2567,7 +2674,7 @@ function sideFilterChips(){
 }
 /* 是否有任一筛选生效（含搜索词）—— 决定「清空筛选」出不出现。 */
 function anyFilterActive(){
-  return ui.pid!=="all"||ui.cid!=="all"||!!ui.tag||!!ui.smart||ui.pf!=="all"||ui.kf!=="all"||ui.bproj!=="all"||!!(ui.q||"").trim();
+  return ui.pid!=="all"||ui.cid!=="all"||!!ui.tag||!!ui.smart||ui.pf!=="all"||ui.kf!=="all"||!!(ui.q||"").trim();
 }
 /* 只要有筛选生效就常驻一个「清空筛选」。以前它只在列表为空、或看板页才出现，
    有结果时用户找不到把筛选退回去的地方（侧栏那个唯一能退的「全部任务」也已删）。 */
@@ -2577,7 +2684,58 @@ function clearChip(){
 }
 function filterBar(){
   if(!db.tasks.length)return "";
-  return '<div class="fbar">'+sideFilterChips()+priChips()+kfChip()+clearChip()+'</div>';
+  var projOpts=[{v:"all",label:"全部项目"}].concat(db.projects.map(function(p){return {v:p.id,label:p.name}}));
+  return '<div class="fbar" title="列表 / 看板共用同一套筛选条件">'+
+    '<span class="bf-lbl">'+icon(IC.folder,13)+"项目</span>"+uiSelect("fbarProject",ui.pid,projOpts,"fbarProject")+
+    '<span class="bf-lbl">'+icon(IC.flag,13)+"优先级</span>"+priChips()+
+    sideFilterChips()+kfChip()+clearChip()+
+  "</div>";
+}
+
+/* P2-11 行内快速添加：把一句话变成任务。复用 ⌘K 面板那套解析器（明天 / !p1 / @标签 / *重要），
+   并继承当前正在看的项目 / 客户 / 标签筛选 —— 在「客户 A」的列表里记一条，它就该属于客户 A。 */
+function quickAdd(raw){
+  var pt=parseTitle(raw);
+  if(!pt||!pt.title)return null;
+  var tags=(pt.tags||[]).slice();
+  if(ui.tag&&tags.indexOf(ui.tag)<0)tags.push(ui.tag);
+  var t={id:uid(),title:pt.title,
+    clientId:(ui.cid!=="all"&&ui.cid!=="none")?ui.cid:"",
+    projectId:ui.pid!=="all"?ui.pid:"",
+    priority:priKey(pt.pri),due:pt.due||"",note:"",done:false,doneAt:0,status:"todo",
+    createdAt:Date.now(),subtasks:[],logs:[],tags:tags,planned:false,important:!!pt.important,noteId:""};
+  db.tasks.unshift(t);save();return t;
+}
+/* 新建成功后把「解析到的额外信息」回报给用户 —— 否则「明天」会被静默吃掉，用户不知道生效没有 */
+function taskBits(t){
+  var b=[];
+  if(t.important)b.push("★ 重要");
+  if(t.due)b.push("截止 "+fmtDate(t.due));
+  if(t.priority!=="low")b.push(PRI[t.priority]);
+  if(t.tags&&t.tags.length)b.push(t.tags.length+" 个标签");
+  return b.length?("："+b.join(" · ")):"";
+}
+function inlineAddCommit(){
+  var el=$("#qi");if(!el)return;
+  var v=el.value.trim();if(!v)return;
+  var t=quickAdd(v);
+  if(!t){toast("写点内容再回车");return}
+  el.value="";
+  renderMain();
+  var nx=$("#qi");if(nx)nx.focus();   /* 连续录入不用重新点一次输入框 */
+  toast("已添加"+taskBits(t));
+}
+/* 只在「任务」页的列表形态下出现：看板按状态分列，插一行输入会破坏列结构；
+   今天页是摘要页，它的入口是「去任务页」。 */
+function quickAddRow(){
+  if(ui.view!=="all"||ui.taskMode==="board")return "";
+  var p=ui.pid!=="all"?proj(ui.pid):null;
+  var c=(ui.cid!=="all"&&ui.cid!=="none")?clientById(ui.cid):null;
+  var into=p?("（归入「"+p.name+"」）"):(c?("（归入客户「"+(c.name||"未命名客户")+"」）"):"");
+  return '<div class="qi-row" title="回车即可创建；支持「明天」「!p1」「@标签」，开头加 * 标重要">'+
+    icon(IC.plus,15)+
+    '<input id="qi" type="text" placeholder="添加任务，回车确认'+into+'" autocomplete="off" spellcheck="false" aria-label="添加任务">'+
+    '<span class="qi-hint">支持 明天 / !p1 / @标签</span></div>';
 }
 
 function matchesSmart(t,q){
@@ -2620,7 +2778,7 @@ function sortTasks(a){
 function viewToday(){
   var active=db.tasks.filter(function(t){return !t.done});
   var list=active.filter(function(t){return t.due&&dayDiff(t.due)<=0}),
-      soon=active.filter(function(t){return t.due&&dayDiff(t.due)>0&&dayDiff(t.due)<=3}),
+      soon=active.filter(function(t){return t.due&&dayDiff(t.due)>0&&dayDiff(t.due)<=SOON_DAYS}),
       od=list.filter(function(t){return dayDiff(t.due)<0}),
       deep=deepOverdue(),
       stales=staleList();
@@ -2640,9 +2798,14 @@ function viewToday(){
       var d=dayDiff(t.due),tag=d<0?'<span class="chip od">逾期 '+(-d)+" 天</span>":'<span class="chip due">今天截止</span>';
       h+='<div class="trow"><button class="check" data-act="toggleTask" data-id="'+t.id+'">'+icon(IC.check,13)+'</button><span class="txt">'+esc(t.title)+" "+tag+'</span><span class="sm"><button class="mini" data-act="pushTom" data-id="'+t.id+'">明天</button></span></div>';
     });
-    soon.forEach(function(t){
-      h+='<div class="trow"><button class="check" data-act="toggleTask" data-id="'+t.id+'">'+icon(IC.check,13)+'</button><span class="txt muted">'+esc(t.title)+' <span class="chip">'+dayDiff(t.due)+" 天后到期</span></span></div>";
-    });
+    /* 单独成组并带标题：标题行只统计今天到期+逾期，这一组是「往后看一眼」，
+       不单独标出来的话，行数会多于标题里的「N 项」。 */
+    if(soon.length){
+      h+='<div class="today-sub">接下来 '+SOON_DAYS+' 天<span class="cnt">'+soon.length+" 项</span></div>";
+      soon.forEach(function(t){
+        h+='<div class="trow"><button class="check" data-act="toggleTask" data-id="'+t.id+'">'+icon(IC.check,13)+'</button><span class="txt muted">'+esc(t.title)+' <span class="chip">'+dayDiff(t.due)+" 天后到期</span></span></div>";
+      });
+    }
   }
   h+="</div>";
   /* E6：久未跟进 */
@@ -2808,13 +2971,14 @@ function filteredEmpty(){
   /* 空库时不给「写一条任务」按钮 —— 右上角「新建」才是入口，空状态指过去即可。
      「清空筛选」不一样：筛选条上虽然有芯片，但空结果时给一个明确的出口更省事。 */
   return emptyState({icon:IC.list,title:db.tasks.length?"没有符合条件的任务":"还没有任务",
-    why:db.tasks.length?"当前生效的筛选："+activeFilterNames()+"。<br>清掉筛选就能看到全部任务。":"点右上角「新建」写下第一条就行。",
+    why:db.tasks.length?"当前生效的筛选："+activeFilterNames()+"。<br>清掉筛选就能看到全部任务。":"在下方输入框里写下第一条，回车就行（也可以点右上角「新建」）。",
     acts:db.tasks.length?[{label:"清空筛选",act:"clearAllFilters"}]:[]});
 }
 function viewAll(){
   var board=ui.taskMode==="board";
   var h=taskModeSwitch();
-  h+=board?boardFilterBar():filterBar();
+  h+=filterBar();
+  h+=quickAddRow();
   if(board)return h+kanban(boardTasks());
   var a=sortTasks(kpiFiltered());
   var undone=a.filter(function(t){return !t.done}),done=a.filter(function(t){return t.done});
@@ -2837,32 +3001,17 @@ function viewAll(){
   return h;
 }
 
-/* B4：看板不再自走一套筛选，改为以全局 filtered() 为基础，
-   于是「侧栏筛客户/标签/智能列表 + 顶部搜索 + 优先级」在看板里与其它视图语义完全一致。
-   看板自己的「项目」下拉只是在此基础上再收窄一层（bproj="all" 时等于不收窄）。 */
+/* B4：看板不自走一套筛选，直接复用顶部筛选条（filterBar）与全局 filtered()。
+   于是「侧栏筛客户/标签/智能列表 + 顶部搜索 + 项目 + 优先级」在看板里与列表页语义完全一致。 */
 function boardTasks(){
-  var base=kpiFiltered();
-  if(ui.bproj==="none")return base.filter(function(t){return !t.projectId});
-  if(ui.bproj&&ui.bproj!=="all")return base.filter(function(t){return t.projectId===ui.bproj});
-  return base;
+  return kpiFiltered();
 }
-/* 看板筛选条：与列表页共用「侧栏筛选芯片 + 清空筛选」，另有自己的项目下拉与优先级芯片 */
-function boardFilterBar(){
-  var projOpts=[{v:"all",label:"全部项目"}].concat(db.projects.map(function(p){return {v:p.id,label:p.name}}),[{v:"none",label:"未归类"}]);
-  return '<div class="fbar board-fbar" title="筛选条件在列表 / 看板两种呈现下是同一套">'+
-    sideFilterChips()+
-    '<span class="bf-lbl">'+icon(IC.folder,13)+'项目</span>'+uiSelect("bproj",ui.bproj,projOpts,"bproj")+
-    '<span class="bf-lbl">'+icon(IC.flag,13)+'优先级</span>'+priChips()+kfChip()+
-    clearChip()+
-  '</div>';
-}
-
 function taskCard(t){
   var p=proj(t.projectId),c=t.clientId?clientById(t.clientId):null,d=t.due?dayDiff(t.due):null,od=!t.done&&d!==null&&d<0;
   var pr=pct(t),done=0;t.subtasks.forEach(function(s){if(s.done)done++});
-  var h='<div class="task'+(od?" od":"")+(t.important?" important":"")+'" data-act="edit" data-id="'+t.id+'"><div class="task-top">';
+  var h='<div class="task'+(od?" od":"")+(t.important?" important":"")+'"><div class="task-top">';
   h+='<button class="check'+(t.done?" on":"")+'" data-act="toggleTask" data-id="'+t.id+'">'+icon(IC.check,13)+"</button>";
-  h+='<div class="ttl'+(t.done?" done":"")+'"><span data-act="edit" data-id="'+t.id+'" style="cursor:pointer">'+esc(t.title)+"</span>";
+  h+='<div class="ttl'+(t.done?" done":"")+'"><span class="ttl-link" data-act="edit" data-id="'+t.id+'" title="打开编辑">'+esc(t.title)+"</span>";
   h+='<div class="chips">';
   if(c)h+='<span class="chip client"><span class="pdot" style="background:'+esc(c.color)+'"></span>'+esc(c.name)+"</span>";
   if(p)h+='<span class="chip">'+esc(p.name)+"</span>";
@@ -2911,7 +3060,7 @@ function taskCard(t){
   if(t.subtasks.length){
     h+='<div class="prow"><div class="bar"><i style="width:'+Math.round(pr*100)+'%"></i></div><span class="lbl">'+done+" / "+t.subtasks.length+' 子任务</span><button class="exp" data-act="expand" data-id="'+t.id+'">'+(open?"收起":"展开")+icon(open?IC.down:IC.right,13)+"</button></div>";
   }else{
-    h+='<div class="prow"><span class="lbl">还没拆子任务</span><button class="exp" data-act="expand" data-id="'+t.id+'">'+(open?"收起":"去拆解")+icon(open?IC.down:IC.right,13)+"</button></div>";
+    h+='<div class="prow"><span class="lbl">还没拆子任务</span><button class="exp" data-act="expand" data-id="'+t.id+'">'+(open?"收起":"展开")+icon(open?IC.down:IC.right,13)+"</button></div>";
   }
   if(open){
     h+='<div class="subs" data-drop="'+t.id+'">';
@@ -3414,7 +3563,7 @@ async function exportNoteMd(id){
 }
 function openExportDone(p){
   var escP=esc(p);
-  $("#modal").innerHTML='<div class="mask" data-act="maskClose"><div class="sheet" data-sheet="1">'+
+  $("#modal").innerHTML='<div class="mask" data-act="maskClose"><div class="sheet" data-sheet="1">'+sheetX()+''+
     '<h3 style="margin:0 0 4px">已导出 Markdown</h3>'+
     '<p style="margin:0 0 14px;color:var(--muted);font-size:13px">文件已保存到你在系统对话框中指定的位置，绝对路径已复制到剪贴板。</p>'+
     '<label style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px">文件绝对路径</label>'+
@@ -3592,7 +3741,28 @@ function kanban(arr){
 }
 
 /* ---------- modals ---------- */
-function closeModal(){$("#modal").innerHTML="";ui.editing=null;ui.editLog=null}
+/* 每个 .sheet 都靠它拿到一致的右上角关闭入口（语义 = 取消）。
+   加新弹窗时记得在 sheet 容器 div（带 data-sheet="1" 的那个）之后拼上 sheetX()。 */
+function sheetX(){return '<button type="button" class="sheet-x" data-act="closeModal" title="关闭" aria-label="关闭">'+icon(IC.x,16)+'</button>'}
+/* 「弹窗里动过没有」——记录用户是否在弹窗内的表单控件上产生过输入。
+   用 input/change 事件登记而不是对比值快照：弹窗会因为选标签、选笔记等原因重渲染，
+   快照会被冲掉，事件标记不会；而程序化赋值不会触发这两个事件，正好不误判。 */
+var _maskDirty=false;
+function markMaskDirty(){_maskDirty=true}
+function maskDirty(){return _maskDirty}
+/* 「拒绝关闭」的抖动反馈，复用已有的 .sheet.nudge 动画 */
+function shakeModal(){
+  var s=$("#modal .sheet");if(!s)return;
+  s.classList.remove("nudge");void s.offsetWidth;s.classList.add("nudge");
+  setTimeout(function(){s.classList.remove("nudge")},340);
+}
+function closeModal(){$("#modal").innerHTML="";ui.editing=null;ui.editLog=null;_maskDirty=false}
+/* 弹窗内任何表单控件被用户改动时登记（捕获阶段，覆盖所有弹窗，不必逐个挂） */
+(function(){
+  var m=$("#modal");if(!m)return;
+  m.addEventListener("input",markMaskDirty,true);
+  m.addEventListener("change",markMaskDirty,true);
+})();
 function tagChipsHtml(sel){
   sel=sel||[];
   var add='<button type="button" class="tchip add" data-act="newTagInline" title="新建标签">'+icon(IC.plus,12)+' 新建标签</button>';
@@ -3667,7 +3837,7 @@ function openTask(id){
   var impCls=ui.impPick?"imp-on":"";
   /* 未手动指定时，显示的就是"这次保存会写进去的那个客户" —— 项目优先，任务原值兜底 */
   if(!ui.clientOverride)curClient=effClient(curProject,t.clientId);
-  $("#modal").innerHTML='<div class="mask" data-act="maskClose"><div class="sheet" data-sheet="1">'+
+  $("#modal").innerHTML='<div class="mask" data-act="maskClose"><div class="sheet" data-sheet="1">'+sheetX()+''+
     "<h3>"+(isNew?"新建任务":"编辑任务")+"</h3>"+
     /* C2：渐进披露 —— 默认只给 3 件事：标题、截止日期、项目。
        其余（优先级/状态/标签/重要/笔记/子任务/备注/跟进）全部收进「更多选项 ▾」，
@@ -3702,8 +3872,7 @@ function openTask(id){
         '</div>')+
       '</div>'+
     '</details></div>'+
-    '<div class="sheet-act"><button class="btn-ghost" data-act="closeModal">取消</button><button class="btn-pri" data-act="saveTask">保存</button></div>'+
-    (isNew?"":'<button class="btn-danger btn-wide" data-act="del" data-id="'+t.id+'">删除这个任务</button>')+
+    '<div class="sheet-act">'+(isNew?"":'<button type="button" class="btn-ghost btn-del" data-act="del" data-id="'+t.id+'" title="删除后不可恢复">删除</button>')+'<button class="btn-ghost" data-act="closeModal">取消</button><button class="btn-pri" data-act="saveTask">保存</button></div>'+
     "</div></div>";
   setTimeout(function(){
     var mt=$("#mt");if(!mt)return;
@@ -3741,7 +3910,7 @@ function openNotePicker(tid,sid){
     }).join("");
   }
   var clearAct=isTask?"taskNoteClear":"subNoteClear",newAct=isTask?"taskNoteNew":"subNoteNew";
-  $("#modal").innerHTML='<div class="mask" data-act="maskClose"><div class="sheet lg" data-sheet="1"><h3>'+(isTask?"关联笔记到任务":"关联笔记到子任务")+'</h3>'+
+  $("#modal").innerHTML='<div class="mask" data-act="maskClose"><div class="sheet lg" data-sheet="1">'+sheetX()+'<h3>'+(isTask?"关联笔记到任务":"关联笔记到子任务")+'</h3>'+
     '<div class="fld full"><label>搜索笔记</label><input id="npickQ" placeholder="按标题或内容搜索…" value="'+esc(q)+'"></div>'+
     '<div class="npick-list" id="npickList">'+listHtml()+'</div>'+
     /* 页脚顺序规范：离开按钮（关闭/取消）在最左，主操作在最右（见 ui-spec.md） */
@@ -3762,7 +3931,7 @@ function renderAfterNoteChange(tid){
 }
 function renderTaskNotes(tid){
   var t=task(tid);if(!t)return;
-  $("#modal").innerHTML='<div class="mask" data-act="maskClose"><div class="sheet lg" data-sheet="1"><h3>任务笔记</h3>'+
+  $("#modal").innerHTML='<div class="mask" data-act="maskClose"><div class="sheet lg" data-sheet="1">'+sheetX()+'<h3>任务笔记</h3>'+
     '<div class="fld full"><label>'+esc(t.title)+'</label>'+
     '<div id="taskNotesBox">'+taskNotesListHtml(t)+'</div></div>'+
     /* 收尾页脚：动作按钮在左（ghost），"结束这一屏"的按钮在最右且是唯一的实心色 */
@@ -3839,7 +4008,7 @@ function openProject(id){
   var vLandYear=d?d.landYear:((p&&p.landYear)?p.landYear:"");
   var psw=CLIENT_COLORS.map(function(col){return '<button data-act="pickColor" data-c="'+col+'" style="width:28px;height:28px;border-radius:50%;background:'+col+';border:2px solid '+(vColor===col?"var(--text)":"transparent")+'"></button>'}).join("");
   var clientOptsArr=[{v:"",label:"未归类（内部）"}].concat(db.clients.map(function(c){return {v:c.id,label:c.name,dot:c.color}}));
-  $("#modal").innerHTML='<div class="mask" data-act="maskClose"><div class="sheet" data-sheet="1">'+
+  $("#modal").innerHTML='<div class="mask" data-act="maskClose"><div class="sheet" data-sheet="1">'+sheetX()+''+
     "<h3>"+(p?"编辑项目":"新建项目")+"</h3>"+
     /* C3：项目弹窗同样分层 —— 默认只问 名称 · 客户 · 颜色 · 摘要，
        预算 / 合同额 / 阶段 / 落地可能性 / 签署日期 / 落地年份 / 核心目标 这些「台账字段」
@@ -3868,8 +4037,7 @@ function openProject(id){
         '<div class="fld full"><label>核心目标</label><textarea id="pgoal" rows="3" placeholder="这个项目要达成的关键目标">'+esc(vGoal)+'</textarea></div>'+
       '</div>'+
     '</details></div>'+
-    '<div class="sheet-act"><button type="button" class="btn-ghost" data-act="closeModal">取消</button><button type="button" class="btn-pri" data-act="saveProject">保存</button></div>'+
-    (p?'<button type="button" class="btn-danger btn-wide" data-act="delProject" data-id="'+p.id+'">删除项目（任务会变为未归类）</button>':"")+
+    '<div class="sheet-act">'+(p?'<button type="button" class="btn-ghost btn-del" data-act="delProject" data-id="'+p.id+'" title="删除后，该项目下的任务会变为未归类">删除</button>':"")+'<button type="button" class="btn-ghost" data-act="closeModal">取消</button><button type="button" class="btn-pri" data-act="saveProject">保存</button></div>'+
     "</div></div>";
   setTimeout(function(){$("#pn").focus()},30);
 }
@@ -3886,45 +4054,43 @@ function snapshotProjDraft(){
 function openClient(id){
   var c=id?clientById(id):null;ui.editing=id||null;ui.colorHidden="#cc";
   var sw=CLIENT_COLORS.map(function(col){return '<button data-act="pickColor" data-c="'+col+'" style="width:28px;height:28px;border-radius:50%;background:'+col+';border:2px solid '+((c&&c.color===col)||(!c&&col===CLIENT_COLORS[0])?"var(--text)":"transparent")+'"></button>'}).join("");
-  $("#modal").innerHTML='<div class="mask" data-act="maskClose"><div class="sheet xl" data-sheet="1"><h3>'+(c?"编辑客户":"新建客户")+'</h3>'+
+  $("#modal").innerHTML='<div class="mask" data-act="maskClose"><div class="sheet xl" data-sheet="1">'+sheetX()+'<h3>'+(c?"编辑客户":"新建客户")+'</h3>'+
     '<div class="fld"><label>客户名称</label><input id="cn" value="'+esc(c?c.name:"")+'" placeholder="例如：客户 A"></div>'+
     '<div class="fld"><label>分类</label><input id="ccat" value="'+esc(c?c.category:"")+'" placeholder="未归类"></div>'+
     '<div class="fld"><label>颜色</label><div id="sw" style="display:flex;gap:9px;flex-wrap:wrap">'+sw+'</div><input type="hidden" id="cc" value="'+esc(c?c.color:CLIENT_COLORS[0])+'"></div>'+
-    '<div class="sheet-act"><button class="btn-ghost" data-act="closeModal">取消</button><button class="btn-pri" data-act="saveClient">保存</button></div>'+
-    (c?'<button class="btn-danger btn-wide" data-act="delClient" data-id="'+c.id+'">删除客户（其下项目改为未归类）</button>':"")+
+    '<div class="sheet-act">'+(c?'<button class="btn-ghost btn-del" data-act="delClient" data-id="'+c.id+'" title="删除后，该客户下的项目会变为未归类">删除</button>':"")+'<button class="btn-ghost" data-act="closeModal">取消</button><button class="btn-pri" data-act="saveClient">保存</button></div>'+
     "</div></div>";
   setTimeout(function(){$("#cn").focus()},30);
 }
 function openTag(id){
   var tg=id?tagById(id):null;ui.editing=id||null;ui.colorHidden="#tc";
   var sw=TAG_COLORS.map(function(col){return '<button data-act="pickColor" data-c="'+col+'" style="width:28px;height:28px;border-radius:50%;background:'+col+';border:2px solid '+((tg&&tg.color===col)||(!tg&&col===TAG_COLORS[0])?"var(--text)":"transparent")+'"></button>'}).join("");
-  $("#modal").innerHTML='<div class="mask" data-act="maskClose"><div class="sheet xl" data-sheet="1"><h3>'+(tg?"编辑标签":"新建标签")+'</h3>'+
+  $("#modal").innerHTML='<div class="mask" data-act="maskClose"><div class="sheet xl" data-sheet="1">'+sheetX()+'<h3>'+(tg?"编辑标签":"新建标签")+'</h3>'+
     '<div class="fld"><label>标签名称</label><input id="tn" value="'+esc(tg?tg.name:"")+'" placeholder="例如：报价"></div>'+
     '<div class="fld"><label>分类</label><input id="tcat" value="'+esc(tg?tg.category:"")+'" placeholder="未归类"></div>'+
     '<div class="fld"><label>颜色</label><div id="sw" style="display:flex;gap:9px;flex-wrap:wrap">'+sw+'</div><input type="hidden" id="tc" value="'+esc(tg?tg.color:TAG_COLORS[0])+'"></div>'+
-    '<div class="sheet-act"><button class="btn-ghost" data-act="closeModal">取消</button><button class="btn-pri" data-act="saveTag">保存</button></div>'+
-    (tg?'<button class="btn-danger btn-wide" data-act="delTag" data-id="'+tg.id+'">删除标签</button>':"")+
+    '<div class="sheet-act">'+(tg?'<button class="btn-ghost btn-del" data-act="delTag" data-id="'+tg.id+'" title="删除后，任务上的这个标签会一并移除">删除</button>':"")+'<button class="btn-ghost" data-act="closeModal">取消</button><button class="btn-pri" data-act="saveTag">保存</button></div>'+
     "</div></div>";
   setTimeout(function(){$("#tn").focus()},30);
 }
 function openSmart(id){
   var s=id?db.smartLists.filter(function(x){return x.id===id})[0]:null;ui.editing=id||null;
   var q=s?s.query||{}:{};
-  $("#modal").innerHTML='<div class="mask" data-act="maskClose"><div class="sheet xl" data-sheet="1"><h3>'+(s?"编辑智能列表":"新建智能列表")+'</h3>'+
+  $("#modal").innerHTML='<div class="mask" data-act="maskClose"><div class="sheet xl" data-sheet="1">'+sheetX()+'<h3>'+(s?"编辑智能列表":"新建智能列表")+'</h3>'+
     '<div class="fld"><label>列表名称</label><input id="sn" value="'+esc(s?s.name:"")+'" placeholder="例如：本周高优先"></div>'+
     '<div class="fld"><label class="switch-row"><input type="checkbox" id="sqOpen"'+(q.open?" checked":"")+'><span>只看未完成的任务</span></label></div>'+
     '<div class="fld"><label class="switch-row"><input type="checkbox" id="sqPri"'+(q.pri&&q.pri.length?" checked":"")+'><span>仅高优先级（高 / 中）</span></label></div>'+
     '<div class="fld"><label class="switch-row"><input type="checkbox" id="sqImp"'+(q.important?" checked":"")+'><span>仅标记重要的</span></label></div>'+
-    '<div class="sheet-act"><button class="btn-ghost" data-act="closeModal">取消</button><button class="btn-pri" data-act="saveSmart">保存</button></div>'+
-    (s?'<button class="btn-danger btn-wide" data-act="delSmart" data-id="'+s.id+'">删除智能列表</button>':"")+
+    '<div class="sheet-act">'+(s?'<button class="btn-ghost btn-del" data-act="delSmart" data-id="'+s.id+'" title="只删这个列表，任务不受影响">删除</button>':"")+'<button class="btn-ghost" data-act="closeModal">取消</button><button class="btn-pri" data-act="saveSmart">保存</button></div>'+
     "</div></div>";
   setTimeout(function(){$("#sn").focus()},30);
 }
 function openSettings(){
   var bk=backupInfo();
-  $("#modal").innerHTML='<div class="mask" data-act="maskClose"><div class="sheet xxl" data-sheet="1">'+
+  $("#modal").innerHTML='<div class="mask" data-act="maskClose"><div class="sheet xxl" data-sheet="1">'+sheetX()+''+
     '<div class="set-head"><div><h3>设置</h3><p class="muted" style="font-size:13px;margin:2px 0 0">数据保存在本机，不上传任何服务器。可在下方「数据存储位置」修改路径。</p></div></div>'+
-    '<div class="bkinfo'+(bk.warn?" warn":"")+'">'+icon(bk.warn?IC.alert:IC.check,15)+'<div><b>'+esc(bk.txt)+"</b><span>"+esc(bk.sub)+"</span></div></div>"+
+    '<div class="bkinfo'+(bk.warn?" warn":"")+'">'+icon(bk.warn?IC.alert:IC.check,15)+'<div><b>'+esc(bk.txt)+"</b><span>"+esc(bk.sub)+"</span></div>"+
+      '<button type="button" class="bkinfo-act" data-act="export" title="导出 JSON 备份">立即导出</button></div>'+
     '<div class="set-grid">'+
       '<div class="setsec set-ai"><h4>'+icon(IC.spark,15)+'<span>AI 总结</span>'+(aiReady()?'<span class="okdot">已配置</span>':'<span class="okdot off">未配置</span>')+'</h4>'+
       '<p class="muted" style="font-size:12.5px;line-height:1.6;margin:0 0 10px">填任意一家 OpenAI 兼容服务即可。密钥只存在本机，<b>不会随「导出备份」带出去</b>。</p>'+
@@ -3989,7 +4155,7 @@ function openSettings(){
    opt.ok 用来把按钮文案换成具体动词（删除 / 清空 / 覆盖恢复），比一律「确定」清楚。 */
 function confirmBox(msg,act,opt){
   opt=opt||{};
-  $("#modal").innerHTML='<div class="mask" data-act="maskClose"><div class="sheet sm" data-sheet="1"><h3>请确认</h3><p style="font-size:14px;line-height:1.6">'+esc(msg)+'</p><div class="sheet-act"><button class="btn-ghost" data-act="closeModal">取消</button><button class="'+(opt.danger?"btn-danger":"btn-pri")+'" data-act="'+act+'">'+esc(opt.ok||"确定")+'</button></div></div></div>';
+  $("#modal").innerHTML='<div class="mask" data-act="maskClose"><div class="sheet sm" data-sheet="1">'+sheetX()+'<h3>请确认</h3><p style="font-size:14px;line-height:1.6">'+esc(msg)+'</p><div class="sheet-act"><button class="btn-ghost" data-act="closeModal">取消</button><button class="'+(opt.danger?"btn-danger":"btn-pri")+'" data-act="'+act+'">'+esc(opt.ok||"确定")+'</button></div></div></div>';
 }
 
 /* ---------- B5：关于面板 ---------- */
@@ -3997,7 +4163,7 @@ function openAbout(info){
   var ver=(info&&info.version)||"0.1.0";
   var id=(info&&info.identifier)||"—";
   var dir=(info&&info.dataDir)||(window.__TAURI_INTERNALS__?"本机文稿 / 我的任务台":"浏览器本地存储");
-  $("#modal").innerHTML='<div class="mask" data-act="maskClose"><div class="sheet" data-sheet="1">'+
+  $("#modal").innerHTML='<div class="mask" data-act="maskClose"><div class="sheet" data-sheet="1">'+sheetX()+''+
     '<div style="width:56px;height:56px;border-radius:14px;background:linear-gradient(135deg,#0a84ff,#0040dd);display:flex;align-items:center;justify-content:center;margin:4px auto 8px;color:#fff">'+icon(IC.check,30)+'</div>'+
     '<h3 style="text-align:center;margin:4px 0 2px">todo-list</h3>'+
     '<p class="muted" style="text-align:center;font-size:13px;margin:0 0 16px">本地优先的任务管理 · v'+esc(ver)+'</p>'+
@@ -4028,7 +4194,7 @@ function routeMenu(id){
 
 function openExportModal(){
   var json=JSON.stringify(db,null,2);
-  $("#modal").innerHTML='<div class="mask" data-act="maskClose"><div class="sheet" data-sheet="1"><h3>导出备份</h3><p style="font-size:13px;color:var(--muted);line-height:1.6">复制下面的内容，保存成 .json 文件即是备份。要恢复时，把这段内容粘贴进「导入恢复」即可。</p><textarea id="expText" readonly style="width:100%;height:260px;font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;padding:10px;border:1px solid var(--line);border-radius:10px;resize:vertical;box-sizing:border-box">'+esc(json)+'</textarea><div class="sheet-act"><button class="btn-ghost" data-act="copyJson" data-tid="expText">复制</button><button class="btn-pri" data-act="closeModal">关闭</button></div></div></div>';
+  $("#modal").innerHTML='<div class="mask" data-act="maskClose"><div class="sheet" data-sheet="1">'+sheetX()+'<h3>导出备份</h3><p style="font-size:13px;color:var(--muted);line-height:1.6">复制下面的内容，保存成 .json 文件即是备份。要恢复时，把这段内容粘贴进「导入恢复」即可。</p><textarea id="expText" readonly style="width:100%;height:260px;font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;padding:10px;border:1px solid var(--line);border-radius:10px;resize:vertical;box-sizing:border-box">'+esc(json)+'</textarea><div class="sheet-act"><button class="btn-ghost" data-act="copyJson" data-tid="expText">复制</button><button class="btn-pri" data-act="closeModal">关闭</button></div></div></div>';
 }
 
 /* 解析并确认导入（原生选文件 / 粘贴 两条路都走它） */
@@ -4044,7 +4210,7 @@ function tryImport(v){
 }
 
 function openImportModal(){
-  $("#modal").innerHTML='<div class="mask" data-act="maskClose"><div class="sheet" data-sheet="1"><h3>导入恢复</h3><p style="font-size:13px;color:var(--muted);line-height:1.6">把之前导出的 JSON 备份粘贴到这里，确认后会覆盖当前数据。</p><textarea id="impText" placeholder="在此粘贴 JSON 备份..." style="width:100%;height:240px;font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;padding:10px;border:1px solid var(--line);border-radius:10px;resize:vertical;box-sizing:border-box"></textarea><div class="sheet-act"><button class="btn-ghost" data-act="closeModal">取消</button><button class="btn-pri" data-act="doImport">恢复</button></div></div></div>';
+  $("#modal").innerHTML='<div class="mask" data-act="maskClose"><div class="sheet" data-sheet="1">'+sheetX()+'<h3>导入恢复</h3><p style="font-size:13px;color:var(--muted);line-height:1.6">把之前导出的 JSON 备份粘贴到这里，确认后会覆盖当前数据。</p><textarea id="impText" placeholder="在此粘贴 JSON 备份..." style="width:100%;height:240px;font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;padding:10px;border:1px solid var(--line);border-radius:10px;resize:vertical;box-sizing:border-box"></textarea><div class="sheet-act"><button class="btn-ghost" data-act="closeModal">取消</button><button class="btn-pri" data-act="doImport">恢复</button></div></div></div>';
 }
 
 /* ---------- actions ---------- */
@@ -4229,7 +4395,7 @@ function openStages(){
   var rows=db.projStages.map(function(s,i){
     return '<div class="strow" data-sid="'+s.id+'"><input class="stname" value="'+esc(s.name)+'" placeholder="阶段名"><label class="switch-row"><input type="checkbox" class="stlanded"'+(s.landed?" checked":"")+'><span>计入已落地</span></label><button type="button" class="mini danger" data-act="delStage" data-i="'+i+'">删除</button></div>';
   }).join("");
-  $("#modal").innerHTML='<div class="mask" data-act="maskClose"><div class="sheet" data-sheet="1"><h3>管理项目阶段</h3>'+
+  $("#modal").innerHTML='<div class="mask" data-act="maskClose"><div class="sheet" data-sheet="1">'+sheetX()+'<h3>管理项目阶段</h3>'+
     '<div class="muted" style="font-size:12.5px;margin:0 0 10px">勾选「计入已落地」的阶段，其下合同类项目会计入「已落地合同金额」统计。</div>'+
     '<div id="stageList">'+rows+'</div>'+
     '<button type="button" class="tbtn" data-act="addStage" style="margin:8px 0 14px">＋ 新增阶段</button>'+
@@ -4280,11 +4446,9 @@ function actEntity(a,el,id){
     else if(id==="smart")ui.smart=null;
     render();return true
   }
-  /* 一键清空全部筛选（项目/客户/标签/智能列表/优先级/KPI 钻取/看板项目）。
-     以前这个动作叫 bprojClear，只清 pf/bproj/kf 三个维度，而侧栏那四个维度只有
-     「全部任务」条目能清 —— 现在两边合成一个。 */
+  /* 一键清空全部筛选（项目/客户/标签/智能列表/优先级/KPI 钻取）。 */
   if(a==="clearAllFilters"){
-    ui.pid="all";ui.cid="all";ui.tag="";ui.smart=null;ui.pf="all";ui.kf="all";ui.bproj="all";
+    ui.pid="all";ui.cid="all";ui.tag="";ui.smart=null;ui.pf="all";ui.kf="all";
     render();return true
   }
   if(a==="tagPick"){
@@ -4456,10 +4620,12 @@ document.addEventListener("click",function(e){
      搜索词 ui.q 不动 —— 搜索框里看得见内容，用户知道它在起作用。 */
   if(a==="view"){
     if(ui.view==="notes")flushNoteEditor();
-    if(id==="all"){ui.pid="all";ui.cid="all";ui.tag="";ui.smart=null;ui.pf="all";ui.kf="all";ui.bproj="all"}
+    if(id==="all"){ui.pid="all";ui.cid="all";ui.tag="";ui.smart=null;ui.pf="all";ui.kf="all"}
     ui.view=id;render();window.scrollTo(0,0);$("#main").scrollTop=0;return
   }
   if(a==="pf"){ui.pf=id;renderMain();return}
+  /* P2-15：折叠 / 展开侧栏的次要分组（标签 / 智能列表），只重绘侧栏 */
+  if(a==="foldSide"){ui.sideFold[id]=!ui.sideFold[id];renderSide();return}
   /* 「任务」页顶部呈现切换：列表 / 看板（切回顶部，避免停在半截滚动位置） */
   if(a==="taskMode"){ui.taskMode=(id==="board")?"board":"list";renderMain();var tm=$("#main");if(tm)tm.scrollTop=0;return}
   /* KPI 卡片 = 概览 + 入口：点一下就钻到「任务」页并按该口径过滤，再点一次取消 */
@@ -4501,10 +4667,12 @@ document.addEventListener("click",function(e){
     return;
   }
   if(a==="closeModal"){closeModal();return}
-  /* 编辑已有任务时点遮罩不关闭（防止误丢改动）；新建没有这个顾虑，点外面即可取消 */
-  if(a==="maskClose"){ if(ui.editing&&ui.editing!=="__new__")return; closeModal();return }
+  /* 点遮罩要不要关：弹窗里动过表单就不关（抖一下当反馈），没动过或压根没表单就直接关。
+     这样编辑任务、新建任务/客户/项目、设置……所有弹窗的遮罩行为一致，且不会静默丢半填内容。 */
+  if(a==="maskClose"){ if(maskDirty()){shakeModal();return} closeModal();return }
   if(a==="closeBanner"){$("#banner").innerHTML="";return}
   if(a==="settings"){openSettings();return}
+  if(a==="palette"){openPalette();return}
 
   /* ---- 笔记模块动作 ---- */
   if(actNote(a,el,id))return;
@@ -4973,6 +5141,8 @@ document.addEventListener("keydown",function(e){
   }
   if(e.key==="Enter"&&!e.shiftKey&&e.target.id==="logInput"){e.preventDefault();var lb=document.querySelector('[data-act="addLog"]');if(lb)lb.click();return}
   if(e.key==="Enter"&&!e.shiftKey&&e.target.id==="qlInput"){e.preventDefault();var qb=document.querySelector('[data-act="quickLogSave"][data-id="'+ui.quickLog+'"]');if(qb)qb.click();return}
+  /* P2-11 行内快速添加：回车建任务，焦点留在输入框里以便连续录入 */
+  if(e.key==="Enter"&&e.target.id==="qi"){e.preventDefault();inlineAddCommit();return}
   /* 浮层逐层退：一次 Esc 只关最上面那一层。
      日期面板（#dp，z-index 110）与自定义下拉（#uselpop，108）都浮在弹窗之上，
      所以开在弹窗里时，Esc 先收它们、弹窗留着；都收了以后 Esc 才关弹窗。
@@ -4988,7 +5158,9 @@ document.addEventListener("keydown",function(e){
   var meta=e.metaKey||e.ctrlKey;
   if(meta&&/^[1-9]$/.test(e.key)){var vord=NAV_KEYS;var vi=+e.key-1;if(vord[vi]){e.preventDefault();if(ui.view==="notes")flushNoteEditor();ui.view=vord[vi];render();return;}}
   if(meta&&e.key.toLowerCase()==="k"){e.preventDefault();openPalette();return}
-  if(meta&&e.key.toLowerCase()==="f"){e.preventDefault();openPalette();return}
+  /* ⌘F 归位给「就地过滤」那个搜索框（所有软件的习惯），命令面板只留 ⌘K。
+     原先两个键都开命令面板，于是框里的提示「搜索任务 ⌘F」按下去弹的是另一个界面。 */
+  if(meta&&e.key.toLowerCase()==="f"){e.preventDefault();var qi=$("#q");if(qi){qi.focus();qi.select()}else{openPalette()}return}
   if(meta&&e.key===","){e.preventDefault();openSettings();return}
   if(meta&&e.key.toLowerCase()==="s"){e.preventDefault();document.querySelector('[data-act="export"]').click();return}
 });
