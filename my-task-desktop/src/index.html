@@ -212,15 +212,19 @@ select{-webkit-appearance:none;appearance:none;background-image:url("data:image/
 /* 删除：危险操作，柔和红底红字 */
 .insp-acts .btn-danger{background:var(--danger-soft);color:var(--danger);border-color:transparent;box-shadow:0 1px 2px rgba(255,59,48,.18)}
 .insp-acts .btn-danger:hover{background:rgba(255,59,48,.2);box-shadow:0 2px 6px rgba(255,59,48,.22)}
-.insp-metrics{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
-.insp-metric{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:13px;box-shadow:var(--shadow-1)}
-.insp-metric .im-n{font-size:22px;font-weight:600;color:var(--text)}
-.insp-metric .im-l{font-size:12px;color:var(--muted);margin-top:2px}
-.insp-metric.warn .im-n{color:var(--danger)}
+/* 顶部 KPI 卡片 —— 原右侧面板「今日概览」的内容，改为一行铺在主内容区顶部，
+   不再占用一整列宽度；数值配色与状态芯片（待办/进行中/已完成 + 逾期）保持一致。 */
+.kpi-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:12px 14px;box-shadow:var(--shadow-1)}
+.kpi-n{font-size:22px;font-weight:600;color:var(--text);line-height:1.25}
+.kpi-l{font-size:12px;color:var(--muted);margin-top:2px}
+.kpi.warn .kpi-n{color:var(--danger)}
+.kpi.doing .kpi-n{color:var(--pri)}
+.kpi.done .kpi-n{color:var(--ok-text)}
+@media (max-width:620px){.kpi-strip{grid-template-columns:repeat(2,1fr)}}
 .insp-near{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:6px 12px;margin-bottom:12px}
 .insp-near .in-it{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--line);font-size:13px;cursor:pointer}
 .insp-near .in-it:last-child{border-bottom:none}
-.insp-near .in-it .in-d{margin-left:auto;font-size:12px;color:var(--muted)}
 .tabs{display:flex;gap:4px;background:var(--tabs-bg);padding:3px;border-radius:9px;width:fit-content;flex:none}
 .tab{padding:6px 16px;border-radius:8px;font-size:13.5px;color:var(--muted)}
 .tab.on{background:var(--card);color:var(--text);font-weight:500;box-shadow:0 1px 2px rgba(0,0,0,.07)}
@@ -1824,6 +1828,7 @@ function renderMain(){
   var h="";
   /* C5：孤儿视图 timeline 已删除（无任何入口，功能与「历史」重叠） */
   var v=NAV_ALL.filter(function(x){return x[0]===ui.view})[0]||NAV_ALL[0];
+  var inspOn=inspHasContent();
   var collapsed=$("#insp")&&$("#insp").classList.contains("collapsed");
   var head='<div class="center-head"><div class="ch-title">'+icon(v[2],18)+esc(v[1])+'</div>'+
     '<div class="ch-sp"></div>'+
@@ -1833,7 +1838,8 @@ function renderMain(){
       '<button class="tbtn" data-act="import" title="导入恢复"><svg class="ic" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4M7 8l5-5 5 5M4 20h16"/></svg><span>导入</span></button>'+
       '<button class="tbtn" data-act="settings" title="设置"><svg class="ic" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9L17 7M7 17l-2.1 2.1"/></svg><span>设置</span></button>'+
       '<button class="tbtn primary keep" data-act="newTask" title="新建任务：在列表顶部加一行，写完回车即可（'+MODKEY+'K 也可打开搜索面板）">'+icon(IC.plus,15)+'<span>新建</span></button>'+
-      '<button class="tbtn" data-act="toggleInsp" title="显示 / 收起右侧面板  '+MODKEY+'\\">'+(collapsed?"展开面板":"收起面板")+'</button>'+
+      /* 面板只在选中任务 / 项目时出现，这个按钮跟着一起显隐（可见性由 inspHasContent() 决定） */
+      '<button class="tbtn" data-act="toggleInsp" title="显示 / 收起右侧面板  '+MODKEY+'\\"'+(inspOn?'':' style="display:none"')+'>'+(collapsed?"展开面板":"收起面板")+'</button>'+
     '</div></div>';
   if(ui.view==="dashboard")h+=viewDashboard();
   else if(ui.view==="today")h+=viewToday();
@@ -1845,12 +1851,15 @@ function renderMain(){
   else if(ui.view==="report"||ui.view==="weekly"){if(ui.view==="weekly"&&!ui.rt)ui.rt="week";h+=viewReport();}
   else if(ui.view==="projects")h+=viewProjects();
   else h+=viewToday();
-  $("#main").innerHTML=head+'<div class="main-scroll'+(ui.view==="notes"?" notes-scroll":"")+'">'+demoBannerHtml()+onboardHtml()+h+'</div>';
+  /* 顶部 KPI 卡片（原右侧面板的「今日概览」）。总览 / 报告本来就是统计视图，不重复铺一层。 */
+  var kpi=KPI_VIEWS.indexOf(ui.view)>=0?kpiStrip():"";
+  $("#main").innerHTML=head+'<div class="main-scroll'+(ui.view==="notes"?" notes-scroll":"")+'">'+demoBannerHtml()+onboardHtml()+kpi+h+'</div>';
   if(ui.selId){var selC=document.querySelector('#main [data-act="edit"][data-id="'+ui.selId+'"]');if(selC)selC.classList.add("sel");}
   var q=$("#q");if(q){q.value=ui.q||"";q.oninput=function(){ui.q=this.value;if(ui.view==="report"||ui.view==="weekly")ui.view="all";renderMain();};}
   var ap=$("#aiPrompt");if(ap){ap.value=ui.aiPrompt||"";ap.oninput=function(){ui.aiPrompt=this.value};}
-  if(ui.view==="notes"){mountNotes();var ip=$("#insp");if(ip)ip.style.display="none";}
-  else{var ip2=$("#insp");if(ip2)ip2.style.display="";}
+  if(ui.view==="notes")mountNotes();
+  /* 没有选中任务 / 项目就没有右侧面板：主内容区拿到全宽（renderInsp 也会再对齐一次） */
+  var ip=$("#insp");if(ip)ip.style.display=(ui.view==="notes"||!inspHasContent())?"none":"";
   if(db.tasks.length>=30&&!bkTipShown){bkTipShown=true;banner("数据已积累 "+db.tasks.length+" 条，建议点右上角导出一份 JSON 备份")}
 }
 
@@ -1870,27 +1879,23 @@ function qcliHtml(cid){
   var c=clientById(cid);
   return '<span class="qcli-k">客户</span>'+(c?('<span class="usel-dot" style="background:'+(c.color||"#999")+'"></span>'+esc(c.name)):'<span class="qcli-none">未归类</span>');
 }
-function inspOverview(){
-  var all=db.tasks,todo=all.filter(function(t){return !t.done});
-  var od=todo.filter(function(t){return t.due&&dayDiff(t.due)<0});
-  var doing=all.filter(function(t){return !t.done&&(t.status==="doing"||(t.subtasks.length&&t.subtasks.some(function(s){return s.done})))});
-  var done=all.filter(function(t){return t.done});
-  var near=todo.filter(function(t){return t.due}).map(function(t){return {t:t,d:dayDiff(t.due)};}).filter(function(o){return o.d<=3;}).sort(function(a,b){return a.d-b.d;}).slice(0,5);
-  var m='<div class="insp-head"><span class="ih-t">今日概览</span><button class="insp-toggle" data-act="toggleInsp" title="收起面板  ⌘\\">'+icon(IC.x,14)+'</button></div>';
-  m+='<div class="insp-metrics">'+
-    '<div class="insp-metric"><div class="im-n">'+todo.length+'</div><div class="im-l">待办</div></div>'+
-    '<div class="insp-metric warn"><div class="im-n">'+od.length+'</div><div class="im-l">逾期</div></div>'+
-    '<div class="insp-metric"><div class="im-n">'+doing.length+'</div><div class="im-l">进行中</div></div>'+
-    '<div class="insp-metric"><div class="im-n">'+done.length+'</div><div class="im-l">已完成</div></div>'+
-  '</div>';
-  if(near.length){
-    m+='<div class="insp-near">';
-    near.forEach(function(o){var t=o.t;m+='<div class="in-it" data-act="edit" data-id="'+t.id+'"><span class="cdot" style="background:'+dotColor(t)+'"></span><span class="in-t">'+esc(t.title)+'</span><span class="in-d'+(o.d<0?" od":"")+'">'+fmtDue(t.due)+'</span></div>';});
-    m+='</div>';
-  }
-  m+='<div class="insp-card"><div class="insp-empty">点击任意任务卡片，这里会显示它的详情、进度与跟进记录。</div>'+
-    '<div class="insp-acts"><button class="btn-primary" data-act="newTask">新建任务</button></div></div>';
-  return m;
+/* 顶部 KPI 卡片 —— 取代原来右侧面板里的「今日概览」。
+   内容一样（待办 / 逾期 / 进行中 / 已完成），但改成一行铺在主内容区顶部：
+   不再永久占用一列宽度，也不用先去点「收起面板」。
+   只在真有任务时出现 —— 一条都没有时首页该是空状态，而不是四个 0。 */
+var KPI_VIEWS=["today","all","calendar","quadrant","logbook","projects"];
+function kpiStrip(){
+  if(!db.tasks.length)return "";
+  var todo=0,od=0,doing=0,done=0;
+  db.tasks.forEach(function(t){
+    if(t.done){done++;return}
+    todo++;
+    if(t.due&&dayDiff(t.due)<0)od++;
+    if(t.status==="doing"||((t.subtasks||[]).some(function(s){return s.done})))doing++;
+  });
+  function kpi(n,label,cls){return '<div class="kpi'+(cls?" "+cls:"")+'"><div class="kpi-n">'+n+'</div><div class="kpi-l">'+label+"</div></div>"}
+  return '<div class="kpi-strip" role="group" aria-label="任务概览">'+
+    kpi(todo,"待办")+kpi(od,"逾期",od?"warn":"")+kpi(doing,"进行中","doing")+kpi(done,"已完成","done")+"</div>";
 }
 function inspTask(t){
   var subs=t.subtasks||[],sd=subs.filter(function(s){return s.done}).length,pct=subs.length?Math.round(sd/subs.length*100):(t.done?100:0);
@@ -1910,11 +1915,23 @@ function inspTask(t){
   m+='<div class="insp-card insp-empty">双击卡片或点「编辑」打开完整编辑面板。</div>';
   return m;
 }
+/* 右侧面板只在"有东西可看"时出现：选中了任务 → 任务详情；落在某个具体项目上 → 项目详情。
+   没有选中时整块隐藏（清空 + display:none），主内容区因此拿到全宽。
+   原来的「今日概览」已经搬到主内容区顶部的 KPI 卡片，不再占这个位置。 */
+function inspHasContent(){
+  if(ui.view==="projects"&&ui.pid&&ui.pid!=="all")return !!proj(ui.pid);
+  return !!(ui.selId&&task(ui.selId));
+}
 function renderInsp(){
   var el=$("#insp");if(!el)return;
-  if(ui.view==="projects"&&ui.pid&&ui.pid!=="all"){var pp=proj(ui.pid);if(pp){el.innerHTML=inspProject(pp);return;}}
-  var t=ui.selId?task(ui.selId):null;
-  el.innerHTML=t?inspTask(t):inspOverview();
+  var on=inspHasContent();
+  /* 顶栏的「收起 / 展开面板」跟着面板一起显隐（edit 只重渲染检查器，不重排列表，
+     所以按钮的可见性必须在这里对齐，否则会停在上一轮的状态） */
+  var tb=document.querySelector('#main [data-act="toggleInsp"]');
+  if(tb)tb.style.display=on?"":"none";
+  if(ui.view==="notes"||!on){el.innerHTML="";el.classList.remove("collapsed");el.style.display="none";return}
+  el.style.display="";
+  el.innerHTML=(ui.view==="projects"&&ui.pid&&ui.pid!=="all")?inspProject(proj(ui.pid)):inspTask(task(ui.selId));
 }
 function projTaskItem(t){
   return '<div class="in-it" data-act="edit" data-id="'+t.id+'"><span class="cdot" style="background:'+dotColor(t)+'"></span><span class="it-t">'+esc(t.title)+'</span>'+(t.due?'<span class="it-d'+(dayDiff(t.due)<0?' od':'')+'">'+fmtDue(t.due)+'</span>':'')+'</div>';
@@ -4440,7 +4457,8 @@ document.addEventListener("click",function(e){
   if(a==="newTask"){inlineCapture();return}
   if(a==="add"){addTask();return}
   if(a==="expand"){ui.open[id]=!ui.open[id];renderMain();return}
-  if(a==="edit"){ui.selId=id;renderInsp();var pv=document.querySelectorAll(".sel");for(var si=0;si<pv.length;si++)pv[si].classList.remove("sel");if(el)el.classList.add("sel");return}
+  /* 选中任务 → 右侧滑出详情；上次若把它收起了，这里要重新展开，否则"点了没反应" */
+  if(a==="edit"){ui.selId=id;var insE=$("#insp");if(insE)insE.classList.remove("collapsed");renderInsp();var pv=document.querySelectorAll(".sel");for(var si=0;si<pv.length;si++)pv[si].classList.remove("sel");if(el)el.classList.add("sel");return}
   if(a==="editModal"){openTask(id);return}
   if(a==="cardMenu"){
     /* 「⋯」= 常驻可见的右键菜单入口：合成一次 contextmenu 事件复用已有菜单实现。

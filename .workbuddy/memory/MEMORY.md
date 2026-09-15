@@ -17,7 +17,8 @@
   - **看板不再是独立视图**：它是任务数据的「按状态分列」呈现，现已并入「任务」页，由页面最上方的 `ui.taskMode`（`list`/`board`）切换器控制，入口由 `taskModeSwitch()` 渲染。`viewBoard()` 已删除。
   - **「今天」只负责时间焦点**：今天要处理 / 逾期批量治理 / 近 3 天 / 久未跟进 / 已完成入口；**不再**渲染优先级筛选条与「进行中的任务」全量列表（那是任务页的内容），只留一行 `.today-more` 引导去任务页。改动前「今天」和「任务」是同一份列表渲染两遍。
   - 优先级筛选芯片统一由 `priChips()` 产出，`filterBar()`（列表）与 `boardFilterBar()`（看板，多一个项目下拉）共用，保证配色一致。
-  - 右侧仍是「情境检查器」：未选中任务时显示「今日概览」四格统计 + 近 3 天到期，选中任务时显示任务详情 —— 定位是补充信息，不是任务入口。
+  - 右侧面板**按需出现**（`inspHasContent()`）：选中任务 → 任务详情；落在具体项目上 → 项目详情（摘要 / 核心目标 / 进行中 / 待办）。**没有内容时整块 `display:none`，主内容区拿到全宽** —— 原来的「今日概览」已改成主内容区**最顶部**的一行 4 张 KPI 卡片（`kpiStrip()`，视图白名单 `KPI_VIEWS`，空库时不出现）。
+  - 顶栏「收起 / 展开面板」按钮跟随面板显隐。注意：点任务卡片（`data-act="edit"`）**只调 `renderInsp()` 不调 `renderMain()`**（为了保住列表滚动位置），所以按钮可见性必须在那条路径上也同步。
 - **后端**：`src-tauri/src/main.rs`（2092 行），SQLite 建表在 `init_schema`，表有 projects / tasks / subtasks / clients / tags / smart_lists / logs / notes / note_cats / proj_stages。
 - **Rust 已完成 import 规范化（2026-09-11 第二轮）**：文件顶部统一 `use` 导入（`serde_json::{json,Value}` / `rusqlite::params` / `std::fs` 等，共 181 处内联全路径改为 use）；macOS 专用的 `Menu/MenuItem/PredefinedMenuItem/TrayIconBuilder/TrayIconId/escape_osascript` 走 `#[cfg(target_os = "macos")]` 门控导入。**保持规范：新增依赖也走 use，别写内联全路径。**
   - **大坑：Windows 构建的「unused import/function」告警对 macOS 专用代码是误报** —— 只被 `#[cfg(target_os="macos")]` 分支使用的符号，在 Windows 上报 unused，正确处理是按平台门控导入/定义，**删了会破坏 macOS 构建**。
