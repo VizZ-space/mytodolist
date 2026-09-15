@@ -1481,7 +1481,9 @@ function emptyData(){
 /* D1：首启提示 —— 只在"真的什么都没有"时出现，给一个明确动作（写一条 / 载入示例） */
 function demoHintHtml(){
   if(db.tasks.length||db.demoSeeded)return "";
-  return '<div class="demo-hint">'+icon(IC.spark,15)+'<span>第一次用？直接在最上面的输入框写一条任务试试。想先看看它怎么用，也可以</span>'+
+  /* 只说这句独有的「可以载入示例数据」——"写在上面输入框里" 已由空状态和输入框自己表达，
+     同屏重复三遍反而让人不知道该看哪。 */
+  return '<div class="demo-hint">'+icon(IC.spark,15)+'<span>第一次用？想先看看它怎么用，可以</span>'+
     '<button class="mini" data-act="loadDemo">载入示例数据</button></div>';
 }
 /* D1：示例数据横幅 —— 明确标记 + 一键清空，用户永远分得清哪个是自己的 */
@@ -2700,7 +2702,10 @@ function viewToday(){
        '<button class="mini" data-act="bulkDone">批量标记完成</button></div>';
   }
   if(!list.length&&!soon.length){
-    h+=emptyState({icon:IC.sun,cls:"estate-inline",title:"今天没有到期任务",why:"清爽。<br>要不要把这周的目标拆成几个任务？",acts:[{label:"加一条任务",act:"newTask",icon:IC.plus}]});
+    /* 不给「加一条任务」按钮：上面的快速添加行就是同一个入口，
+       点按钮（newTask → inlineCapture）也只是把光标送回那个输入框，纯重复。
+       空状态改用一句话把入口指向上方，闭环即可。 */
+    h+=emptyState({icon:IC.sun,cls:"estate-inline",title:"今天没有到期任务",why:"清爽。<br>要不要把这周的目标拆成几个任务？<br>写在上面的输入框里，回车即可。"});
   }else{
     list.forEach(function(t){
       var d=dayDiff(t.due),tag=d<0?'<span class="chip od">逾期 '+(-d)+" 天</span>":'<span class="chip due">今天截止</span>';
@@ -2871,9 +2876,11 @@ function activeFilterNames(){
   return n.join("、")||"无";
 }
 function filteredEmpty(){
+  /* 空库时不给「写一条任务」按钮 —— 页顶的快速添加行才是入口，按钮只是把它再聚焦一次。
+     「清空筛选」不一样：那个动作在页面上没有别的地方能做，必须留着。 */
   return emptyState({icon:IC.list,title:db.tasks.length?"没有符合条件的任务":"还没有任务",
     why:db.tasks.length?"当前生效的筛选："+activeFilterNames()+"。<br>清掉筛选就能看到全部任务。":"在最上面的输入框写一句、按回车就加上了。",
-    acts:db.tasks.length?[{label:"清空筛选",act:"bprojClear"}]:[{label:"写一条任务",act:"newTask",primary:1,icon:IC.plus}]});
+    acts:db.tasks.length?[{label:"清空筛选",act:"bprojClear"}]:[]});
 }
 function viewAll(){
   var board=ui.taskMode==="board";
