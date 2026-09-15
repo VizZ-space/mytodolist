@@ -234,14 +234,6 @@ select{-webkit-appearance:none;appearance:none;background-image:url("data:image/
 h2{font-size:17px;font-weight:600;margin-bottom:10px}
 h3{font-size:14px;font-weight:600;margin-bottom:8px}
 
-/* ---------- quick add ---------- */
-.qadd{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:11px;margin-bottom:16px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;box-shadow:var(--shadow-1)}
-.qadd .t{flex:1 1 170px;min-width:0}
-.qadd select,.qadd input[type=date]{flex:0 0 auto;width:auto;font-size:14px;height:38px}
-.qadd .go{height:38px;padding:0 14px;border-radius:10px;background:var(--pri);color:#fff;font-size:14px;font-weight:600;display:inline-flex;align-items:center;gap:6px;flex:0 0 auto;box-shadow:0 1px 2px rgba(0,122,255,.3),0 2px 6px rgba(0,122,255,.2);transition:background .14s ease,transform .08s ease,box-shadow .14s ease}
-.qadd .go:hover{background:var(--pri-press)}
-.qadd .go:active{transform:scale(.97)}
-
 /* ---------- today block ---------- */
 .today-box{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;margin-bottom:16px;box-shadow:var(--shadow-1)}
 .today-box.hot{border-color:var(--hot-border);background:var(--danger-soft)}
@@ -280,7 +272,7 @@ h3{font-size:14px;font-weight:600;margin-bottom:8px}
 .iact:hover{background:var(--hover);color:var(--text)}
 .iact:active{transform:scale(.92)}
 .iact.danger:hover{background:var(--danger-soft);color:var(--danger)}
-.tbtn:focus-visible,.iact:focus-visible,.tab:focus-visible,.seg button:focus-visible,.fchip:focus-visible,.mini:focus-visible,.go:focus-visible,.btn-pri:focus-visible,.sbox:focus-visible,.check:focus-visible,.sub .sbox:focus-visible{outline:none;box-shadow:var(--ring)}
+.tbtn:focus-visible,.iact:focus-visible,.tab:focus-visible,.seg button:focus-visible,.fchip:focus-visible,.mini:focus-visible,.btn-pri:focus-visible,.sbox:focus-visible,.check:focus-visible,.sub .sbox:focus-visible{outline:none;box-shadow:var(--ring)}
 /* 项目卡操作改为常驻可见（原先 opacity:0 + :hover 才显，属于新用户发现不了的隐形入口） */
 .prow{display:flex;align-items:center;gap:9px;margin:9px 0 0 30px}
 .bar{flex:0 0 140px;max-width:40%;height:5px;border-radius:3px;background:var(--tabs-bg);overflow:hidden}
@@ -591,7 +583,7 @@ h3{font-size:14px;font-weight:600;margin-bottom:8px}
 
 @media(min-width:769px){
   input,select,textarea{font-size:14px}
-  .qadd .t,.sheet input,.sheet select,.sheet textarea{font-size:14px}
+  .sheet input,.sheet select,.sheet textarea{font-size:14px}
 }
 @media(max-width:768px){
   .sidebar{display:none}
@@ -610,10 +602,6 @@ h3{font-size:14px;font-weight:600;margin-bottom:8px}
   .set-col{margin-top:0}
   .set-foot{flex-wrap:wrap}
   .set-meta{margin-left:0;margin-right:0;flex:1 1 100%}
-  .qadd{position:relative}
-  .qadd .t{flex:1 1 100%}
-  .qadd select,.qadd input[type=date]{flex:1 1 46%;height:42px}
-  .qadd .go{flex:1 1 100%;justify-content:center;height:44px}
   .mini{height:36px;min-width:36px;font-size:13px}
   .check{width:24px;height:24px}
   .sbox{width:20px;height:20px}
@@ -631,7 +619,6 @@ h3{font-size:14px;font-weight:600;margin-bottom:8px}
 .date-field .df-x:hover{background:var(--danger-soft);color:var(--danger)}
 .date-field:active{background:var(--pri-soft)}
 .fld .date-field{width:100%}
-.qadd .date-field{flex:0 0 auto;height:38px}
 #dp{position:fixed;inset:0;z-index:110;display:none;align-items:center;justify-content:center;pointer-events:none}
 #dp.open{pointer-events:auto}
 #dp.open{display:flex}
@@ -662,7 +649,7 @@ h3{font-size:14px;font-weight:600;margin-bottom:8px}
 .dp-ok{background:var(--pri);color:#fff;border-color:var(--pri)}
 .dp-ok:hover{filter:brightness(1.05)}
 .dp-clear:active,.dp-ok:active{transform:scale(.97)}
-@media(max-width:600px){#dp.open{align-items:flex-end}#dp.open .dp-pop{opacity:1;transform:none;transition:opacity .22s ease,transform .22s cubic-bezier(.2,.9,.3,1)}.dp-pop{left:0;right:0;top:auto;bottom:0;transform:translateY(20px) scale(1);width:100%;max-width:100%;border-radius:24px 24px 0 0;padding:22px 18px calc(22px + env(safe-area-inset-bottom));box-shadow:0 -12px 50px rgba(0,0,0,.22)}.qadd .date-field{flex:1 1 46%;height:44px}.dp-foot .dp-ok,.dp-foot .dp-clear{height:48px}.pcard .h .iact{opacity:1}.task .acts{opacity:1}}
+@media(max-width:600px){#dp.open{align-items:flex-end}#dp.open .dp-pop{opacity:1;transform:none;transition:opacity .22s ease,transform .22s cubic-bezier(.2,.9,.3,1)}.dp-pop{left:0;right:0;top:auto;bottom:0;transform:translateY(20px) scale(1);width:100%;max-width:100%;border-radius:24px 24px 0 0;padding:22px 18px calc(22px + env(safe-area-inset-bottom));box-shadow:0 -12px 50px rgba(0,0,0,.22)}.dp-foot .dp-ok,.dp-foot .dp-clear{height:48px}.pcard .h .iact{opacity:1}.task .acts{opacity:1}}
 /* ---------- 自定义下拉 uiSelect ---------- */
 .usel{display:inline-flex;align-items:center;gap:8px;height:40px;padding:0 12px;border:1.5px solid var(--line);border-radius:12px;background:var(--card);font-size:14px;font-weight:500;color:var(--text);cursor:pointer;transition:border-color .15s,box-shadow .15s,background .15s;white-space:nowrap}
 .usel:hover{border-color:var(--faint)}
@@ -674,8 +661,6 @@ h3{font-size:14px;font-weight:600;margin-bottom:8px}
 .usel.on .usel-caret{transform:rotate(180deg);color:var(--pri)}
 .fld .usel{width:100%}
 .client-row .usel{flex:1}
-.qadd .usel{height:38px;flex:0 0 auto;max-width:132px}
-.qadd .usel .usel-val{overflow:hidden;text-overflow:ellipsis}
 #uselpop{position:fixed;inset:0;z-index:108;display:none}
 #uselpop.open{display:block}
 .up-mask{position:absolute;inset:0;background:rgba(0,0,0,.18);opacity:0;transition:opacity .16s ease}
@@ -1054,10 +1039,7 @@ h3{font-size:14px;font-weight:600;margin-bottom:8px}
 .demo-banner{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:12px;padding:11px 14px;border:1px solid var(--line2);border-radius:var(--r);background:var(--pri-soft);color:var(--text);font-size:13px}
 .demo-banner .mini{margin-left:0}
 
-/* A1/C2：客户由项目推导 —— 可见回显，不是控件 */
-.qcli{display:inline-flex;align-items:center;gap:5px;flex:0 0 auto;height:38px;padding:0 10px;border-radius:9px;background:var(--subtle);border:1px solid var(--line);color:var(--muted);font-size:12.5px;white-space:nowrap}
-.qcli-k{color:var(--faint);font-size:11.5px}
-.qcli-none{color:var(--faint)}
+/* A1/C2：客户由项目推导 —— 在任务弹窗里以「可见回显」呈现，不是默认控件 */
 .derived-row{display:flex;align-items:center;gap:9px;height:38px;padding:0 12px;border:1px solid var(--line);border-radius:9px;background:var(--subtle);font-size:13px}
 .derived-row .dv-k{color:var(--muted);flex:none}
 .derived-row .dv-v{flex:1;min-width:0;display:flex;align-items:center;gap:6px;color:var(--text)}
@@ -1340,14 +1322,7 @@ function handleChg(chg,val){
   if(chg==="rpid"){ui.rpid=val;ui.aiOut="";renderMain();return}
   if(chg==="bproj"){ui.bproj=val;renderMain();return}
   if(chg==="tone"){ui.tone=val;return}
-  /* A1/C2：新增任务时换了项目 → 客户跟着推导（可见回显，不弹选择器） */
-  if(chg==="qproj"){
-    var cid=projClientId(val);
-    var h=$("#qc");if(h)h.value=cid;
-    var cl=$("#qcli");if(cl)cl.innerHTML=qcliHtml(cid);
-    return;
-  }
-  /* C2：任务详情里换了项目 → 同步推导客户（除非用户已手动指定） */
+  /* C2：任务弹窗里换了项目 → 同步推导客户（除非用户已手动指定） */
   if(chg==="tproj"){
     var cid2=projClientId(val);
     var hv=$("#mcView");if(hv)hv.innerHTML=derivedClientHtml(cid2);
@@ -1504,7 +1479,7 @@ function onboardHtml(){
   if(s1&&s2&&s3)return "";
   function st(ok,n,txt){return '<span class="ob-it'+(ok?" done":"")+'"><i>'+(ok?icon(IC.check,11):n)+"</i>"+txt+"</span>"}
   return '<div class="ob-strip"><span class="ob-t">'+icon(IC.spark,14)+"上手三步</span>"+
-    st(s1,"1","加一条任务（最上面的输入框）")+
+    st(s1,"1","加一条任务（右上角「新建」）")+
     st(s2,"2","给它设个日期（任务卡上的 📅）")+
     st(s3,"3","归到某个项目（任务卡 ⋯ → 编辑任务 → 项目）")+
     '<span class="spacer"></span><button class="mini" data-act="onboardDone">不用了</button></div>';
@@ -1846,7 +1821,7 @@ function renderMain(){
       '<button class="tbtn" data-act="export" title="导出 JSON 备份"><svg class="ic" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 11l5 5 5-5M4 20h16"/></svg><span>导出</span></button>'+
       '<button class="tbtn" data-act="import" title="导入恢复"><svg class="ic" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4M7 8l5-5 5 5M4 20h16"/></svg><span>导入</span></button>'+
       '<button class="tbtn" data-act="settings" title="设置"><svg class="ic" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9L17 7M7 17l-2.1 2.1"/></svg><span>设置</span></button>'+
-      '<button class="tbtn primary keep" data-act="newTask" title="新建任务：在列表顶部加一行，写完回车即可（'+MODKEY+'K 也可打开搜索面板）">'+icon(IC.plus,15)+'<span>新建</span></button>'+
+      '<button class="tbtn primary keep" data-act="newTask" title="新建任务：打开编辑弹窗（'+MODKEY+'K 也可打开搜索面板）">'+icon(IC.plus,15)+'<span>新建</span></button>'+
       /* 面板只在选中任务 / 项目时出现，这个按钮跟着一起显隐（可见性由 inspHasContent() 决定） */
       '<button class="tbtn" data-act="toggleInsp" title="显示 / 收起右侧面板  '+MODKEY+'\\"'+(inspOn?'':' style="display:none"')+'>'+(collapsed?"展开面板":"收起面板")+'</button>'+
     '</div></div>';
@@ -1883,10 +1858,6 @@ function projClientId(pid){var p=pid?proj(pid):null;return (p&&p.clientId)?p.cli
 function derivedClientHtml(cid){
   var c=clientById(cid);
   return c?('<span class="usel-dot" style="background:'+(c.color||"#999")+'"></span><b>'+esc(c.name)+"</b>"):'<span class="muted">未归类（该项目未指定客户）</span>';
-}
-function qcliHtml(cid){
-  var c=clientById(cid);
-  return '<span class="qcli-k">客户</span>'+(c?('<span class="usel-dot" style="background:'+(c.color||"#999")+'"></span>'+esc(c.name)):'<span class="qcli-none">未归类</span>');
 }
 /* 顶部 KPI 卡片 —— 取代原来右侧面板里的「今日概览」。
    内容一样（待办 / 逾期 / 进行中 / 已完成），但改成一行铺在主内容区顶部：
@@ -2616,28 +2587,6 @@ function openNoteCatModal(focusNew,nid){
 }
 
 /* D1：记住上次用的项目和优先级；侧栏正筛某个项目时优先用当前项目 */
-function quickAdd(){
-  var pf=db.prefs||{};
-  var defPid=(ui.pid!=="all"&&ui.pid!=="none")?ui.pid:(pf.pid||"");
-  if(defPid&&!proj(defPid))defPid="";
-  var defPri=pf.pri||"low";
-  var pArr=[{v:"",label:"未归类"}].concat(db.projects.map(function(p){return {v:p.id,label:p.name}}));
-  var priArr=["low","mid","high"].map(function(k){return {v:k,label:PRI[k]}});
-  var defCid=projClientId(defPid);
-  /* A1 + C2：客户下拉已删除 —— 客户由所选项目自动推导，这里只做「看得见的回显」，
-     不是控件也不是隐藏逻辑；需要覆盖时可去任务详情里手动指定。
-     内联语法（!高 / @标签 / 明天 / *重要）保留但降级为加速通道，hover 可见提示。 */
-  var hint="回车即可添加 · 也可以直接输入：!高 / !中 / !低 · @标签 · 明天 / 周五 · 开头加 * 标重要";
-  return '<div class="qadd">'+
-    uiSelect("qp",defPid,pArr,"qproj")+
-    '<input class="t" id="qt" placeholder="添加任务，回车即可" title="'+esc(hint)+'">'+
-    uiSelect("qpri",defPri,priArr)+
-    dateTrigger("qd",today())+
-    '<span class="qcli" id="qcli" title="客户由所选项目自动推导；需要改请在任务详情里手动指定">'+qcliHtml(defCid)+'</span>'+
-    '<input type="hidden" id="qc" value="'+esc(defCid)+'">'+
-    '<button class="go" data-act="add">'+icon(IC.plus,15)+"添加</button></div>";
-}
-
 /* 优先级筛选芯片：列表与看板两条筛选条共用同一份实现，
    保证「全部 / 高 / 中 / 低」的文案与 蓝 / 红 / 橙 / 蓝 配色在两处完全一致。 */
 function priChips(){
@@ -2693,8 +2642,7 @@ function viewToday(){
       od=list.filter(function(t){return dayDiff(t.due)<0}),
       deep=deepOverdue(),
       stales=staleList();
-  var h=quickAdd();
-  h+='<div class="today-box'+(od.length?" hot":"")+'"><div class="today-h">'+icon(IC.sun,17)+"今天要处理"+(list.length?'<span class="cnt">'+list.length+" 项</span>":"")+"</div>";
+  var h='<div class="today-box'+(od.length?" hot":"")+'"><div class="today-h">'+icon(IC.sun,17)+"今天要处理"+(list.length?'<span class="cnt">'+list.length+" 项</span>":"")+"</div>";
   /* C2：逾期超过 7 天的批量治理 */
   if(deep.length){
     h+='<div class="odbulk">'+icon(IC.alert,15)+"<span>有 <b>"+deep.length+"</b> 项逾期超过 "+DEEP_OD+" 天，一直没动</span><span class=\"spacer\"></span>"+
@@ -2702,10 +2650,9 @@ function viewToday(){
        '<button class="mini" data-act="bulkDone">批量标记完成</button></div>';
   }
   if(!list.length&&!soon.length){
-    /* 不给「加一条任务」按钮：上面的快速添加行就是同一个入口，
-       点按钮（newTask → inlineCapture）也只是把光标送回那个输入框，纯重复。
-       空状态改用一句话把入口指向上方，闭环即可。 */
-    h+=emptyState({icon:IC.sun,cls:"estate-inline",title:"今天没有到期任务",why:"清爽。<br>要不要把这周的目标拆成几个任务？<br>写在上面的输入框里，回车即可。"});
+    /* 不给「加一条任务」按钮：右上角那个「新建」就是同一个入口，
+       同屏再放一个按钮属于重复；空状态只负责把入口指过去。 */
+    h+=emptyState({icon:IC.sun,cls:"estate-inline",title:"今天没有到期任务",why:"清爽。<br>要不要把这周的目标拆成几个任务？<br>点右上角「新建」写下第一件。"});
   }else{
     list.forEach(function(t){
       var d=dayDiff(t.due),tag=d<0?'<span class="chip od">逾期 '+(-d)+" 天</span>":'<span class="chip due">今天截止</span>';
@@ -2876,16 +2823,15 @@ function activeFilterNames(){
   return n.join("、")||"无";
 }
 function filteredEmpty(){
-  /* 空库时不给「写一条任务」按钮 —— 页顶的快速添加行才是入口，按钮只是把它再聚焦一次。
+  /* 空库时不给「写一条任务」按钮 —— 右上角「新建」才是入口，空状态指过去即可。
      「清空筛选」不一样：那个动作在页面上没有别的地方能做，必须留着。 */
   return emptyState({icon:IC.list,title:db.tasks.length?"没有符合条件的任务":"还没有任务",
-    why:db.tasks.length?"当前生效的筛选："+activeFilterNames()+"。<br>清掉筛选就能看到全部任务。":"在最上面的输入框写一句、按回车就加上了。",
+    why:db.tasks.length?"当前生效的筛选："+activeFilterNames()+"。<br>清掉筛选就能看到全部任务。":"点右上角「新建」写下第一条就行。",
     acts:db.tasks.length?[{label:"清空筛选",act:"bprojClear"}]:[]});
 }
 function viewAll(){
   var board=ui.taskMode==="board";
   var h=taskModeSwitch();
-  h+=quickAdd();
   h+=board?boardFilterBar():filterBar();
   if(board)return h+kanban(boardTasks());
   var a=sortTasks(kpiFiltered());
@@ -3711,8 +3657,21 @@ function subStatusHtml(t){
     '</div>'+
     '<div class="ssubs">'+rows+'</div>';
 }
+/* 新建任务的「虚拟任务」：新建与编辑共用同一张表单，只是它还没进 db
+   （saveTask 里才真正 unshift）。默认项目 / 优先级沿用上次的选择。 */
+function draftTask(){
+  var pf=db.prefs||{};
+  var pid=(ui.pid!=="all"&&ui.pid!=="none")?ui.pid:(pf.pid||"");
+  if(pid&&!proj(pid))pid="";
+  return {id:"",title:"",clientId:projClientId(pid),projectId:pid,priority:priKey(pf.pri||"low"),
+    due:"",note:"",done:false,doneAt:0,status:"todo",createdAt:0,planned:false,
+    important:false,tags:[],subtasks:[],logs:[],noteId:""};
+}
 function openTask(id){
-  var t=task(id);if(!t)return;ui.editing=id;
+  var isNew=!id||id==="__new__";
+  var t=isNew?draftTask():task(id);
+  if(!t)return;
+  ui.editing=isNew?"__new__":id;
   var d=ui.taskDraft;ui.taskDraft=null;
   ui.tagPick=(d?d.tags:(t.tags||[])).slice();ui.impPick=d?!!d.important:!!t.important;
   ui.clientOverride=(d?!!d.clientOverride:false);
@@ -3726,11 +3685,12 @@ function openTask(id){
   var derived=projClientId(curProject);
   if(!ui.clientOverride)curClient=derived;
   $("#modal").innerHTML='<div class="mask" data-act="maskClose"><div class="sheet" data-sheet="1">'+
-    "<h3>编辑任务</h3>"+
+    "<h3>"+(isNew?"新建任务":"编辑任务")+"</h3>"+
     /* C2：渐进披露 —— 默认只给 3 件事：标题、截止日期、项目。
        其余（优先级/状态/标签/重要/笔记/子任务/备注/跟进）全部收进「更多选项 ▾」，
-       这个折叠标题常驻可见，点得到，不是靠记忆的隐藏入口。 */
-    '<div class="fld full"><label>任务标题</label><input id="mt" value="'+esc(titleV)+'"></div>'+
+       这个折叠标题常驻可见，点得到，不是靠记忆的隐藏入口。
+       新建时不含「关联笔记 / 子任务 / 跟进记录 / 删除」—— 那些都需要任务已经存在。 */
+    '<div class="fld full"><label>任务标题</label><input id="mt" placeholder="'+(isNew?"写一句要做什么，回车即保存":"")+'" value="'+esc(titleV)+'"></div>'+
     '<div class="two-col">'+
       '<div class="fld"><label>截止日期</label>'+dateTrigger("md",dueV)+'</div>'+
       '<div class="fld"><label>项目</label><div class="client-row">'+uiSelect("mp",curProject,projOptsArr,"tproj")+'<button type="button" class="tbtn" data-act="newProjectInline" title="新建项目">'+icon(IC.plus,14)+'</button><button type="button" class="tbtn" data-act="editProjectInline" title="编辑当前项目">'+icon(IC.pencil,14)+'</button></div></div>'+
@@ -3740,7 +3700,7 @@ function openTask(id){
         '<div class="client-row" style="margin-top:8px"><button type="button" class="tbtn" data-act="newClientInline" title="新建客户">'+icon(IC.plus,14)+' 新建客户</button><button type="button" class="tbtn" data-act="editClientInline" title="编辑当前客户">'+icon(IC.pencil,14)+' 编辑当前客户</button></div>'+
       '</div>'+
     '</div>'+
-    '<div class="fld full"><details class="more" id="taskMore"><summary>更多选项（优先级 / 状态 / 标签 / 关联笔记 / 备注 / 跟进记录）</summary>'+
+    '<div class="fld full"><details class="more" id="taskMore"><summary>更多选项（优先级 / 状态 / 标签 / 备注'+(isNew?"":" / 关联笔记 / 子任务 / 跟进记录")+'）</summary>'+
       '<div class="more-body">'+
         '<div class="two-col">'+
           '<div class="fld"><label>优先级</label>'+uiSelect("mpri",priV,priOptsArr)+'</div>'+
@@ -3748,21 +3708,28 @@ function openTask(id){
         '</div>'+
         '<div class="fld full"><label>标签（横向分类，可多选）</label><div id="tagBox" class="tchip-row">'+tagChipsHtml(ui.tagPick)+'</div></div>'+
         '<div class="fld full"><button type="button" class="imp-toggle '+impCls+'" data-act="toggleImp" id="mimp"><span class="imp-star">★</span><span class="imp-txt">'+(ui.impPick?"已标记为重要":"标记为重要")+'</span></button></div>'+
-        '<div class="fld full"><label>关联笔记</label><div class="tasknote-row">'+
+        (isNew?"":'<div class="fld full"><label>关联笔记</label><div class="tasknote-row">'+
           (t.noteId&&noteById(t.noteId)?'<span class="tn-current">'+icon(IC.note,14)+esc(noteById(t.noteId).title||"无标题笔记")+'</span><button type="button" class="tbtn" data-act="openTaskNotePicker" data-id="'+t.id+'" title="更换关联笔记">'+icon(IC.pencil,14)+'更换</button>':'<button type="button" class="tbtn keep" data-act="openTaskNotePicker" data-id="'+t.id+'">'+icon(IC.plus,14)+'关联笔记</button>')+
-        '</div></div>'+
-        '<div class="fld full substat-field"><label>子任务进度</label><div id="subStatusBox" class="substat-box">'+subStatusHtml(t)+'</div></div>'+
+        '</div></div>')+
+        (isNew?"":'<div class="fld full substat-field"><label>子任务进度</label><div id="subStatusBox" class="substat-box">'+subStatusHtml(t)+'</div></div>')+
         '<div class="fld full"><label>备注</label><textarea id="mn" rows="3" placeholder="补充说明、链接、联系人">'+esc(noteV)+'</textarea></div>'+
-        '<div class="fld full"><label>跟进记录</label>'+
+        (isNew?"":'<div class="fld full"><label>跟进记录</label>'+
           '<div id="logList">'+(t.logs&&t.logs.length?t.logs.slice().sort(function(a,b){return b.at-a.at}).map(logItemHtml).join(""):'<div class="empty" style="padding:10px 0">还没有跟进记录，记一笔进展吧</div>')+'</div>'+
           '<div style="display:flex;gap:8px;margin-top:8px;align-items:flex-end"><textarea id="logInput" rows="2" placeholder="记一笔跟进，回车添加（Shift+回车换行）" style="flex:1;font:13.5px/1.5 inherit;padding:7px 9px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--text);resize:vertical">'+'</textarea><button class="logadd" data-act="addLog" data-id="'+t.id+'">添加</button></div>'+
-        '</div>'+
+        '</div>')+
       '</div>'+
     '</details></div>'+
     '<div class="sheet-act"><button class="btn-ghost" data-act="closeModal">取消</button><button class="btn-pri" data-act="saveTask">保存</button></div>'+
-    '<button class="btn-danger" style="width:100%;height:40px;border-radius:10px;margin-top:10px;font-size:14px" data-act="del" data-id="'+t.id+'">删除这个任务</button>'+
+    (isNew?"":'<button class="btn-danger" style="width:100%;height:40px;border-radius:10px;margin-top:10px;font-size:14px" data-act="del" data-id="'+t.id+'">删除这个任务</button>')+
     "</div></div>";
-  setTimeout(function(){var mt=$("#mt");if(mt)mt.focus();},30);
+  setTimeout(function(){
+    var mt=$("#mt");if(!mt)return;
+    mt.focus();
+    /* 新建时保留「回车即可」的手感：在标题里回车直接保存，不用挪手去点按钮 */
+    if(isNew)mt.addEventListener("keydown",function(e){
+      if(e.key==="Enter"){e.preventDefault();var b=document.querySelector('#modal [data-act="saveTask"]');if(b)b.click();}
+    });
+  },30);
 }
 function refreshSubBox(){
   var t=task(ui.editing);if(!t)return;
@@ -4090,36 +4057,13 @@ function openImportModal(){
 }
 
 /* ---------- actions ---------- */
-function addTask(){
-  var t=$("#qt");if(!t)return;
-  var raw=t.value.trim();if(!raw){t.focus();return}
-  var pt=parseTitle(raw);
-  if(ui.tag&&pt.tags.indexOf(ui.tag)<0)pt.tags.push(ui.tag);/* 侧栏正筛某标签时，新任务自动带上 */
-  var gv=function(x){var e=$("#"+x);return e?e.value:""};
-  var cid=gv("qc"),pid=gv("qp"),pri=pt.pri||gv("qpri");
-  if(!PRI[pri])pri="low";
-  var due=pt.due||gv("qd")||"";
-  db.tasks.unshift({id:uid(),title:pt.title,clientId:cid,projectId:pid,priority:pri,due:due,note:"",done:false,doneAt:0,status:"todo",createdAt:Date.now(),
-    planned:false,important:pt.important||false,tags:pt.tags,subtasks:[],logs:[],noteId:""});
-  db.prefs={pid:pid,pri:pri};/* D1：记住这次的选择 */
-  save();renderSide();renderMain();
-  var n=$("#qt");if(n){n.value="";n.focus()}
-  var bits=[];if(pt.important)bits.push("★ 重要");if(cid){var c=clientById(cid);if(c)bits.push("客户 "+c.name)}if(pid){var p=proj(pid);if(p)bits.push("项目 "+p.name)}if(pt.due)bits.push("截止 "+fmtDate(pt.due));if(pt.pri)bits.push(PRI[pt.pri]);if(pt.tags.length)bits.push(pt.tags.length+" 个标签");
-  toast("已添加"+(bits.length?("："+bits.join(" · ")):""));
-}
-/* C1：就地新增 —— 顶部「新建」不再打开命令面板（那是高阶加速通道），
-   而是在当前列表顶部就地插入一行输入：回车保存并保留该行，可连续连加；Esc 收起。
-   这就是滴答清单 / 微软 To Do 的新增心智，看得见、点得到、回车就行。 */
+/* C1（第三轮）：顶部「新建」= 打开新建弹窗。
+   原先它还兼职一个「快速添加行」，两者是同一件事的两种呈现、同屏重复，
+   且占掉一整行版面；现在统一为「按钮 → 弹窗」，由弹窗承担完整的编辑能力。
+   想最快记一条：弹窗标题框里回车即保存；⌘K 命令面板仍支持内联语法批量快记。 */
 function inlineCapture(){
-  if(ui.view==="notes"||ui.view==="report"||ui.view==="weekly"||ui.view==="dashboard"){openPalette();return}
-  var q=$("#qt");
-  if(!q){
-    if(ui.view!=="all"&&ui.view!=="today")ui.view="all";
-    renderMain();
-    q=$("#qt");
-  }
-  if(q){q.focus();try{q.scrollIntoView({block:"center",behavior:"smooth"})}catch(e){}}
-  else{openPalette()}
+  if(ui.view==="notes")flushNoteEditor();/* 别把笔记编辑器里没提交的内容丢掉 */
+  openTask("__new__");
 }
 function download(name,text,type){
   var b=new Blob([text],{type:type||"application/json;charset=utf-8"}),u=URL.createObjectURL(b),a=document.createElement("a");
@@ -4520,7 +4464,6 @@ document.addEventListener("click",function(e){
   if(a==="pick"){if(id==="all"){ui.pid="all";ui.cid="all";ui.tag="";ui.smart=null;if(ui.view==="projects")ui.view="all"}else if(id==="none"){ui.pid="none";if(ui.view==="projects")ui.view="all"}else{ui.pid=id}if(ui.view==="report"||ui.view==="weekly")ui.rpid=ui.pid;render();return}
   /* C1：主入口「新建」= 就地插一行输入；命令面板改由 ⌘K / ⌘F 触发（加速通道） */
   if(a==="newTask"){inlineCapture();return}
-  if(a==="add"){addTask();return}
   if(a==="expand"){ui.open[id]=!ui.open[id];renderMain();return}
   /* 选中任务 → 右侧滑出详情；上次若把它收起了，这里要重新展开，否则"点了没反应" */
   if(a==="edit"){ui.selId=id;var insE=$("#insp");if(insE)insE.classList.remove("collapsed");renderInsp();var pv=document.querySelectorAll(".sel");for(var si=0;si<pv.length;si++)pv[si].classList.remove("sel");if(el)el.classList.add("sel");return}
@@ -4536,7 +4479,8 @@ document.addEventListener("click",function(e){
   }
   if(a==="toggleInsp"){var ins2=$("#insp");if(ins2){ins2.classList.toggle("collapsed");}renderMain();renderTopbar();return}
   if(a==="closeModal"){closeModal();return}
-  if(a==="maskClose"){ if(ui.editing)return; closeModal();return }
+  /* 编辑已有任务时点遮罩不关闭（防止误丢改动）；新建没有这个顾虑，点外面即可取消 */
+  if(a==="maskClose"){ if(ui.editing&&ui.editing!=="__new__")return; closeModal();return }
   if(a==="closeBanner"){$("#banner").innerHTML="";return}
   if(a==="settings"){openSettings();return}
 
@@ -4665,13 +4609,33 @@ document.addEventListener("click",function(e){
     return;
   }
   if(a==="saveTask"){
-    var t5=task(ui.editing);if(!t5)return;
     var v=$("#mt").value.trim();if(!v){$("#mt").focus();return}
     var mpv=$("#mp")?$("#mp").value:"";
     /* C2：客户默认由项目推导；只有用户显式「手动指定」时才用 #mc 的值 */
     var mcv=(ui.clientOverride&&$("#mc"))?$("#mc").value:projClientId(mpv);
-    t5.title=v;t5.clientId=mcv;t5.projectId=mpv;t5.priority=priKey($("#mpri").value);t5.due=$("#md").value;t5.note=$("#mn").value.trim();
-    setStatus(t5,($("#mst")?$("#mst").value:"todo"));
+    var mpri=$("#mpri")?priKey($("#mpri").value):"low";
+    var mdv=$("#md")?$("#md").value:"",mnv=$("#mn")?$("#mn").value.trim():"";
+    var mstv=$("#mst")?$("#mst").value:"todo";
+    if(ui.editing==="__new__"){
+      /* 新建：标题里仍认内联语法（!高 / @标签 / 明天 / *重要）——
+         原来快速添加行的加速通道搬进了标题框，能力没有丢。 */
+      var pt=parseTitle(v);
+      var ntags=(ui.tagPick||[]).slice();
+      pt.tags.forEach(function(x){if(ntags.indexOf(x)<0)ntags.push(x)});
+      if(ui.tag&&ntags.indexOf(ui.tag)<0)ntags.push(ui.tag);/* 侧栏正筛某标签时，新任务自动带上 */
+      var nt={id:uid(),title:pt.title,clientId:mcv,projectId:mpv,
+        priority:priKey(pt.pri||mpri),due:pt.due||mdv,note:mnv,
+        done:false,doneAt:0,status:"todo",createdAt:Date.now(),planned:false,
+        important:!!(ui.impPick||pt.important),tags:ntags,subtasks:[],logs:[],noteId:""};
+      setStatus(nt,mstv);
+      db.prefs={pid:mpv,pri:nt.priority};/* D1：记住这次的选择 */
+      db.tasks.unshift(nt);
+      ui.tagPick=[];ui.impPick=false;ui.clientOverride=false;
+      save();closeModal();render();toast("已添加");return;
+    }
+    var t5=task(ui.editing);if(!t5)return;
+    t5.title=v;t5.clientId=mcv;t5.projectId=mpv;t5.priority=mpri;t5.due=mdv;t5.note=mnv;
+    setStatus(t5,mstv);
     t5.important=ui.impPick;
     t5.tags=(ui.tagPick||[]).slice();
     ui.tagPick=[];ui.impPick=false;ui.clientOverride=false;
@@ -4975,9 +4939,6 @@ document.addEventListener("keydown",function(e){
   }
   if(e.key==="Enter"&&(e.target.id==="subEdit"||e.target.id==="subPri")){e.preventDefault();saveSubEdit();return}
   if(e.key==="Escape"&&(e.target.id==="subEdit"||e.target.id==="subPri")){e.preventDefault();ui.editSub=null;renderMain();return}
-  if(e.key==="Enter"&&e.target.id==="qt"){addTask();return}
-  /* C1：就地新增行的 Esc = 收起这一行（大众习惯：Esc 取消） */
-  if(e.key==="Escape"&&e.target.id==="qt"){e.target.value="";e.target.blur();return}
   if(e.key==="Enter"&&e.target.dataset.sub){
     var t=task(e.target.dataset.sub),v=e.target.value.trim();
     if(t&&v){t.subtasks.push({id:uid(),title:v,done:false,doneAt:0,priority:""});

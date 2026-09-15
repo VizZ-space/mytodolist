@@ -12,7 +12,7 @@
   - `.gitignore` 排除：`node_modules/`、`dist/`、`src-tauri/target/`、`src-tauri/gen/schemas/`、`windows-installer/*.exe|*.msi`
   - 已提交 73 个文件（源码 / 配置 / 图标 / 4 份 md / `.workbuddy/memory`）；安装包刻意未入库，如需分发应走 GitHub Releases
   - 本机**未安装 `gh` CLI**，凭据由 Git Credential Manager 管理
-- **前端是单文件**：全部 HTML/CSS/JS 都在 `my-task-desktop/src/index.html`（5122 行），改 UI 只动这一个文件。
+- **前端是单文件**：全部 HTML/CSS/JS 都在 `my-task-desktop/src/index.html`（5166 行），改 UI 只动这一个文件。
 - **信息架构（2026-09-15 重构后）**：导航收敛为「常用 5 项（今天 / 日历 / 笔记 / 任务 / 项目）+ 更多视图 4 项（四象限 / 历史 / 总览 / 报告）」，快捷键 1–9 顺延对应。
   - **看板不再是独立视图**：它是任务数据的「按状态分列」呈现，现已并入「任务」页，由页面最上方的 `ui.taskMode`（`list`/`board`）切换器控制，入口由 `taskModeSwitch()` 渲染。`viewBoard()` 已删除。
   - **「今天」只负责时间焦点**：今天要处理 / 逾期批量治理 / 近 3 天 / 久未跟进 / 已完成入口；**不再**渲染优先级筛选条与「进行中的任务」全量列表（那是任务页的内容），只留一行 `.today-more` 引导去任务页。改动前「今天」和「任务」是同一份列表渲染两遍。
@@ -25,7 +25,7 @@
   - **大坑：Windows 构建的「unused import/function」告警对 macOS 专用代码是误报** —— 只被 `#[cfg(target_os="macos")]` 分支使用的符号，在 Windows 上报 unused，正确处理是按平台门控导入/定义，**删了会破坏 macOS 构建**。
 - **数据模型：客户与项目原为「平级实体」，现已建立从属关系。**
   - 历史事实：`projects` 原本**没有 `client_id` 列**，`clients(id,name,color,category,sort_idx)` 独立存在，两者都通过 `tasks.client_id` / `tasks.project_id` 直接挂在任务上，因此当时**无法"由项目推导客户"**。
-  - **2026-09-11 变更**：已给 `projects` 加 `client_id TEXT` 列（`CREATE TABLE` + `ensure_col` 兼容追加），`proj_sig` / `read_full` / 项目 upsert 三处同步扩列，`tasks.client_id` 保留作为「覆盖值」。于是「客户由项目推导」成立：前端 `projClientId(pid)`，快速添加行只做回显（`.qcli`），任务详情可「手动指定」覆盖。
+  - **2026-09-11 变更**：已给 `projects` 加 `client_id TEXT` 列（`CREATE TABLE` + `ensure_col` 兼容追加），`proj_sig` / `read_full` / 项目 upsert 三处同步扩列，`tasks.client_id` 保留作为「覆盖值」。于是「客户由项目推导」成立：前端 `projClientId(pid)`，任务弹窗里只做「可见回显」（`.derived-row` / `#mcView`），要覆盖时点「手动指定」展开 `#mc`。
   - **加列一律走 `main.rs` 的 `ensure_col(conn, "表名", "列名", "类型")`**：老库无损、老数据为 NULL、不需要迁移脚本。这是本项目新增字段的唯一正确姿势。
   - 前端 `renderSide` 里"客户分组（项目的上层归类）"那句注释历史上与数据模型不符，现已随 `client_id` 落地而成立。
 - **E3 笔记多标签也需要 Rust 落库（曾漏掉，已补）**：`notes` 表的读（两处）/ 写 / `note_sig` / `CREATE TABLE` 都必须带 `tags`（存 JSON 数组字符串，与 `tasks.tags` 同格式）。**教训：前端给对象加了新字段，务必同步检查 Rust 侧 SELECT / INSERT / `*_sig` / `CREATE TABLE` 四处，否则一存一读就丢数据。**
@@ -40,8 +40,10 @@
   - 因此在任何导航/信息架构调整中，笔记必须**保持一级常驻**，不可降级进折叠区或二级入口。
   - 笔记模块的演进方向是「知识库」而非「随手记」：多标签、双链/反链、全文搜索、与任务闭环，都是合理需求。
 - 用户的诉求是**降低操作复杂度**，不是砍功能。改造时要"把功能放对位置"，而不是删掉。
-- **用户对「同屏重复」非常敏感，去重是本项目反复出现的主题**（已连续三轮由用户指出）：①「今天/任务/看板」三个入口渲染同一份任务库 ②右侧「今日概览」面板 vs 顶部 KPI 卡片 ③空状态里的「加一条任务」按钮 vs 页顶快速添加行。做任何 UI 改动时先自查：**这个信息/入口在同一屏里是否已经存在？**
-- **空状态原则（2026-09-15 修正）**：空状态回答「①这里放什么 ②为什么有用 ③现在能做什么」；但③**优先指向页面上已有的入口**（一句话说明"写在上面的输入框里"），**只有当该动作在页面别处没有入口时才放按钮**。早前"每个空状态都必须有一个主行动按钮"的口径过粗，会造出空转按钮（`newTask` 只是把光标送回已有输入框）。
+- **用户对「同屏重复」非常敏感，去重是本项目反复出现的主题**（已连续四轮由用户指出）：①「今天/任务/看板」三个入口渲染同一份任务库 ②右侧「今日概览」面板 vs 顶部 KPI 卡片 ③空状态里的「加一条任务」按钮 vs 页顶快速添加行 ④整行「快速添加行」vs 右上角「新建」按钮。做任何 UI 改动时先自查：**这个信息/入口在同一屏里是否已经存在？**
+- **任务的新增入口只有一个：右上角「新建」→ 弹窗（2026-09-15）**。原来的「快速添加行」（`quickAdd()` / `#qt` / `addTask()`）已整体删除。`openTask()` 现在同时承担新建与编辑：传 `"__new__"` 走 `draftTask()` 造的虚拟任务，`saveTask` 里判断 `ui.editing==="__new__"` 再 `unshift`。新建时隐藏「关联笔记 / 子任务进度 / 跟进记录 / 删除按钮」四块（都依赖已存在的 `t.id`）。内联语法 `!高`/`@标签`/`明天`/`*重要` 由 `parseTitle()` 在**新建提交时**解析，载体是弹窗标题框（⌘K 命令面板也仍支持）。
+  - **给任务对象加字段时注意**：`draftTask()` 需要同步补齐该字段的默认值，否则新建弹窗渲染会读到 `undefined`。
+- **空状态原则（2026-09-15 修正）**：空状态回答「①这里放什么 ②为什么有用 ③现在能做什么」；但③**优先指向页面上已有的入口**（一句话说明"点右上角「新建」"），**只有当该动作在页面别处没有入口时才放按钮**。早前"每个空状态都必须有一个主行动按钮"的口径过粗，会造出空转按钮（`newTask` 只是把光标送回已有输入框）。
 - 现有笔记实现已经是三栏工作区且有正文搜索，**属于合理结构，改造时以增强为主，不要推翻重做**。
 - **信息架构现状（截至 2026-09-15）**：一级导航 = 今天 / 日历 / 笔记 / 任务 / 项目；「更多视图」= 四象限 / 历史 / 总览 / 报告（看板已并入任务页，不再是导航项）。「今天 / 任务 / 日历 / 四象限 / 历史 / 项目」六页顶部有 KPI 卡片（`KPI_VIEWS`）。
 
@@ -87,3 +89,9 @@
 - **本机 git fetch/push 不会自动写 `refs/remotes/origin/*`**：`git fetch` 会打印 `[new branch] main -> origin/main` 但引用实际未落盘，`git status` 因此显示 `[gone]`、`origin/main` 无法解析。**绕过办法**：手动写入引用文件
   `mkdir -p .git/refs/remotes/origin && echo <sha> > .git/refs/remotes/origin/main`
   （推送本身是成功的，远程内容正确，仅本地引用记账有问题）
+- **⚠️ 本机还会丢 `.git/refs/heads/*` 与 `.git/objects`（2026-09-15 实测遇到一次）**：表现为 `git rev-parse HEAD` 报 `unknown revision`、`git status` 把所有文件显示成 `A `（像未出生的分支）、`.git` 只有 151K。**根因未确认**（怀疑与 `git stash`／某清理进程有关，`.git/objects/pack` 也不存在）。
+  - **恢复办法（工作区文件一直是完好的，不要慌）**：
+    1. `git fetch origin main` —— 远程是完整的，会把对象拉回来（`git cat-file -t <sha>` 能验证）
+    2. 手动写两个引用：`printf '%s\n' <sha> > .git/refs/heads/main` 与 `.git/refs/remotes/origin/main`（要 `mkdir -p .git/refs/heads .git/refs/remotes/origin`）
+    3. `git log` / `git status` 恢复正常，未提交的工作区改动会重新显示为 ` M`
+  - **教训**：在这个仓库里**不要用 `git stash`**（改用 `cp src/index.html /tmp/x.html` 这种手工备份），且执行任何 git 操作前先 `git rev-parse HEAD` 确认引用还在；`git log --oneline -1` 要真的看到 SHA 才算正常。
