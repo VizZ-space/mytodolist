@@ -33,6 +33,9 @@
   --hot-border:#f3b9bc;
   --hover:rgba(0,0,0,.045);
   --r:14px;--r-sm:11px;--r-xs:9px;
+  /* 弹窗尺寸阶梯（见 ui-spec.md）：一档 = 一行能并排放几个 240px 标准字段列
+     （可用宽 = 档位宽 − 52 padding）。别再往 .sheet 上写裸 max-width。 */
+  --sheet-sm:480px;--sheet-md:560px;--sheet-lg:720px;--sheet-xl:880px;--sheet-xxl:1160px;
   --shadow-1:0 1px 2px rgba(0,0,0,.05),0 1px 1px rgba(0,0,0,.04);
   --shadow-2:0 4px 14px rgba(0,0,0,.07),0 1px 3px rgba(0,0,0,.05);
   --shadow-3:0 14px 40px rgba(0,0,0,.13);
@@ -212,9 +215,9 @@ select{-webkit-appearance:none;appearance:none;background-image:url("data:image/
 }
 .insp-acts button:active{transform:translateY(1px);box-shadow:inset 0 1px 3px rgba(0,0,0,.16),0 1px 1px rgba(0,0,0,.1)}
 .insp-acts button:focus-visible{outline:none;box-shadow:var(--ring)}
-/* 编辑：主操作，蓝渐变实心 + 投影 */
-.insp-acts .btn-primary{background:linear-gradient(180deg,#2ea1ff,#0a84ff);color:#fff;border-color:rgba(10,132,255,.55);box-shadow:0 1px 2px rgba(10,132,255,.3),0 3px 9px rgba(10,132,255,.26)}
-.insp-acts .btn-primary:hover{filter:brightness(1.05);box-shadow:0 2px 5px rgba(10,132,255,.34),0 5px 15px rgba(10,132,255,.3)}
+/* 编辑：主操作。用通用的 .btn-pri 变体，只在面板内换成蓝渐变（面板按钮高度见下方 .insp-acts button） */
+.insp-acts .btn-pri{background:linear-gradient(180deg,#2ea1ff,#0a84ff);color:#fff;border-color:rgba(10,132,255,.55);box-shadow:0 1px 2px rgba(10,132,255,.3),0 3px 9px rgba(10,132,255,.26)}
+.insp-acts .btn-pri:hover{filter:brightness(1.05);box-shadow:0 2px 5px rgba(10,132,255,.34),0 5px 15px rgba(10,132,255,.3)}
 /* 完成 / 重开：幽灵按钮，柔和描边 + 悬停抬升 */
 .insp-acts .btn-ghost{background:var(--card);color:var(--text);border-color:var(--line2)}
 .insp-acts .btn-ghost:hover{background:var(--hover);border-color:var(--line2);box-shadow:var(--shadow-2)}
@@ -488,7 +491,6 @@ h3{font-size:14px;font-weight:600;margin-bottom:8px}
 .cagg-row .mini{margin-left:auto}
 .kbd{font-size:13px;padding:3px 9px;border-radius:6px;background:var(--faint);color:var(--text);font-family:ui-monospace,Menlo,monospace}
 /* ---------- 设置面板：宽版两列布局 ---------- */
-.set-sheet{max-width:1170px;width:94vw}
 .set-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px}
 .set-head h3{margin:0;font-size:16px}
 .set-grid{display:flex;gap:20px;align-items:flex-start;margin-top:14px}
@@ -502,11 +504,19 @@ h3{font-size:14px;font-weight:600;margin-bottom:8px}
 .set-act{margin-left:0}
 .tbtn.rec{background:var(--danger);color:#fff;border-color:var(--danger)}
 
-/* ---------- modal ---------- */
+/* ---------- modal ----------
+   全项目弹窗规范见顶层 ui-spec.md。三条硬约束：
+   ① 宽度只能从命名阶梯里选（.sm/.lg/.xl/.xxl，不写类即默认 md），不写裸 max-width；
+   ② 标题一律 <h3>，页脚一律 .sheet-act（取消在左、主操作在右、等宽）；
+   ③ 按钮只有 3 个变体，几何写在变体上，任何位置直接套用都尺寸一致。 */
 .mask{position:fixed;inset:0;background:var(--mask);backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);display:flex;align-items:flex-start;justify-content:center;padding:7vh 16px 16px;z-index:100;animation:maskIn .15s ease}
-/* 默认宽度按「两列表单」定：880px 会把日期 / 下拉拉到 360px 宽，比例失调。
-   需要更宽的弹窗（客户 840 / 智能列表 920 / 设置 1170）各自显式覆盖 max-width。 */
-.sheet{background:var(--sheet);backdrop-filter:blur(36px) saturate(190%);-webkit-backdrop-filter:blur(36px) saturate(190%);box-shadow:0 24px 70px rgba(0,0,0,.3);border:1px solid var(--line2);border-radius:17px;width:100%;max-width:560px;max-height:88dvh;overflow:auto;padding:22px 26px 24px;transform-origin:top center;animation:sheetIn .2s cubic-bezier(.2,.9,.3,1)}
+.sheet{background:var(--sheet);backdrop-filter:blur(36px) saturate(190%);-webkit-backdrop-filter:blur(36px) saturate(190%);box-shadow:0 24px 70px rgba(0,0,0,.3);border:1px solid var(--line2);border-radius:17px;width:100%;max-width:var(--sheet-md);max-height:88dvh;overflow:auto;padding:22px 26px 24px;transform-origin:top center;animation:sheetIn .2s cubic-bezier(.2,.9,.3,1)}
+/* 尺寸阶梯：sm 480 → 1 列（一句话确认 / 单字段）；md 560 → 2 列（默认，表单主力）；
+   lg 720 → 2 列放宽 / 带列表预览；xl 880 → 3 列（多列配置）；xxl 1160 → 双栏大面板。 */
+.sheet.sm{max-width:var(--sheet-sm)}
+.sheet.lg{max-width:var(--sheet-lg)}
+.sheet.xl{max-width:var(--sheet-xl)}
+.sheet.xxl{max-width:var(--sheet-xxl)}
 @keyframes sheetIn{from{opacity:0;transform:translateY(-12px) scale(.985)}to{opacity:1;transform:none}}
 @keyframes maskIn{from{opacity:0}to{opacity:1}}
 .sheet h3{font-size:16px;margin-bottom:14px}
@@ -523,14 +533,28 @@ h3{font-size:14px;font-weight:600;margin-bottom:8px}
 .more[open] summary:before{content:"▾ "}
 .more summary:hover{color:var(--text)}
 .more-body{padding:4px 0 2px}
+/* 弹窗页脚：整行等宽，比正文按钮大一档，让主操作更醒目 */
 .sheet-act{display:flex;gap:10px;margin-top:18px}
-.sheet-act button{flex:1;height:43px;border-radius:11px;font-size:14.5px;font-weight:600;box-shadow:var(--shadow-1);transition:background .14s ease,transform .08s ease,box-shadow .14s ease,filter .14s ease}
-.btn-ghost{border:1px solid var(--line2);background:var(--card);color:var(--text)}
+.sheet-act button{flex:1;height:43px;font-size:14.5px}
+/* ---- 按钮变体（全项目只有这 3 个）----
+   几何（高度 / 内边距 / 圆角 / 字号）必须定义在变体上。历史问题：几何只写在
+   .sheet-act button 里，于是 .set-foot、单个「删除…」按钮一用变体就退化成没有
+   内边距的裸按钮，只能各自 inline 抄一份尺寸 —— 抄出来的还互不相同。 */
+.btn-ghost,.btn-pri,.btn-danger{
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  height:38px;padding:0 16px;border:1px solid transparent;border-radius:var(--r-sm);
+  font-size:14px;font-weight:600;white-space:nowrap;box-shadow:var(--shadow-1);
+}
+.btn-ghost{border-color:var(--line2);background:var(--card);color:var(--text)}
 .btn-ghost:hover{background:var(--hover)}
 .btn-pri{background:var(--pri);color:#fff;box-shadow:0 1px 2px rgba(0,122,255,.3),0 2px 6px rgba(0,122,255,.2)}
 .btn-pri:hover{background:var(--pri-press)}
+/* 危险色只给「删除 / 清空 / 覆盖」这类会丢数据的动作；
+   别拿它当「确认」的默认样式 —— 否则连「载入示例数据」都会是红按钮。 */
 .btn-danger{background:var(--danger-soft);color:var(--danger)}
 .btn-danger:hover{background:rgba(255,59,48,.22)}
+/* 弹窗正文里的整行操作按钮（删除任务 / 删除客户…）：与页脚同尺寸，视觉上连成一套 */
+.btn-wide{width:100%;height:43px;font-size:14.5px;margin-top:10px}
 .two-col{display:grid;grid-template-columns:1fr 1fr;gap:0 18px}
 .two-col>.full{grid-column:1 / -1}
 /* 左栏自适应 + 右栏按内容宽度。用在「客户 | 色板」这种左右需求不对称的场合：
@@ -613,7 +637,6 @@ h3{font-size:14px;font-weight:600;margin-bottom:8px}
   .logprev-wide{display:none}
   .tbtn{padding:0 10px;height:38px;min-width:38px;justify-content:center}
   .tbtn.mo-only{display:inline-flex}
-  .set-sheet{width:94vw}
   .set-grid{flex-direction:column;gap:0}
   .set-ai{margin-top:16px;padding-top:16px;border-top:1px solid var(--line)}
   .set-col{margin-top:0}
@@ -1935,7 +1958,7 @@ function inspTask(t){
   m+='<div class="insp-prog"><i style="width:'+pct+'%"></i></div>';
   var logs=(t.logs||[]).slice().reverse().slice(0,3);
   if(logs.length){m+='<div style="margin-top:8px">';logs.forEach(function(l){m+='<div class="insp-log"><span class="il-t">'+fmtAgo(l.at)+'</span> '+esc(l.text)+'</div>';});m+='</div>';}
-  m+='<div class="insp-acts"><button class="btn-primary" data-act="editModal" data-id="'+t.id+'">'+icon(IC.pencil,15)+'编辑</button>'+(t.done?'<button class="btn-ghost" data-act="toggleTask" data-id="'+t.id+'">'+icon(IC.rotate,15)+'重开</button>':'<button class="btn-ghost" data-act="toggleTask" data-id="'+t.id+'">'+icon(IC.check,15)+'完成</button>')+'<button class="btn-danger" data-act="del" data-id="'+t.id+'">'+icon(IC.trash,15)+'删除</button></div>';
+  m+='<div class="insp-acts"><button class="btn-pri" data-act="editModal" data-id="'+t.id+'">'+icon(IC.pencil,15)+'编辑</button>'+(t.done?'<button class="btn-ghost" data-act="toggleTask" data-id="'+t.id+'">'+icon(IC.rotate,15)+'重开</button>':'<button class="btn-ghost" data-act="toggleTask" data-id="'+t.id+'">'+icon(IC.check,15)+'完成</button>')+'<button class="btn-danger" data-act="del" data-id="'+t.id+'">'+icon(IC.trash,15)+'删除</button></div>';
   m+='</div>';
   m+='<div class="insp-card insp-empty">双击卡片或点「编辑」打开完整编辑面板。</div>';
   return m;
@@ -2104,7 +2127,7 @@ function noteTagChipsHtml(n){
   }).join("");
 }
 function noteNewTagInline(){
-  $("#modal").innerHTML='<div class="mask" data-act="maskClose"><div class="sheet" style="max-width:460px" data-sheet="1"><h3>新建标签</h3>'+
+  $("#modal").innerHTML='<div class="mask" data-act="maskClose"><div class="sheet sm" data-sheet="1"><h3>新建标签</h3>'+
     '<div class="fld"><label>标签名称</label><input id="nnt" placeholder="例如：客户 A / 会议记录 / 灵感"></div>'+
     '<p class="muted" style="font-size:12px;margin:8px 0 0">标签与任务标签是同一套，创建后任务和笔记都能用。</p>'+
     '<div class="sheet-act"><button class="btn-ghost" data-act="closeModal">取消</button><button class="btn-pri" data-act="noteTagCreate">创建并挂上</button></div></div></div>';
@@ -2202,7 +2225,7 @@ function openCitePicker(){
       return '<button type="button" class="npick" data-act="citePick" data-id="'+n.id+'"><span class="npick-dot"></span><span class="npick-title">'+esc(n.title||"无标题笔记")+'</span>'+(n.cat?'<span class="npick-cat">'+esc(n.cat)+'</span>':'')+'</button>';
     }).join("");
   }
-  $("#modal").innerHTML='<div class="mask" data-act="maskClose"><div class="sheet" style="max-width:600px" data-sheet="1"><h3>引用另一篇笔记</h3>'+
+  $("#modal").innerHTML='<div class="mask" data-act="maskClose"><div class="sheet lg" data-sheet="1"><h3>引用另一篇笔记</h3>'+
     '<p class="muted" style="font-size:12.5px;line-height:1.6;margin:-8px 0 10px">插入后建立双向链接：这篇底部能看到它，它那边也会出现在「被引用」里。也可以直接在正文写 <code>[[笔记标题]]</code>。</p>'+
     '<div class="fld full"><label>选择笔记</label><input id="citeQ" placeholder="按标题搜索…"></div>'+
     '<div class="npick-list" id="citeList">'+listHtml()+'</div>'+
@@ -2592,7 +2615,7 @@ function toggleNotePreview(){
 }
 function openLinkModal(){
   var sel=window.getSelection();var text=sel&&sel.toString?sel.toString():"";
-  $("#modal").innerHTML='<div class="mask" data-act="maskClose"><div class="sheet" style="max-width:560px" data-sheet="1"><h3>插入链接</h3>'+
+  $("#modal").innerHTML='<div class="mask" data-act="maskClose"><div class="sheet" data-sheet="1"><h3>插入链接</h3>'+
     '<div class="fld"><label>显示文字</label><input id="lkText" value="'+esc(text)+'"></div>'+
     '<div class="fld"><label>链接地址</label><input id="lkUrl" placeholder="https:// 或 mailto: 或相对路径"></div>'+
     '<div class="sheet-act"><button class="btn-ghost" data-act="closeModal">取消</button><button class="btn-danger" data-act="noteLinkOk">插入</button></div>'+
@@ -2606,8 +2629,8 @@ function openNoteCatModal(focusNew,nid){
   }).join("");
   var pre=focusNew&&nid?'<div class="ncat-row"><input id="ncatNew" placeholder="新分类名称"><button class="mini primary" data-act="noteCatAddNew" data-nid="'+nid+'">添加并归入</button></div>':"";
   if(!pre)pre='<div class="ncat-row"><input id="ncatNew" placeholder="新分类名称"><button class="mini primary" data-act="noteCatAdd">添加</button></div>';
-  $("#modal").innerHTML='<div class="mask" data-act="maskClose"><div class="sheet" style="max-width:560px" data-sheet="1"><h3>管理分类</h3>'+rows+pre+
-    '<div class="sheet-act"><button class="btn-ghost" data-act="closeModal">完成</button></div></div></div>';
+  $("#modal").innerHTML='<div class="mask" data-act="maskClose"><div class="sheet" data-sheet="1"><h3>管理分类</h3>'+rows+pre+
+    '<div class="sheet-act"><button class="btn-pri" data-act="closeModal">完成</button></div></div></div>';
 }
 
 /* D1：记住上次用的项目和优先级；侧栏正筛某个项目时优先用当前项目 */
@@ -3455,7 +3478,7 @@ async function exportNoteMd(id){
 }
 function openExportDone(p){
   var escP=esc(p);
-  $("#modal").innerHTML='<div class="mask" data-act="maskClose"><div class="sheet" style="max-width:600px" data-sheet="1">'+
+  $("#modal").innerHTML='<div class="mask" data-act="maskClose"><div class="sheet" data-sheet="1">'+
     '<h3 style="margin:0 0 4px">已导出 Markdown</h3>'+
     '<p style="margin:0 0 14px;color:var(--muted);font-size:13px">文件已保存到你在系统对话框中指定的位置，绝对路径已复制到剪贴板。</p>'+
     '<label style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px">文件绝对路径</label>'+
@@ -3463,7 +3486,7 @@ function openExportDone(p){
       '<input id="expPath" value="'+escP+'" readonly style="flex:1;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12.5px;color:var(--text);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px 11px;outline:none">'+
       '<button class="tbtn primary keep" data-act="copyExportPath" data-path="'+escP+'" style="flex:none;white-space:nowrap">复制路径</button>'+
     '</div>'+
-    '<div class="sheet-act" style="margin-top:18px"><button class="btn-pri" data-act="maskClose">完成</button></div>'+
+    '<div class="sheet-act"><button class="btn-pri" data-act="maskClose">完成</button></div>'+
   '</div></div>';
 }
 
@@ -3744,7 +3767,7 @@ function openTask(id){
       '</div>'+
     '</details></div>'+
     '<div class="sheet-act"><button class="btn-ghost" data-act="closeModal">取消</button><button class="btn-pri" data-act="saveTask">保存</button></div>'+
-    (isNew?"":'<button class="btn-danger" style="width:100%;height:40px;border-radius:10px;margin-top:10px;font-size:14px" data-act="del" data-id="'+t.id+'">删除这个任务</button>')+
+    (isNew?"":'<button class="btn-danger btn-wide" data-act="del" data-id="'+t.id+'">删除这个任务</button>')+
     "</div></div>";
   setTimeout(function(){
     var mt=$("#mt");if(!mt)return;
@@ -3782,13 +3805,14 @@ function openNotePicker(tid,sid){
     }).join("");
   }
   var clearAct=isTask?"taskNoteClear":"subNoteClear",newAct=isTask?"taskNoteNew":"subNoteNew";
-  $("#modal").innerHTML='<div class="mask" data-act="maskClose"><div class="sheet" style="max-width:600px" data-sheet="1"><h3>'+(isTask?"关联笔记到任务":"关联笔记到子任务")+'</h3>'+
+  $("#modal").innerHTML='<div class="mask" data-act="maskClose"><div class="sheet lg" data-sheet="1"><h3>'+(isTask?"关联笔记到任务":"关联笔记到子任务")+'</h3>'+
     '<div class="fld full"><label>搜索笔记</label><input id="npickQ" placeholder="按标题或内容搜索…" value="'+esc(q)+'"></div>'+
     '<div class="npick-list" id="npickList">'+listHtml()+'</div>'+
+    /* 页脚顺序规范：离开按钮（关闭/取消）在最左，主操作在最右（见 ui-spec.md） */
     '<div class="sheet-act">'+
+      '<button class="btn-ghost" data-act="closeModal">关闭</button>'+
       (curId()?'<button class="btn-ghost" data-act="'+clearAct+'" data-tid="'+tid+'"'+(sid?' data-sid="'+sid+'"':'')+'>取消关联</button>':"")+
       '<button class="btn-pri" data-act="'+newAct+'" data-tid="'+tid+'"'+(sid?' data-sid="'+sid+'"':'')+'>新建笔记并关联</button>'+
-      '<button class="btn-ghost" data-act="closeModal">关闭</button>'+
     '</div></div></div>';
   var qe=$("#npickQ");if(qe){qe.oninput=function(){q=qe.value;var l=$("#npickList");if(l)l.innerHTML=listHtml()};setTimeout(function(){qe.focus()},30);}
 }
@@ -3802,12 +3826,13 @@ function renderAfterNoteChange(tid){
 }
 function renderTaskNotes(tid){
   var t=task(tid);if(!t)return;
-  $("#modal").innerHTML='<div class="mask" data-act="maskClose"><div class="sheet" style="max-width:620px" data-sheet="1"><h3>任务笔记</h3>'+
+  $("#modal").innerHTML='<div class="mask" data-act="maskClose"><div class="sheet lg" data-sheet="1"><h3>任务笔记</h3>'+
     '<div class="fld full"><label>'+esc(t.title)+'</label>'+
     '<div id="taskNotesBox">'+taskNotesListHtml(t)+'</div></div>'+
+    /* 收尾页脚：动作按钮在左（ghost），"结束这一屏"的按钮在最右且是唯一的实心色 */
     '<div class="sheet-act">'+
       '<button class="btn-ghost" data-act="openTaskNotePicker" data-id="'+tid+'">'+icon(IC.plus,14)+'关联主任务笔记</button>'+
-      '<button class="btn-ghost" data-act="closeModal">关闭</button>'+
+      '<button class="btn-pri" data-act="closeModal">关闭</button>'+
     '</div></div></div>';
 }
 function taskNotesListHtml(t){
@@ -3908,7 +3933,7 @@ function openProject(id){
       '</div>'+
     '</details></div>'+
     '<div class="sheet-act"><button type="button" class="btn-ghost" data-act="closeModal">取消</button><button type="button" class="btn-pri" data-act="saveProject">保存</button></div>'+
-    (p?'<button type="button" class="btn-danger" style="width:100%;height:40px;border-radius:10px;margin-top:10px;font-size:14px" data-act="delProject" data-id="'+p.id+'">删除项目（任务会变为未归类）</button>':"")+
+    (p?'<button type="button" class="btn-danger btn-wide" data-act="delProject" data-id="'+p.id+'">删除项目（任务会变为未归类）</button>':"")+
     "</div></div>";
   setTimeout(function(){$("#pn").focus()},30);
 }
@@ -3925,43 +3950,43 @@ function snapshotProjDraft(){
 function openClient(id){
   var c=id?clientById(id):null;ui.editing=id||null;ui.colorHidden="#cc";
   var sw=CLIENT_COLORS.map(function(col){return '<button data-act="pickColor" data-c="'+col+'" style="width:28px;height:28px;border-radius:50%;background:'+col+';border:2px solid '+((c&&c.color===col)||(!c&&col===CLIENT_COLORS[0])?"var(--text)":"transparent")+'"></button>'}).join("");
-  $("#modal").innerHTML='<div class="mask" data-act="maskClose"><div class="sheet" style="max-width:840px" data-sheet="1"><h3>'+(c?"编辑客户":"新建客户")+'</h3>'+
+  $("#modal").innerHTML='<div class="mask" data-act="maskClose"><div class="sheet xl" data-sheet="1"><h3>'+(c?"编辑客户":"新建客户")+'</h3>'+
     '<div class="fld"><label>客户名称</label><input id="cn" value="'+esc(c?c.name:"")+'" placeholder="例如：客户 A"></div>'+
     '<div class="fld"><label>分类</label><input id="ccat" value="'+esc(c?c.category:"")+'" placeholder="未归类"></div>'+
     '<div class="fld"><label>颜色</label><div id="sw" style="display:flex;gap:9px;flex-wrap:wrap">'+sw+'</div><input type="hidden" id="cc" value="'+esc(c?c.color:CLIENT_COLORS[0])+'"></div>'+
     '<div class="sheet-act"><button class="btn-ghost" data-act="closeModal">取消</button><button class="btn-pri" data-act="saveClient">保存</button></div>'+
-    (c?'<button class="btn-danger" style="width:100%;height:40px;border-radius:10px;margin-top:10px;font-size:14px" data-act="delClient" data-id="'+c.id+'">删除客户（其下项目改为未归类）</button>':"")+
+    (c?'<button class="btn-danger btn-wide" data-act="delClient" data-id="'+c.id+'">删除客户（其下项目改为未归类）</button>':"")+
     "</div></div>";
   setTimeout(function(){$("#cn").focus()},30);
 }
 function openTag(id){
   var tg=id?tagById(id):null;ui.editing=id||null;ui.colorHidden="#tc";
   var sw=TAG_COLORS.map(function(col){return '<button data-act="pickColor" data-c="'+col+'" style="width:28px;height:28px;border-radius:50%;background:'+col+';border:2px solid '+((tg&&tg.color===col)||(!tg&&col===TAG_COLORS[0])?"var(--text)":"transparent")+'"></button>'}).join("");
-  $("#modal").innerHTML='<div class="mask" data-act="maskClose"><div class="sheet" style="max-width:840px" data-sheet="1"><h3>'+(tg?"编辑标签":"新建标签")+'</h3>'+
+  $("#modal").innerHTML='<div class="mask" data-act="maskClose"><div class="sheet xl" data-sheet="1"><h3>'+(tg?"编辑标签":"新建标签")+'</h3>'+
     '<div class="fld"><label>标签名称</label><input id="tn" value="'+esc(tg?tg.name:"")+'" placeholder="例如：报价"></div>'+
     '<div class="fld"><label>分类</label><input id="tcat" value="'+esc(tg?tg.category:"")+'" placeholder="未归类"></div>'+
     '<div class="fld"><label>颜色</label><div id="sw" style="display:flex;gap:9px;flex-wrap:wrap">'+sw+'</div><input type="hidden" id="tc" value="'+esc(tg?tg.color:TAG_COLORS[0])+'"></div>'+
     '<div class="sheet-act"><button class="btn-ghost" data-act="closeModal">取消</button><button class="btn-pri" data-act="saveTag">保存</button></div>'+
-    (tg?'<button class="btn-danger" style="width:100%;height:40px;border-radius:10px;margin-top:10px;font-size:14px" data-act="delTag" data-id="'+tg.id+'">删除标签</button>':"")+
+    (tg?'<button class="btn-danger btn-wide" data-act="delTag" data-id="'+tg.id+'">删除标签</button>':"")+
     "</div></div>";
   setTimeout(function(){$("#tn").focus()},30);
 }
 function openSmart(id){
   var s=id?db.smartLists.filter(function(x){return x.id===id})[0]:null;ui.editing=id||null;
   var q=s?s.query||{}:{};
-  $("#modal").innerHTML='<div class="mask" data-act="maskClose"><div class="sheet" style="max-width:920px" data-sheet="1"><h3>'+(s?"编辑智能列表":"新建智能列表")+'</h3>'+
+  $("#modal").innerHTML='<div class="mask" data-act="maskClose"><div class="sheet xl" data-sheet="1"><h3>'+(s?"编辑智能列表":"新建智能列表")+'</h3>'+
     '<div class="fld"><label>列表名称</label><input id="sn" value="'+esc(s?s.name:"")+'" placeholder="例如：本周高优先"></div>'+
     '<div class="fld"><label class="switch-row"><input type="checkbox" id="sqOpen"'+(q.open?" checked":"")+'><span>只看未完成的任务</span></label></div>'+
     '<div class="fld"><label class="switch-row"><input type="checkbox" id="sqPri"'+(q.pri&&q.pri.length?" checked":"")+'><span>仅高优先级（高 / 中）</span></label></div>'+
     '<div class="fld"><label class="switch-row"><input type="checkbox" id="sqImp"'+(q.important?" checked":"")+'><span>仅标记重要的</span></label></div>'+
     '<div class="sheet-act"><button class="btn-ghost" data-act="closeModal">取消</button><button class="btn-pri" data-act="saveSmart">保存</button></div>'+
-    (s?'<button class="btn-danger" style="width:100%;height:40px;border-radius:10px;margin-top:10px;font-size:14px" data-act="delSmart" data-id="'+s.id+'">删除智能列表</button>':"")+
+    (s?'<button class="btn-danger btn-wide" data-act="delSmart" data-id="'+s.id+'">删除智能列表</button>':"")+
     "</div></div>";
   setTimeout(function(){$("#sn").focus()},30);
 }
 function openSettings(){
   var bk=backupInfo();
-  $("#modal").innerHTML='<div class="mask" data-act="maskClose"><div class="sheet set-sheet" data-sheet="1">'+
+  $("#modal").innerHTML='<div class="mask" data-act="maskClose"><div class="sheet xxl" data-sheet="1">'+
     '<div class="set-head"><div><h3>设置</h3><p class="muted" style="font-size:13px;margin:2px 0 0">数据保存在本机，不上传任何服务器。可在下方「数据存储位置」修改路径。</p></div></div>'+
     '<div class="bkinfo'+(bk.warn?" warn":"")+'">'+icon(bk.warn?IC.alert:IC.check,15)+'<div><b>'+esc(bk.txt)+"</b><span>"+esc(bk.sub)+"</span></div></div>"+
     '<div class="set-grid">'+
@@ -4023,8 +4048,12 @@ function openSettings(){
   if(scRec)scRec.addEventListener("click",function(){if(recording){stopRec();return}startRec()});
   updateScLabel();
 }
-function confirmBox(msg,act){
-  $("#modal").innerHTML='<div class="mask" data-act="maskClose"><div class="sheet" style="max-width:720px" data-sheet="1"><h3>请确认</h3><p style="font-size:14px;line-height:1.6">'+esc(msg)+'</p><div class="sheet-act"><button class="btn-ghost" data-act="closeModal">取消</button><button class="btn-danger" data-act="'+act+'">确认</button></div></div></div>';
+/* 通用确认框。opt.danger 才用红色危险按钮 —— 危险色属于「会丢数据的动作」，
+   不是「确认」这个动作本身：早前无条件画红，连「载入示例数据」都是红按钮。
+   opt.ok 用来把按钮文案换成具体动词（删除 / 清空 / 覆盖恢复），比一律「确定」清楚。 */
+function confirmBox(msg,act,opt){
+  opt=opt||{};
+  $("#modal").innerHTML='<div class="mask" data-act="maskClose"><div class="sheet sm" data-sheet="1"><h3>请确认</h3><p style="font-size:14px;line-height:1.6">'+esc(msg)+'</p><div class="sheet-act"><button class="btn-ghost" data-act="closeModal">取消</button><button class="'+(opt.danger?"btn-danger":"btn-pri")+'" data-act="'+act+'">'+esc(opt.ok||"确定")+'</button></div></div></div>';
 }
 
 /* ---------- B5：关于面板 ---------- */
@@ -4032,7 +4061,7 @@ function openAbout(info){
   var ver=(info&&info.version)||"0.1.0";
   var id=(info&&info.identifier)||"—";
   var dir=(info&&info.dataDir)||(window.__TAURI_INTERNALS__?"本机文稿 / 我的任务台":"浏览器本地存储");
-  $("#modal").innerHTML='<div class="mask" data-act="maskClose"><div class="sheet" style="max-width:760px" data-sheet="1">'+
+  $("#modal").innerHTML='<div class="mask" data-act="maskClose"><div class="sheet" data-sheet="1">'+
     '<div style="width:56px;height:56px;border-radius:14px;background:linear-gradient(135deg,#0a84ff,#0040dd);display:flex;align-items:center;justify-content:center;margin:4px auto 8px;color:#fff">'+icon(IC.check,30)+'</div>'+
     '<h3 style="text-align:center;margin:4px 0 2px">todo-list</h3>'+
     '<p class="muted" style="text-align:center;font-size:13px;margin:0 0 16px">本地优先的任务管理 · v'+esc(ver)+'</p>'+
@@ -4063,7 +4092,7 @@ function routeMenu(id){
 
 function openExportModal(){
   var json=JSON.stringify(db,null,2);
-  $("#modal").innerHTML='<div class="mask" data-act="maskClose"><div class="sheet" style="max-width:560px" data-sheet="1"><h3>导出备份</h3><p style="font-size:13px;color:var(--muted);line-height:1.6">复制下面的内容，保存成 .json 文件即是备份。要恢复时，把这段内容粘贴进「导入恢复」即可。</p><textarea id="expText" readonly style="width:100%;height:260px;font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;padding:10px;border:1px solid var(--line);border-radius:10px;resize:vertical;box-sizing:border-box">'+esc(json)+'</textarea><div class="sheet-act"><button class="btn-ghost" data-act="copyJson" data-tid="expText">复制</button><button class="btn-primary" data-act="closeModal">关闭</button></div></div></div>';
+  $("#modal").innerHTML='<div class="mask" data-act="maskClose"><div class="sheet" data-sheet="1"><h3>导出备份</h3><p style="font-size:13px;color:var(--muted);line-height:1.6">复制下面的内容，保存成 .json 文件即是备份。要恢复时，把这段内容粘贴进「导入恢复」即可。</p><textarea id="expText" readonly style="width:100%;height:260px;font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;padding:10px;border:1px solid var(--line);border-radius:10px;resize:vertical;box-sizing:border-box">'+esc(json)+'</textarea><div class="sheet-act"><button class="btn-ghost" data-act="copyJson" data-tid="expText">复制</button><button class="btn-pri" data-act="closeModal">关闭</button></div></div></div>';
 }
 
 /* 解析并确认导入（原生选文件 / 粘贴 两条路都走它） */
@@ -4073,13 +4102,13 @@ function tryImport(v){
     if(!d||!Array.isArray(d.tasks)||!Array.isArray(d.projects))throw 0;
     normalizeAll(d);
     window.__pendingImport=d;closeModal();
-    confirmBox("将用备份里的 "+d.tasks.length+" 个任务，覆盖当前的 "+db.tasks.length+" 个任务。确定恢复吗？","importYes");
+    confirmBox("将用备份里的 "+d.tasks.length+" 个任务，覆盖当前的 "+db.tasks.length+" 个任务。确定恢复吗？","importYes",{danger:1,ok:"覆盖恢复"});
     return true;
   }catch(err){toast("格式不对，请选择本工作台导出的 JSON 备份");return false}
 }
 
 function openImportModal(){
-  $("#modal").innerHTML='<div class="mask" data-act="maskClose"><div class="sheet" style="max-width:560px" data-sheet="1"><h3>导入恢复</h3><p style="font-size:13px;color:var(--muted);line-height:1.6">把之前导出的 JSON 备份粘贴到这里，确认后会覆盖当前数据。</p><textarea id="impText" placeholder="在此粘贴 JSON 备份..." style="width:100%;height:240px;font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;padding:10px;border:1px solid var(--line);border-radius:10px;resize:vertical;box-sizing:border-box"></textarea><div class="sheet-act"><button class="btn-ghost" data-act="closeModal">取消</button><button class="btn-primary" data-act="doImport">恢复</button></div></div></div>';
+  $("#modal").innerHTML='<div class="mask" data-act="maskClose"><div class="sheet" data-sheet="1"><h3>导入恢复</h3><p style="font-size:13px;color:var(--muted);line-height:1.6">把之前导出的 JSON 备份粘贴到这里，确认后会覆盖当前数据。</p><textarea id="impText" placeholder="在此粘贴 JSON 备份..." style="width:100%;height:240px;font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;padding:10px;border:1px solid var(--line);border-radius:10px;resize:vertical;box-sizing:border-box"></textarea><div class="sheet-act"><button class="btn-ghost" data-act="closeModal">取消</button><button class="btn-pri" data-act="doImport">恢复</button></div></div></div>';
 }
 
 /* ---------- actions ---------- */
@@ -4104,7 +4133,7 @@ function actNote(a,el,id){
     db.notes.unshift(nn);ui.noteId=nn.id;save();render();return true;
   }
   if(a==="openNote"){flushNoteEditor();ui.noteId=id;render();return true;}
-  if(a==="delNote"){ui.noteDel=id;confirmBox("确定删除这篇笔记吗？删除后 6 秒内可撤销找回。","delNoteYes");return true;}
+  if(a==="delNote"){ui.noteDel=id;confirmBox("确定删除这篇笔记吗？删除后 6 秒内可撤销找回。","delNoteYes",{danger:1,ok:"删除"});return true;}
   if(a==="delNoteYes"){
     var di2=-1;for(var qi=0;qi<db.notes.length;qi++)if(db.notes[qi].id===ui.noteDel){di2=qi;break}
     if(di2<0){closeModal();return true;}
@@ -4243,7 +4272,7 @@ function actProject(a,el,id){
     }
     save();closeModal();render();toast("项目已保存");return true;
   }
-  if(a==="delProject"){ui.editing=id;confirmBox("删除项目后，该项目下的任务会变成「未归类」，任务本身不会丢失。6 秒内可以撤销。","delProjectYes");return true}
+  if(a==="delProject"){ui.editing=id;confirmBox("删除项目后，该项目下的任务会变成「未归类」，任务本身不会丢失。6 秒内可以撤销。","delProjectYes",{danger:1,ok:"删除"});return true}
   if(a==="delProjectYes"){
     var pi=-1;for(var q2=0;q2<db.projects.length;q2++)if(db.projects[q2].id===ui.editing){pi=q2;break}
     if(pi<0){closeModal();return true}
@@ -4390,7 +4419,7 @@ function actData(a,el,id){
     tryImport(v);return true;
   }
   if(a==="importYes"){if(window.__pendingImport){db=window.__pendingImport;window.__pendingImport=null;undoBuf=null;saveNow();closeModal();render();toast("已恢复 "+db.tasks.length+" 个任务");}return true}
-  if(a==="reseed"){confirmBox("这会覆盖当前所有数据并恢复为示例数据，确定吗？","reseedYes");return true}
+  if(a==="reseed"){confirmBox("这会覆盖当前所有数据并恢复为示例数据，确定吗？","reseedYes",{danger:1,ok:"覆盖恢复"});return true}
   if(a==="reseedYes"){db=demo();undoBuf=null;saveNow();closeModal();render();toast("示例数据已恢复");return true}
   /* D1：把示例数据变成"可选动作"而不是"首启强灌" */
   if(a==="loadDemo"){confirmBox("载入后会在这里放一组示例数据，方便你先熟悉功能。随时可以一键清空。确定载入吗？","loadDemoYes");return true}
@@ -4402,7 +4431,7 @@ function actData(a,el,id){
   }
   if(a==="keepDemo"){db.demoSeeded=false;save();render();toast("已保留这些内容");return true}
   if(a==="onboardDone"){try{localStorage.setItem("onboardDone","1")}catch(e){}renderMain();return true}
-  if(a==="clearAll"){confirmBox("这会清空全部项目和任务，且无法撤销。建议先导出备份。确定清空吗？","clearYes");return true}
+  if(a==="clearAll"){confirmBox("这会清空全部项目和任务，且无法撤销。建议先导出备份。确定清空吗？","clearYes",{danger:1,ok:"清空"});return true}
   if(a==="clearYes"){
     db=normalizeAll(emptyData());ui.pid="all";ui.cid="all";ui.tag="";ui.smart=null;ui.view="today";ui.segAll=undefined;undoBuf=null;
     saveNow();closeModal();render();toast("已清空");return true;
@@ -4439,7 +4468,7 @@ function actReport(a,el,id){
     return true;
   }
   if(a==="openDataDir"){invoke("reveal_dir",{which:"data"}).then(function(){toast("已打开数据目录")}).catch(function(e){toast("打开失败："+(e&&e.message?e.message:e))});return true}
-  if(a==="changeDataDir"){invoke("set_data_dir",{}).then(function(newDir){if(newDir){ui.dataDir=newDir;toast("数据已迁移到新目录，重启后生效。路径："+newDir);confirmBox("数据目录已更改，需要重启应用才能生效。立即重启？","restartApp")}else{toast("已取消")}}).catch(function(e){toast("设置失败："+(e&&e.message?e.message:e))});return true}
+  if(a==="changeDataDir"){invoke("set_data_dir",{}).then(function(newDir){if(newDir){ui.dataDir=newDir;toast("数据已迁移到新目录，重启后生效。路径："+newDir);confirmBox("数据目录已更改，需要重启应用才能生效。立即重启？","restartApp",{ok:"重启"})}else{toast("已取消")}}).catch(function(e){toast("设置失败："+(e&&e.message?e.message:e))});return true}
   if(a==="openSnapDir"){invoke("reveal_dir",{which:"snapshots"}).then(function(){toast("已打开快照目录")}).catch(function(e){toast("打开失败："+(e&&e.message?e.message:e))});return true}
   if(a==="refreshSnapInfo"){refreshSnapInfo().then(function(){openSettings();toast("已刷新")}).catch(function(e){toast("刷新失败："+(e&&e.message?e.message:e))});return true}
   if(a==="aiTest"){
@@ -4574,7 +4603,7 @@ document.addEventListener("click",function(e){
     t4.due=a==="pushToday"?today():ymd(shift(new Date(),1));
     save();render();toast("截止日已改为 "+t4.due);return;
   }
-  if(a==="del"){ui.editing=id;confirmBox("确定删除这个任务及其所有子任务吗？删除后 6 秒内可以点「撤销」找回。","delYes");return}
+  if(a==="del"){ui.editing=id;confirmBox("确定删除这个任务及其所有子任务吗？删除后 6 秒内可以点「撤销」找回。","delYes",{danger:1,ok:"删除"});return}
   if(a==="delYes"){
     var di=-1;for(var q1=0;q1<db.tasks.length;q1++)if(db.tasks[q1].id===ui.editing){di=q1;break}
     if(di<0){closeModal();return}
